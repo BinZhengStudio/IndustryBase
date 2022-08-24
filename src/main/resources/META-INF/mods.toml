@@ -6,7 +6,7 @@ issueTrackerURL="https://github.com/BinZhengStudio/LargeProjects/issues" #option
 [[mods]]
 modId="largeprojects"
 version="${file.jarVersion}"
-displayName="Large Projects"
+displayName="LargeProjects"
 #updateJSONURL="https://change.me.example.invalid/updates.json" #optional
 displayURL="https://github.com/BinZhengStudio/LargeProjects/" #optional
 logoFile="largeprojects.png" #optional

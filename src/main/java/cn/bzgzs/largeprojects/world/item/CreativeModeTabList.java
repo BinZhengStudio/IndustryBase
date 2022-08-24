@@ -7,7 +7,7 @@ public class CreativeModeTabList {
 	public static final CreativeModeTab LARGEPROJECTS = new CreativeModeTab("largeprojects") {
 		@Override
 		public ItemStack makeIcon() {
-			return new ItemStack(ItemList.TEST.get());
+			return new ItemStack(ItemList.DYNAMO.get());
 		}
 	};
 }

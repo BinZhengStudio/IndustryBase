@@ -1,6 +1,6 @@
 package cn.bzgzs.largeprojects.world.level.block;
 
-import cn.bzgzs.largeprojects.world.level.block.entity.DynamoBlockEntity;
+import cn.bzgzs.largeprojects.world.level.block.entity.TransmissionRodBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -12,37 +12,37 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import org.jetbrains.annotations.Nullable;
 
-public class DynamoBlock extends BaseEntityBlock {
-	public static final DirectionProperty FACING = BlockStateProperties.FACING;
+public class TransmissionRodBlock extends BaseEntityBlock {
+	public static final EnumProperty<Direction.Axis> AXIS = BlockStateProperties.AXIS;
 
-	public DynamoBlock() {
+	public TransmissionRodBlock() {
 		super(Properties.copy(Blocks.IRON_BLOCK));
-		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
-	}
-
-	@Override
-	@SuppressWarnings("deprecation")
-	public RenderShape getRenderShape(BlockState pState) {
-		return RenderShape.MODEL;
+		this.registerDefaultState(this.stateDefinition.any().setValue(AXIS, Direction.Axis.X));
 	}
 
 	@Nullable
 	@Override
 	public BlockState getStateForPlacement(BlockPlaceContext context) {
-		return this.defaultBlockState().setValue(FACING, context.getNearestLookingDirection().getOpposite());
+		return this.defaultBlockState().setValue(AXIS, context.getClickedFace().getAxis());
 	}
 
 	@Override
-	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-		builder.add(FACING);
+	@SuppressWarnings("deprecation")
+	public RenderShape getRenderShape(BlockState state) {
+		return RenderShape.ENTITYBLOCK_ANIMATED;
 	}
 
 	@Nullable
 	@Override
 	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-		return new DynamoBlockEntity(pos, state);
+		return new TransmissionRodBlockEntity(pos, state);
+	}
+
+	@Override
+	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+		builder.add(AXIS);
 	}
 }

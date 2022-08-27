@@ -12,4 +12,5 @@ public class BlockEntityTypeList {
 	public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, LargeProjects.MODID);
 
 	public static final RegistryObject<BlockEntityType<DynamoBlockEntity>> DYNAMO = BLOCK_ENTITY_TYPES.register("dynamo", () -> BlockEntityType.Builder.of(DynamoBlockEntity::new, BlockList.DYNAMO.get()).build(DSL.remainderType()));
+	public static final RegistryObject<BlockEntityType<TransmissionRodBlockEntity>> TRANSMISSION_ROD = BLOCK_ENTITY_TYPES.register("transmission_rod", () -> BlockEntityType.Builder.of(TransmissionRodBlockEntity::new, BlockList.TRANSMISSION_ROD.get()).build(DSL.remainderType()));
 }

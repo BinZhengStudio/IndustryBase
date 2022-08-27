@@ -14,8 +14,38 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DynamoBlockEntity extends BlockEntity {
-	private LazyOptional<IEnergyStorage> forgeEnergy;
 	private double storageFE;
+	private final LazyOptional<IEnergyStorage> forgeEnergy = LazyOptional.of(() -> new IEnergyStorage() {
+		@Override
+		public int receiveEnergy(int maxReceive, boolean simulate) {
+			return 0;
+		}
+
+		@Override
+		public int extractEnergy(int maxExtract, boolean simulate) {
+			return 0;
+		}
+
+		@Override
+		public int getEnergyStored() {
+			return 0;
+		}
+
+		@Override
+		public int getMaxEnergyStored() {
+			return 0;
+		}
+
+		@Override
+		public boolean canExtract() {
+			return true;
+		}
+
+		@Override
+		public boolean canReceive() {
+			return false;
+		}
+	});
 
 	public DynamoBlockEntity(BlockPos pos, BlockState state) {
 		super(BlockEntityTypeList.DYNAMO.get(), pos, state);

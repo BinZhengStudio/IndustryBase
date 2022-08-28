@@ -26,15 +26,15 @@ public class BlockConnectNetwork implements IBlockNetwork {
 
 	@Override
 	public BlockPos root(BlockPos node) {
-		return this.components.containsKey(node) ? this.components.get(node).iterator().next() : node;
+		return this.components.containsKey(node) ? this.components.get(node).iterator().next() : node.immutable();
 	}
 
 	@Override
-	public void cut(BlockPos nodePos, Direction direction, ConnectivityListener afterSplit) {
-		if (this.connections.remove(nodePos, direction)) {
-			BlockPos another = nodePos.offset(direction.getNormal());
+	public void cut(BlockPos node, Direction direction, ConnectivityListener afterSplit) {
+		if (this.connections.remove(node, direction)) {
+			BlockPos another = node.offset(direction.getNormal());
 			this.connections.remove(another, direction.getOpposite());
-			BFSIterator nodeIterator = new BFSIterator(nodePos);
+			BFSIterator nodeIterator = new BFSIterator(node);
 			BFSIterator anotherIterator = new BFSIterator(another);
 
 			while (nodeIterator.hasNext()) {
@@ -48,7 +48,7 @@ public class BlockConnectNetwork implements IBlockNetwork {
 				return;
 			}
 
-			Set<BlockPos> primaryComponent = this.components.get(nodePos), secondaryComponent;
+			Set<BlockPos> primaryComponent = this.components.get(node), secondaryComponent;
 			BlockPos primaryNode = primaryComponent.iterator().next();
 			Set<BlockPos> searched = nodeIterator.getSearched();
 
@@ -72,28 +72,29 @@ public class BlockConnectNetwork implements IBlockNetwork {
 	}
 
 	@Override
-	public void link(BlockPos nodePos, Direction direction, ConnectivityListener beforeMerge) {
-		if (this.connections.put(nodePos, direction)) {
-			BlockPos connectPos = nodePos.offset(direction.getNormal());
+	public void link(BlockPos node, Direction direction, ConnectivityListener beforeMerge) {
+		BlockPos secondary = node.immutable();
+		if (this.connections.put(secondary, direction)) {
+			BlockPos connectPos = secondary.offset(direction.getNormal());
 			this.connections.put(connectPos, direction.getOpposite());
 			Set<BlockPos> primaryComponent = this.components.get(connectPos);
-			Set<BlockPos> secondaryComponent = this.components.get(nodePos);
+			Set<BlockPos> secondaryComponent = this.components.get(secondary);
 
 			if (primaryComponent == null && secondaryComponent == null) {
 				Set<BlockPos> union = Sets.newLinkedHashSet();
-				beforeMerge.onChange(nodePos, connectPos);
-				this.components.put(nodePos, union);
+				beforeMerge.onChange(secondary, connectPos);
+				this.components.put(secondary, union);
 				this.components.put(connectPos, union);
-				union.add(nodePos);
+				union.add(secondary);
 				union.add(connectPos);
 			} else if (primaryComponent == null) {
 				beforeMerge.onChange(secondaryComponent.iterator().next(), connectPos);
 				this.components.put(connectPos, secondaryComponent);
 				secondaryComponent.add(connectPos);
 			} else if (secondaryComponent == null) {
-				beforeMerge.onChange(primaryComponent.iterator().next(), nodePos);
-				this.components.put(nodePos, primaryComponent);
-				primaryComponent.add(nodePos);
+				beforeMerge.onChange(primaryComponent.iterator().next(), secondary);
+				this.components.put(secondary, primaryComponent);
+				primaryComponent.add(secondary);
 			} else if (primaryComponent != secondaryComponent) {
 				beforeMerge.onChange(primaryComponent.iterator().next(), secondaryComponent.iterator().next());
 				Set<BlockPos> union = Sets.newLinkedHashSet(Sets.union(primaryComponent, secondaryComponent));
@@ -107,6 +108,7 @@ public class BlockConnectNetwork implements IBlockNetwork {
 		private final Queue<BlockPos> queue = Queues.newArrayDeque();
 
 		public BFSIterator(BlockPos node) {
+			node = node.immutable();
 			this.searched.add(node);
 			this.queue.offer(node);
 		}

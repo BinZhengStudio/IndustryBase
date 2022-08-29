@@ -1,9 +1,13 @@
 package cn.bzgzs.largeprojects.world.level.block.entity;
 
+import cn.bzgzs.largeprojects.api.CapabilityList;
+import cn.bzgzs.largeprojects.api.energy.IMechanicalTransmit;
+import cn.bzgzs.largeprojects.api.energy.TransmitNetwork;
 import cn.bzgzs.largeprojects.world.level.block.DynamoBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
@@ -33,7 +37,7 @@ public class DynamoBlockEntity extends BlockEntity {
 
 		@Override
 		public int getMaxEnergyStored() {
-			return 0;
+			return Integer.MAX_VALUE; // TODO
 		}
 
 		@Override
@@ -47,14 +51,46 @@ public class DynamoBlockEntity extends BlockEntity {
 		}
 	});
 
+	private final LazyOptional<IMechanicalTransmit> transmit = LazyOptional.of(() -> new IMechanicalTransmit() {
+		private final TransmitNetwork network = TransmitNetwork.Factory.get(DynamoBlockEntity.this.level);
+
+		@Override
+		public int getPower() {
+			return 0;
+		}
+
+		@Override
+		public int getResistance() {
+			return 1;
+		}
+
+		@Override
+		public double getSpeed() {
+			return this.network.speed(DynamoBlockEntity.this.worldPosition);
+		}
+
+		@Override
+		public boolean canExtract() {
+			return false;
+		}
+
+		@Override
+		public boolean canReceive() {
+			return true;
+		}
+	});
+
 	public DynamoBlockEntity(BlockPos pos, BlockState state) {
 		super(BlockEntityTypeList.DYNAMO.get(), pos, state);
 	}
 
-	@Override
+	public static void serverTick(Level level, BlockPos pos, BlockState state, DynamoBlockEntity blockEntity) {
+	}
+
+		@Override
 	public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
 		if (side == this.getBlockState().getValue(DynamoBlock.FACING)) {
-			return super.getCapability(cap, side); // TODO
+			return cap == CapabilityList.MECHANICAL_TRANSMIT ? this.transmit.cast() : super.getCapability(cap, side);
 		} else {
 			return cap == ForgeCapabilities.ENERGY ? this.forgeEnergy.cast() : super.getCapability(cap, side);
 		}

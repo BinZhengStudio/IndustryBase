@@ -16,6 +16,8 @@ public interface IMechanicalTransmit {
 	 */
 	int getResistance();
 
+	double getSpeed();
+
 	/**
 	 * 能否输出
 	 */

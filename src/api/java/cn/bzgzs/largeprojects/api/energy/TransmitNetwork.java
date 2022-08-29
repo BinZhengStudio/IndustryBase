@@ -201,7 +201,7 @@ public class TransmitNetwork {
 		}
 
 		@SubscribeEvent
-		public static void onSave(LevelEvent.Save event) {
+		public static void onSave(LevelEvent.Save event) { // TODO 可能由各BlockEntity接管
 			if (INSTANCES.containsKey(event.getLevel())) {
 				INSTANCES.get(event.getLevel()).markDirty();
 			}

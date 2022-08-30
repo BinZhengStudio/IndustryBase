@@ -3,12 +3,12 @@ package cn.bzgzs.largeprojects.world.level.block.entity;
 import cn.bzgzs.largeprojects.api.CapabilityList;
 import cn.bzgzs.largeprojects.api.energy.IMechanicalTransmit;
 import cn.bzgzs.largeprojects.api.energy.TransmitNetwork;
+import cn.bzgzs.largeprojects.api.world.level.block.entity.BaseTransmitBlockEntity;
 import cn.bzgzs.largeprojects.world.level.block.DynamoBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
@@ -17,7 +17,7 @@ import net.minecraftforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DynamoBlockEntity extends BlockEntity {
+public class DynamoBlockEntity extends BaseTransmitBlockEntity {
 	private double storageFE;
 	private final LazyOptional<IEnergyStorage> forgeEnergy = LazyOptional.of(() -> new IEnergyStorage() {
 		@Override

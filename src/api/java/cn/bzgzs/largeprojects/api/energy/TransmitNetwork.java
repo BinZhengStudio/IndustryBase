@@ -2,6 +2,7 @@ package cn.bzgzs.largeprojects.api.energy;
 
 import cn.bzgzs.largeprojects.api.CapabilityList;
 import cn.bzgzs.largeprojects.api.IMachine;
+import cn.bzgzs.largeprojects.api.event.TransmitNetworkEvent;
 import cn.bzgzs.largeprojects.api.util.BlockConnectNetwork;
 import com.google.common.collect.*;
 import net.minecraft.core.BlockPos;
@@ -9,10 +10,10 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.*;
@@ -126,14 +127,17 @@ public class TransmitNetwork {
 		for (Runnable runnable = this.tasks.poll(); runnable != null; runnable = this.tasks.poll()) {
 			runnable.run();
 		}
-		this.updateSpeedNetworks.clear();
-		this.updateSpeedNetworks.addAll(this.updatePower());
-		this.updateSpeedNetworks.addAll(this.updateResistance());
 	}
 
 	private void tickEnd() {
-		this.updateSpeedNetworks.forEach(root -> this.speedCollection.put(root, (double) this.powerCollection.count(root) / this.resistanceCollection.count(root)));
 		this.updateSpeedNetworks.clear();
+		this.updateSpeedNetworks.addAll(this.updatePower());
+		this.updateSpeedNetworks.addAll(this.updateResistance());
+		if (!this.updateSpeedNetworks.isEmpty()) {
+			this.updateSpeedNetworks.forEach(root -> this.speedCollection.put(root, (double) this.powerCollection.count(root) / this.resistanceCollection.count(root)));
+			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateSpeedEvent(this.level, this.updateSpeedNetworks));
+			this.updateSpeedNetworks.clear();
+		}
 	}
 
 	public boolean markPowerChanged(BlockPos pos) {
@@ -141,21 +145,25 @@ public class TransmitNetwork {
 	}
 
 	@SuppressWarnings("deprecation")
-	public Set<BlockPos> updatePower() {
+	private Set<BlockPos> updatePower() {
 		Set<BlockPos> updated = new HashSet<>();
-		this.updatePowerNodes.forEach(pos -> {
-			AtomicInteger power = new AtomicInteger();
-			BlockPos root = this.network.root(pos);
-			if (!updated.contains(root)) {
-				this.machineMap.get(root).forEach(machinePos -> {
-					if (this.level.isAreaLoaded(machinePos, 0)) {
-						Optional.ofNullable(this.level.getBlockEntity(machinePos)).ifPresent(blockEntity -> blockEntity.getCapability(CapabilityList.MECHANICAL_TRANSMIT, this.network.getConnections().get(machinePos).iterator().next()).ifPresent(transmit -> power.addAndGet(transmit.getPower())));
-					}
-				});
-				updated.add(root);
-			}
-		});
-		this.updatePowerNodes.clear();
+		if (!this.updatePowerNodes.isEmpty()) {
+			this.updatePowerNodes.forEach(pos -> {
+				AtomicInteger power = new AtomicInteger();
+				BlockPos root = this.network.root(pos);
+				if (!updated.contains(root)) {
+					this.machineMap.get(root).forEach(machinePos -> {
+						if (this.level.isAreaLoaded(machinePos, 0)) {
+							Optional.ofNullable(this.level.getBlockEntity(machinePos)).ifPresent(blockEntity -> blockEntity.getCapability(CapabilityList.MECHANICAL_TRANSMIT, this.network.getConnections().get(machinePos).iterator().next()).ifPresent(transmit -> power.addAndGet(transmit.getPower())));
+						}
+					});
+					this.powerCollection.setCount(root, power.get());
+					updated.add(root);
+				}
+			});
+			this.updatePowerNodes.clear();
+			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdatePowerEvent(this.level, updated));
+		}
 		return updated;
 	}
 
@@ -164,22 +172,40 @@ public class TransmitNetwork {
 	}
 
 	@SuppressWarnings("deprecation")
-	public Set<BlockPos> updateResistance() {
+	private Set<BlockPos> updateResistance() {
 		Set<BlockPos> updated = new HashSet<>();
-		this.updateResistanceNodes.forEach(pos -> {
-			AtomicInteger resistance = new AtomicInteger();
-			BlockPos root = this.network.root(pos);
-			if (!updated.contains(root)) {
-				this.machineMap.get(root).forEach(machinePos -> {
-					if (this.level.isAreaLoaded(machinePos, 0)) {
-						Optional.ofNullable(this.level.getBlockEntity(machinePos)).ifPresent(blockEntity -> blockEntity.getCapability(CapabilityList.MECHANICAL_TRANSMIT, this.network.getConnections().get(machinePos).iterator().next()).ifPresent(transmit -> resistance.addAndGet(transmit.getResistance())));
-					}
-				});
-				updated.add(root);
-			}
-		});
-		this.updateResistanceNodes.clear();
+		if (!this.updateResistanceNodes.isEmpty()) {
+			this.updateResistanceNodes.forEach(pos -> {
+				AtomicInteger resistance = new AtomicInteger();
+				BlockPos root = this.network.root(pos);
+				if (!updated.contains(root)) {
+					this.machineMap.get(root).forEach(machinePos -> {
+						if (this.level.isAreaLoaded(machinePos, 0)) {
+							Optional.ofNullable(this.level.getBlockEntity(machinePos)).ifPresent(blockEntity -> blockEntity.getCapability(CapabilityList.MECHANICAL_TRANSMIT, this.network.getConnections().get(machinePos).iterator().next()).ifPresent(transmit -> resistance.addAndGet(transmit.getResistance())));
+						}
+					});
+					this.resistanceCollection.setCount(root, resistance.get());
+					updated.add(root);
+				}
+			});
+			this.updateResistanceNodes.clear();
+			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateResistanceEvent(this.level, updated));
+		}
 		return updated;
+	}
+
+	@SuppressWarnings("unused")
+	public Multiset<BlockPos> getPowerCollection() {
+		return this.powerCollection;
+	}
+
+	@SuppressWarnings("unused")
+	public Multiset<BlockPos> getResistanceCollection() {
+		return this.resistanceCollection;
+	}
+
+	public Map<BlockPos, Double> getSpeedCollection() {
+		return this.speedCollection;
 	}
 
 	@SuppressWarnings("deprecation")
@@ -214,7 +240,7 @@ public class TransmitNetwork {
 
 		@SubscribeEvent
 		public static void onWorldTick(TickEvent.LevelTickEvent event) {
-			if (LogicalSide.SERVER.equals(event.side)) {
+			if (event.side.isServer()) {
 				switch (event.phase) {
 					case START -> get(event.level).tickStart();
 					case END -> get(event.level).tickEnd();

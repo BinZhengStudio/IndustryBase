@@ -11,14 +11,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public class TransmitSpeedSyncPacket extends CustomPacket {
+public class TransmitInitialSpeedPacket extends CustomPacket {
 	private final Map<BlockPos, Double> speedCollection;
 
-	public TransmitSpeedSyncPacket(Map<BlockPos, Double> speedCollection) {
+	public TransmitInitialSpeedPacket(Map<BlockPos, Double> speedCollection) {
 		this.speedCollection = speedCollection;
 	}
 
-	public TransmitSpeedSyncPacket(FriendlyByteBuf buf) {
+	public TransmitInitialSpeedPacket(FriendlyByteBuf buf) {
 		this.speedCollection = buf.readMap(FriendlyByteBuf::readBlockPos, FriendlyByteBuf::readDouble);
 	}
 

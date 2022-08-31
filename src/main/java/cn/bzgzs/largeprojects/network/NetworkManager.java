@@ -1,6 +1,7 @@
 package cn.bzgzs.largeprojects.network;
 
 import cn.bzgzs.largeprojects.LargeProjects;
+import cn.bzgzs.largeprojects.network.server.TransmitInitialSpeedPacket;
 import cn.bzgzs.largeprojects.network.server.TransmitSpeedSyncPacket;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -16,6 +17,7 @@ public class NetworkManager {
 	private static int id = 0;
 
 	public static void register() {
+		networkThread(TransmitInitialSpeedPacket.class, TransmitInitialSpeedPacket::new, NetworkDirection.PLAY_TO_CLIENT);
 		networkThread(TransmitSpeedSyncPacket.class, TransmitSpeedSyncPacket::new, NetworkDirection.PLAY_TO_CLIENT);
 	}
 

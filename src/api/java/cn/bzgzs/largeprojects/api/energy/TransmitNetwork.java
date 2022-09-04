@@ -66,7 +66,8 @@ public class TransmitNetwork {
 
 	public double speed(BlockPos pos) {
 		BlockPos root = this.network.root(pos);
-		return this.speedCollection.get(root);
+		Double speed = this.speedCollection.get(root);
+		return speed != null ? speed : 0.0D;
 	}
 
 	public void removeBlock(BlockPos pos, Runnable callback) {
@@ -116,7 +117,7 @@ public class TransmitNetwork {
 		return false;
 	}
 
-	private void beforeMerge(BlockPos primaryNode, BlockPos secondaryNode) { // TODO 不适用（并能量）
+	private void beforeMerge(BlockPos primaryNode, BlockPos secondaryNode) {
 		this.markPowerChanged(primaryNode);
 		this.markResistanceChanged(primaryNode);
 	}
@@ -148,7 +149,7 @@ public class TransmitNetwork {
 
 	@SuppressWarnings("deprecation")
 	private Multiset<BlockPos> updatePower() {
-		Multiset<BlockPos> updatedData = HashMultiset.create();
+ 		Multiset<BlockPos> updatedData = HashMultiset.create();
 		if (!this.updatePowerNodes.isEmpty()) {
 			this.updatePowerNodes.forEach(pos -> {
 				AtomicInteger power = new AtomicInteger();
@@ -156,7 +157,9 @@ public class TransmitNetwork {
 				if (!updatedData.contains(root)) {
 					this.machineMap.get(root).forEach(machinePos -> {
 						if (this.level.isAreaLoaded(machinePos, 0)) {
-							Optional.ofNullable(this.level.getBlockEntity(machinePos)).ifPresent(blockEntity -> blockEntity.getCapability(CapabilityList.MECHANICAL_TRANSMIT, this.network.getConnections().get(machinePos).iterator().next()).ifPresent(transmit -> power.addAndGet(transmit.getPower())));
+							Optional.ofNullable(this.level.getBlockEntity(machinePos)).ifPresent(blockEntity -> { // TODO side
+								blockEntity.getCapability(CapabilityList.MECHANICAL_TRANSMIT, this.network.getConnections().get(machinePos).iterator().next()).ifPresent(transmit -> power.addAndGet(transmit.getPower()));
+							});
 						}
 					});
 					this.powerCollection.setCount(root, power.get());
@@ -183,7 +186,9 @@ public class TransmitNetwork {
 				if (!updatedData.contains(root)) {
 					this.machineMap.get(root).forEach(machinePos -> {
 						if (this.level.isAreaLoaded(machinePos, 0)) {
-							Optional.ofNullable(this.level.getBlockEntity(machinePos)).ifPresent(blockEntity -> blockEntity.getCapability(CapabilityList.MECHANICAL_TRANSMIT, this.network.getConnections().get(machinePos).iterator().next()).ifPresent(transmit -> resistance.addAndGet(transmit.getResistance())));
+							Optional.ofNullable(this.level.getBlockEntity(machinePos)).ifPresent(blockEntity -> { // TODO side
+								blockEntity.getCapability(CapabilityList.MECHANICAL_TRANSMIT, this.network.getConnections().get(machinePos).iterator().next()).ifPresent(transmit -> resistance.addAndGet(transmit.getResistance()));
+							});
 						}
 					});
 					this.resistanceCollection.setCount(root, resistance.get());

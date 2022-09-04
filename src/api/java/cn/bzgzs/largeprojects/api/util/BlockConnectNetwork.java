@@ -75,22 +75,22 @@ public class BlockConnectNetwork implements IBlockNetwork {
 	public void link(BlockPos node, Direction direction, ConnectivityListener beforeMerge) {
 		BlockPos secondary = node.immutable();
 		if (this.connections.put(secondary, direction)) {
-			BlockPos connectPos = secondary.offset(direction.getNormal());
-			this.connections.put(connectPos, direction.getOpposite());
-			Set<BlockPos> primaryComponent = this.components.get(connectPos);
+			BlockPos primary = secondary.offset(direction.getNormal());
+			this.connections.put(primary, direction.getOpposite());
+			Set<BlockPos> primaryComponent = this.components.get(primary);
 			Set<BlockPos> secondaryComponent = this.components.get(secondary);
 
 			if (primaryComponent == null && secondaryComponent == null) {
 				Set<BlockPos> union = Sets.newLinkedHashSet();
-				beforeMerge.onChange(secondary, connectPos);
+				beforeMerge.onChange(secondary, primary);
 				this.components.put(secondary, union);
-				this.components.put(connectPos, union);
+				this.components.put(primary, union);
 				union.add(secondary);
-				union.add(connectPos);
+				union.add(primary);
 			} else if (primaryComponent == null) {
-				beforeMerge.onChange(secondaryComponent.iterator().next(), connectPos);
-				this.components.put(connectPos, secondaryComponent);
-				secondaryComponent.add(connectPos);
+				beforeMerge.onChange(secondaryComponent.iterator().next(), primary);
+				this.components.put(primary, secondaryComponent);
+				secondaryComponent.add(primary);
 			} else if (secondaryComponent == null) {
 				beforeMerge.onChange(primaryComponent.iterator().next(), secondary);
 				this.components.put(secondary, primaryComponent);

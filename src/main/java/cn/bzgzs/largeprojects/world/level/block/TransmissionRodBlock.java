@@ -19,7 +19,7 @@ public class TransmissionRodBlock extends BaseEntityBlock {
 	public static final EnumProperty<Direction.Axis> AXIS = BlockStateProperties.AXIS;
 
 	public TransmissionRodBlock() {
-		super(Properties.copy(Blocks.IRON_BLOCK));
+		super(Properties.copy(Blocks.IRON_BLOCK).noOcclusion());
 		this.registerDefaultState(this.stateDefinition.any().setValue(AXIS, Direction.Axis.X));
 	}
 

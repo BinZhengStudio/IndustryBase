@@ -12,11 +12,15 @@ public class BlockConnectNetwork implements IBlockNetwork {
 
 	public BlockConnectNetwork() {
 		this.components = new HashMap<>();
-		this.connections = Multimaps.newSetMultimap(Maps.newHashMap(), () -> EnumSet.noneOf(Direction.class));
+		this.connections = Multimaps.newSetMultimap(new HashMap<>(), () -> EnumSet.noneOf(Direction.class));
 	}
 
-	public SetMultimap<BlockPos, Direction> getConnections() {
-		return this.connections;
+	public Set<BlockPos> getComponents(BlockPos pos) {
+		return ImmutableSet.copyOf(this.components.getOrDefault(pos, ImmutableSet.of(pos)));
+	}
+
+	public Set<Direction> getConnections(BlockPos root) {
+		return this.connections.containsKey(root) ? ImmutableSet.copyOf(this.connections.get(root)) : EnumSet.allOf(Direction.class); // TODO
 	}
 
 	@Override
@@ -26,7 +30,7 @@ public class BlockConnectNetwork implements IBlockNetwork {
 
 	@Override
 	public BlockPos root(BlockPos node) {
-		return this.components.containsKey(node) ? this.components.get(node).iterator().next() : node.immutable();
+		return this.components.getOrDefault(node, ImmutableSet.of(node.immutable())).iterator().next();
 	}
 
 	@Override

@@ -23,11 +23,13 @@ public class TransmitNetwork {
 	private final LevelAccessor level;
 	private final BlockConnectNetwork network;
 	private final Queue<Runnable> tasks;
-	private final Set<BlockPos> updatePowerNodes;
-	private final Set<BlockPos> updateResistanceNodes;
+	private final Set<BlockPos> updatePowerNetworks;
+	private final Set<BlockPos> updateResistanceNetworks;
+	private final Set<BlockPos> updateRootNetworks;
 	private final Multiset<BlockPos> powerCollection; // BlockPos是中心块的坐标，出现个数为连通域总功率的数值
 	private final Multiset<BlockPos> resistanceCollection;
 	private final Map<BlockPos, Double> speedCollection;
+	private final Map<BlockPos, BlockPos> rootCollection;
 	private final SetMultimap<ChunkPos, BlockPos> chunks;
 	/**
 	 * 机器们。
@@ -41,11 +43,13 @@ public class TransmitNetwork {
 		this.level = level;
 		this.network = network;
 		this.tasks = Queues.newArrayDeque();
-		this.updatePowerNodes = new HashSet<>();
-		this.updateResistanceNodes = new HashSet<>();
+		this.updatePowerNetworks = new HashSet<>();
+		this.updateResistanceNetworks = new HashSet<>();
+		this.updateRootNetworks = new HashSet<>();
 		this.powerCollection = HashMultiset.create();
 		this.resistanceCollection = HashMultiset.create();
 		this.speedCollection = new HashMap<>();
+		this.rootCollection = new HashMap<>();
 		this.chunks = Multimaps.newSetMultimap(new HashMap<>(), HashSet::new);
 		this.machineMap = Multimaps.newSetMultimap(new HashMap<>(), HashSet::new);
 	}
@@ -54,18 +58,22 @@ public class TransmitNetwork {
 		return this.network.size(pos);
 	}
 
+	public BlockPos root(BlockPos pos) {
+		return this.level.isClientSide() ? this.rootCollection.getOrDefault(pos, pos) : this.network.root(pos);
+	}
+
 	public int totalPower(BlockPos pos) {
-		BlockPos root = this.network.root(pos);
+		BlockPos root = this.root(pos);
 		return this.powerCollection.count(root);
 	}
 
 	public int totalResistance(BlockPos pos) {
-		BlockPos root = this.network.root(pos);
+		BlockPos root = this.root(pos);
 		return this.resistanceCollection.count(root);
 	}
 
 	public double speed(BlockPos pos) {
-		BlockPos root = this.network.root(pos);
+		BlockPos root = this.root(pos);
 		Double speed = this.speedCollection.get(root);
 		return speed != null ? speed : 0.0D;
 	}
@@ -73,6 +81,7 @@ public class TransmitNetwork {
 	public void removeBlock(BlockPos pos, Runnable callback) {
 		this.tasks.offer(() -> {
 			this.chunks.remove(new ChunkPos(pos), pos);
+			this.rootCollection.remove(pos);
 			this.machineMap.remove(this.network.root(pos), pos);
 			for (Direction side : Direction.values()) {
 				this.network.cut(pos, side, this::afterSplit);
@@ -86,6 +95,8 @@ public class TransmitNetwork {
 		this.markPowerChanged(secondaryNode);
 		this.markResistanceChanged(primaryNode);
 		this.markResistanceChanged(secondaryNode);
+		this.markRootChanged(primaryNode);
+		this.markRootChanged(secondaryNode);
 	}
 
 	public void addOrChangeBlock(BlockPos pos, Runnable callback) {
@@ -101,6 +112,7 @@ public class TransmitNetwork {
 			if (this.level.getBlockState(pos).getBlock() instanceof IMachine) { // 如果是机器则添加到对应map中
 				this.machineMap.put(this.network.root(pos), pos.immutable());
 			}
+//			this.rootCollection.put(pos, this.network.root(pos));
 			callback.run();
 		});
 	}
@@ -118,8 +130,10 @@ public class TransmitNetwork {
 	}
 
 	private void beforeMerge(BlockPos primaryNode, BlockPos secondaryNode) {
-		this.markPowerChanged(primaryNode);
+		this.markPowerChanged(primaryNode); // TODO 可通过增量的方式优化性能
 		this.markResistanceChanged(primaryNode);
+
+		this.markRootChanged(primaryNode);
 	}
 
 	private void tickStart() {
@@ -128,12 +142,69 @@ public class TransmitNetwork {
 		}
 	}
 
-	private void tickEnd() {
+	private void tickEnd() { // TODO 在连通域很大时有极大性能问题
+		this.updateSpeedCollection();
+		this.updateRootCollection();
+	}
+
+	public boolean markPowerChanged(BlockPos pos) {
+		return this.updatePowerNetworks.add(this.network.root(pos));
+	}
+
+	@SuppressWarnings("deprecation")
+	private Multiset<BlockPos> updatePower() {
+		Multiset<BlockPos> updatedData = HashMultiset.create();
+		if (!this.updatePowerNetworks.isEmpty()) {
+			this.updatePowerNetworks.forEach(root -> {
+				AtomicInteger power = new AtomicInteger();
+				this.machineMap.get(root).forEach(machinePos -> {
+					if (this.level.isAreaLoaded(machinePos, 0)) {
+						Optional.ofNullable(this.level.getBlockEntity(machinePos)).ifPresent(blockEntity -> { // TODO side
+							blockEntity.getCapability(CapabilityList.MECHANICAL_TRANSMIT, this.network.getConnections(root).iterator().next()).ifPresent(transmit -> power.addAndGet(transmit.getPower()));
+						});
+					}
+				});
+				this.powerCollection.setCount(root, power.get());
+				updatedData.setCount(root, power.get());
+			});
+			this.updatePowerNetworks.clear();
+			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdatePowerEvent(this.level, updatedData));
+		}
+		return updatedData;
+	}
+
+	public boolean markResistanceChanged(BlockPos pos) {
+		return this.updateResistanceNetworks.add(this.network.root(pos));
+	}
+
+	@SuppressWarnings("deprecation")
+	private Multiset<BlockPos> updateResistance() {
+		Multiset<BlockPos> updatedData = HashMultiset.create();
+		if (!this.updateResistanceNetworks.isEmpty()) {
+			this.updateResistanceNetworks.forEach(root -> {
+				AtomicInteger resistance = new AtomicInteger();
+				this.machineMap.get(root).forEach(machinePos -> {
+					if (this.level.isAreaLoaded(machinePos, 0)) {
+						Optional.ofNullable(this.level.getBlockEntity(machinePos)).ifPresent(blockEntity -> { // TODO side
+							blockEntity.getCapability(CapabilityList.MECHANICAL_TRANSMIT, this.network.getConnections(root).iterator().next()).ifPresent(transmit -> resistance.addAndGet(transmit.getResistance()));
+						});
+					}
+				});
+				this.resistanceCollection.setCount(root, resistance.get());
+				updatedData.setCount(root, resistance.get());
+			});
+			this.updateResistanceNetworks.clear();
+			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateResistanceEvent(this.level, updatedData));
+		}
+		return updatedData;
+	}
+
+	private void updateSpeedCollection() {
 		Set<BlockPos> updateSpeedNetworks = new HashSet<>();
-		Map<BlockPos, Double> updatedData = new HashMap<>();
 		updateSpeedNetworks.addAll(this.updatePower());
 		updateSpeedNetworks.addAll(this.updateResistance());
 		if (!updateSpeedNetworks.isEmpty()) {
+			Map<BlockPos, Double> updatedData = new HashMap<>();
 			updateSpeedNetworks.forEach(root -> {
 				double speed = (double) this.powerCollection.count(root) / this.resistanceCollection.count(root);
 				this.speedCollection.put(root, speed);
@@ -143,62 +214,20 @@ public class TransmitNetwork {
 		}
 	}
 
-	public boolean markPowerChanged(BlockPos pos) {
-		return this.updatePowerNodes.add(pos.immutable());
+	private boolean markRootChanged(BlockPos pos) {
+		return this.updateRootNetworks.add(this.network.root(pos));
 	}
 
-	@SuppressWarnings("deprecation")
-	private Multiset<BlockPos> updatePower() {
- 		Multiset<BlockPos> updatedData = HashMultiset.create();
-		if (!this.updatePowerNodes.isEmpty()) {
-			this.updatePowerNodes.forEach(pos -> {
-				AtomicInteger power = new AtomicInteger();
-				BlockPos root = this.network.root(pos);
-				if (!updatedData.contains(root)) {
-					this.machineMap.get(root).forEach(machinePos -> {
-						if (this.level.isAreaLoaded(machinePos, 0)) {
-							Optional.ofNullable(this.level.getBlockEntity(machinePos)).ifPresent(blockEntity -> { // TODO side
-								blockEntity.getCapability(CapabilityList.MECHANICAL_TRANSMIT, this.network.getConnections().get(machinePos).iterator().next()).ifPresent(transmit -> power.addAndGet(transmit.getPower()));
-							});
-						}
-					});
-					this.powerCollection.setCount(root, power.get());
-					updatedData.setCount(root, power.get());
-				}
-			});
-			this.updatePowerNodes.clear();
-			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdatePowerEvent(this.level, updatedData));
+	private void updateRootCollection() {
+		if (!this.updateRootNetworks.isEmpty()) {
+			Map<BlockPos, BlockPos> updatedData = new HashMap<>();
+			this.updateRootNetworks.forEach(root -> this.network.getComponents(root).forEach(pos -> {
+				this.rootCollection.put(pos, root);
+				updatedData.put(pos, root);
+			}));
+			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateRootEvent(this.level, updatedData));
+			this.updateRootNetworks.clear();
 		}
-		return updatedData;
-	}
-
-	public boolean markResistanceChanged(BlockPos pos) {
-		return this.updateResistanceNodes.add(pos.immutable());
-	}
-
-	@SuppressWarnings("deprecation")
-	private Multiset<BlockPos> updateResistance() {
-		Multiset<BlockPos> updatedData = HashMultiset.create();
-		if (!this.updateResistanceNodes.isEmpty()) {
-			this.updateResistanceNodes.forEach(pos -> {
-				AtomicInteger resistance = new AtomicInteger();
-				BlockPos root = this.network.root(pos);
-				if (!updatedData.contains(root)) {
-					this.machineMap.get(root).forEach(machinePos -> {
-						if (this.level.isAreaLoaded(machinePos, 0)) {
-							Optional.ofNullable(this.level.getBlockEntity(machinePos)).ifPresent(blockEntity -> { // TODO side
-								blockEntity.getCapability(CapabilityList.MECHANICAL_TRANSMIT, this.network.getConnections().get(machinePos).iterator().next()).ifPresent(transmit -> resistance.addAndGet(transmit.getResistance()));
-							});
-						}
-					});
-					this.resistanceCollection.setCount(root, resistance.get());
-					updatedData.setCount(root, resistance.get());
-				}
-			});
-			this.updateResistanceNodes.clear();
-			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateResistanceEvent(this.level, updatedData));
-		}
-		return updatedData;
 	}
 
 	@SuppressWarnings("unused")
@@ -213,6 +242,10 @@ public class TransmitNetwork {
 
 	public Map<BlockPos, Double> getSpeedCollection() {
 		return this.speedCollection;
+	}
+
+	public Map<BlockPos, BlockPos> getRootCollection() {
+		return this.rootCollection;
 	}
 
 	@SuppressWarnings("deprecation")

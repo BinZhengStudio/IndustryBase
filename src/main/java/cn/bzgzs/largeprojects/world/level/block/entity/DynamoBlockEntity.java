@@ -66,7 +66,7 @@ public class DynamoBlockEntity extends BaseTransmitBlockEntity {
 
 		@Override
 		public double getSpeed() {
-			return this.network.speed(DynamoBlockEntity.this.worldPosition);
+			return DynamoBlockEntity.this.getNetwork().speed(DynamoBlockEntity.this.worldPosition);
 		}
 
 		@Override

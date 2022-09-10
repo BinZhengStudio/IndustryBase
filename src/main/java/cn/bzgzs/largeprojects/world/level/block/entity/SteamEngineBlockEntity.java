@@ -2,7 +2,6 @@ package cn.bzgzs.largeprojects.world.level.block.entity;
 
 import cn.bzgzs.largeprojects.api.CapabilityList;
 import cn.bzgzs.largeprojects.api.energy.IMechanicalTransmit;
-import cn.bzgzs.largeprojects.api.energy.TransmitNetwork;
 import cn.bzgzs.largeprojects.api.world.level.block.entity.BaseTransmitBlockEntity;
 import cn.bzgzs.largeprojects.world.level.block.SteamEngineBlock;
 import net.minecraft.core.BlockPos;
@@ -15,11 +14,9 @@ import org.jetbrains.annotations.Nullable;
 
 public class SteamEngineBlockEntity extends BaseTransmitBlockEntity {
 	private final LazyOptional<IMechanicalTransmit> transmit = LazyOptional.of(() -> new IMechanicalTransmit() {
-		private final TransmitNetwork network = TransmitNetwork.Factory.get(SteamEngineBlockEntity.this.level);
-
 		@Override
 		public int getPower() {
-			return 100; // TODO
+			return 1; // TODO
 		}
 
 		@Override
@@ -29,7 +26,7 @@ public class SteamEngineBlockEntity extends BaseTransmitBlockEntity {
 
 		@Override
 		public double getSpeed() {
-			return this.network.speed(SteamEngineBlockEntity.this.worldPosition);
+			return SteamEngineBlockEntity.this.getNetwork().speed(SteamEngineBlockEntity.this.worldPosition);
 		}
 
 		@Override

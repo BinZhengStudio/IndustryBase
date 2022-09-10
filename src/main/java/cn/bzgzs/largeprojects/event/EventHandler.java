@@ -3,7 +3,8 @@ package cn.bzgzs.largeprojects.event;
 import cn.bzgzs.largeprojects.api.energy.TransmitNetwork;
 import cn.bzgzs.largeprojects.api.event.TransmitNetworkEvent;
 import cn.bzgzs.largeprojects.network.NetworkManager;
-import cn.bzgzs.largeprojects.network.server.TransmitInitialSpeedPacket;
+import cn.bzgzs.largeprojects.network.server.TransmitInitInfoPacket;
+import cn.bzgzs.largeprojects.network.server.TransmitRootSyncPacket;
 import cn.bzgzs.largeprojects.network.server.TransmitSpeedSyncPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,10 +16,10 @@ import net.minecraftforge.network.PacketDistributor;
 @Mod.EventBusSubscriber
 public class EventHandler {
 	@SubscribeEvent
-	public static void sendInitialSpeedToPlayer(PlayerEvent.PlayerLoggedInEvent event) {
+	public static void sendInitialInfoToPlayer(PlayerEvent.PlayerLoggedInEvent event) {
 		if (event.getEntity() instanceof ServerPlayer player) {
 			TransmitNetwork network = TransmitNetwork.Factory.get(player.level);
-			NetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new TransmitInitialSpeedPacket(network.getSpeedCollection()));
+			NetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new TransmitInitInfoPacket(network.getSpeedCollection(), network.getRootCollection()));
 		}
 	}
 
@@ -27,6 +28,15 @@ public class EventHandler {
 		if (event.getLevel() instanceof ServerLevel level) {
 			for (ServerPlayer player : level.getPlayers(player -> true)) {
 				NetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new TransmitSpeedSyncPacket(event.getUpdatedData()));
+			}
+		}
+	}
+	
+	@SubscribeEvent
+	public static void syncRootToClient(TransmitNetworkEvent.UpdateRootEvent event) {
+		if (event.getLevel() instanceof ServerLevel level) {
+			for (ServerPlayer player : level.getPlayers(player -> true)) {
+				NetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new TransmitRootSyncPacket(event.getUpdatedData()));
 			}
 		}
 	}

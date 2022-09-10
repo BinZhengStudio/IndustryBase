@@ -2,7 +2,6 @@ package cn.bzgzs.largeprojects.world.level.block.entity;
 
 import cn.bzgzs.largeprojects.api.CapabilityList;
 import cn.bzgzs.largeprojects.api.energy.IMechanicalTransmit;
-import cn.bzgzs.largeprojects.api.energy.TransmitNetwork;
 import cn.bzgzs.largeprojects.api.world.level.block.entity.BaseTransmitBlockEntity;
 import cn.bzgzs.largeprojects.world.level.block.TransmissionRodBlock;
 import net.minecraft.core.BlockPos;
@@ -15,8 +14,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class TransmissionRodBlockEntity extends BaseTransmitBlockEntity {
 	private final LazyOptional<IMechanicalTransmit> transmit = LazyOptional.of(() -> new IMechanicalTransmit() {
-		private final TransmitNetwork network = TransmitNetwork.Factory.get(TransmissionRodBlockEntity.this.level);
-
 		@Override
 		public int getPower() {
 			return 0;
@@ -29,7 +26,7 @@ public class TransmissionRodBlockEntity extends BaseTransmitBlockEntity {
 
 		@Override
 		public double getSpeed() {
-			return this.network.speed(TransmissionRodBlockEntity.this.worldPosition);
+			return TransmissionRodBlockEntity.this.getNetwork().speed(TransmissionRodBlockEntity.this.worldPosition);
 		}
 
 		@Override

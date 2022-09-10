@@ -19,6 +19,10 @@ public class BlockConnectNetwork implements IBlockNetwork {
 		return ImmutableSet.copyOf(this.components.getOrDefault(pos, ImmutableSet.of(pos)));
 	}
 
+	public boolean hasComponent(BlockPos pos) {
+		return this.components.containsKey(pos);
+	}
+
 	public Set<Direction> getConnections(BlockPos root) {
 		return this.connections.containsKey(root) ? ImmutableSet.copyOf(this.connections.get(root)) : EnumSet.allOf(Direction.class); // TODO
 	}

@@ -81,7 +81,10 @@ public class TransmitNetwork {
 	public void removeBlock(BlockPos pos, Runnable callback) {
 		this.tasks.offer(() -> {
 			this.chunks.remove(new ChunkPos(pos), pos);
+			this.speedCollection.remove(pos);
+			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateSpeedEvent(this.level, new HashMap<>(), Set.of(pos)));
 			this.rootCollection.remove(pos);
+			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateRootEvent(this.level, new HashMap<>(), Set.of(pos)));
 			this.machineMap.remove(this.network.root(pos), pos);
 			for (Direction side : Direction.values()) {
 				this.network.cut(pos, side, this::afterSplit);
@@ -95,8 +98,30 @@ public class TransmitNetwork {
 		this.markPowerChanged(secondaryNode);
 		this.markResistanceChanged(primaryNode);
 		this.markResistanceChanged(secondaryNode);
-		this.markRootChanged(primaryNode);
-		this.markRootChanged(secondaryNode);
+
+		/*
+		network会将只有单个方块的连通域删掉以节省内存和时间
+		因此需要将被删掉的单方块连通域中的机械删掉
+		 */
+		if (!this.network.hasComponent(secondaryNode)) { // TODO 性能可以优化
+			this.machineMap.remove(primaryNode, secondaryNode);
+			this.rootCollection.remove(secondaryNode);
+			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateRootEvent(this.level, new HashMap<>(), Set.of(secondaryNode)));
+		} else {
+			this.machineMap.get(primaryNode).forEach(pos -> {
+				if (this.network.root(pos).equals(secondaryNode)) {
+					this.machineMap.put(secondaryNode, pos);
+					this.machineMap.remove(primaryNode, pos);
+				}
+			});
+
+			Map<BlockPos, BlockPos> updatedData = new HashMap<>();
+			this.network.getComponents(secondaryNode).forEach(pos -> {
+				this.rootCollection.put(pos, secondaryNode);
+				updatedData.put(pos, secondaryNode);
+			});
+			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateRootEvent(this.level, updatedData, new HashSet<>()));
+		}
 	}
 
 	public void addOrChangeBlock(BlockPos pos, Runnable callback) {
@@ -105,14 +130,17 @@ public class TransmitNetwork {
 			for (Direction side : Direction.values()) {
 				if (this.hasMechanicalConnection(pos, side)) { // 某个方向上有与其他传动设备连接
 					this.network.link(pos, side, this::beforeMerge);
+					if (this.level.getBlockState(pos).getBlock() instanceof IMachine) { // 如果是机器则添加到对应map中
+						this.machineMap.put(this.network.root(pos), pos.immutable());
+					}
+					if (this.level.getBlockState(pos.offset(side.getNormal())).getBlock() instanceof IMachine) {
+						this.machineMap.put(this.network.root(pos), pos.immutable());
+					}
 				} else {
 					this.network.cut(pos, side, this::afterSplit);
 				}
 			}
-			if (this.level.getBlockState(pos).getBlock() instanceof IMachine) { // 如果是机器则添加到对应map中
-				this.machineMap.put(this.network.root(pos), pos.immutable());
-			}
-//			this.rootCollection.put(pos, this.network.root(pos));
+			this.rootCollection.put(pos, this.network.root(pos));
 			callback.run();
 		});
 	}
@@ -133,7 +161,15 @@ public class TransmitNetwork {
 		this.markPowerChanged(primaryNode); // TODO 可通过增量的方式优化性能
 		this.markResistanceChanged(primaryNode);
 
-		this.markRootChanged(primaryNode);
+		this.machineMap.putAll(primaryNode, this.machineMap.get(secondaryNode));
+		this.machineMap.removeAll(secondaryNode);
+
+		Map<BlockPos, BlockPos> updatedData = new HashMap<>();
+		this.network.getComponents(secondaryNode).forEach(pos -> {
+			this.rootCollection.put(pos, primaryNode);
+			updatedData.put(pos, primaryNode);
+		});
+		MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateRootEvent(this.level, updatedData, new HashSet<>()));
 	}
 
 	private void tickStart() {
@@ -155,6 +191,7 @@ public class TransmitNetwork {
 	private Multiset<BlockPos> updatePower() {
 		Multiset<BlockPos> updatedData = HashMultiset.create();
 		if (!this.updatePowerNetworks.isEmpty()) {
+			Set<BlockPos> deleted = new HashSet<>();
 			this.updatePowerNetworks.forEach(root -> {
 				AtomicInteger power = new AtomicInteger();
 				this.machineMap.get(root).forEach(machinePos -> {
@@ -165,10 +202,14 @@ public class TransmitNetwork {
 					}
 				});
 				this.powerCollection.setCount(root, power.get());
-				updatedData.setCount(root, power.get());
+				if (power.get() > 0) {
+					updatedData.setCount(root, power.get());
+				} else {
+					deleted.add(root);
+				}
 			});
 			this.updatePowerNetworks.clear();
-			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdatePowerEvent(this.level, updatedData));
+			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdatePowerEvent(this.level, updatedData, deleted));
 		}
 		return updatedData;
 	}
@@ -181,6 +222,7 @@ public class TransmitNetwork {
 	private Multiset<BlockPos> updateResistance() {
 		Multiset<BlockPos> updatedData = HashMultiset.create();
 		if (!this.updateResistanceNetworks.isEmpty()) {
+			Set<BlockPos> deleted = new HashSet<>();
 			this.updateResistanceNetworks.forEach(root -> {
 				AtomicInteger resistance = new AtomicInteger();
 				this.machineMap.get(root).forEach(machinePos -> {
@@ -191,10 +233,14 @@ public class TransmitNetwork {
 					}
 				});
 				this.resistanceCollection.setCount(root, resistance.get());
-				updatedData.setCount(root, resistance.get());
+				if (resistance.get() > 0) {
+					updatedData.setCount(root, resistance.get());
+				} else {
+					deleted.add(root);
+				}
 			});
 			this.updateResistanceNetworks.clear();
-			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateResistanceEvent(this.level, updatedData));
+			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateResistanceEvent(this.level, updatedData, deleted));
 		}
 		return updatedData;
 	}
@@ -205,12 +251,18 @@ public class TransmitNetwork {
 		updateSpeedNetworks.addAll(this.updateResistance());
 		if (!updateSpeedNetworks.isEmpty()) {
 			Map<BlockPos, Double> updatedData = new HashMap<>();
+			Set<BlockPos> deleted = new HashSet<>();
 			updateSpeedNetworks.forEach(root -> {
-				double speed = (double) this.powerCollection.count(root) / this.resistanceCollection.count(root);
-				this.speedCollection.put(root, speed);
-				updatedData.put(root, speed);
+				if (this.powerCollection.count(root) > 0 && this.resistanceCollection.count(root) > 0) {
+					double speed = (double) this.powerCollection.count(root) / this.resistanceCollection.count(root);
+					this.speedCollection.put(root, speed);
+					updatedData.put(root, speed);
+				} else {
+					this.speedCollection.remove(root);
+					deleted.add(root);
+				}
 			});
-			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateSpeedEvent(this.level, updatedData));
+			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateSpeedEvent(this.level, updatedData, deleted));
 		}
 	}
 
@@ -225,7 +277,7 @@ public class TransmitNetwork {
 				this.rootCollection.put(pos, root);
 				updatedData.put(pos, root);
 			}));
-			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateRootEvent(this.level, updatedData));
+			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateRootEvent(this.level, updatedData, new HashSet<>()));
 			this.updateRootNetworks.clear();
 		}
 	}

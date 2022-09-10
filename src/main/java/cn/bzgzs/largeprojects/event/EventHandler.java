@@ -27,7 +27,7 @@ public class EventHandler {
 	public static void syncSpeedToClient(TransmitNetworkEvent.UpdateSpeedEvent event) {
 		if (event.getLevel() instanceof ServerLevel level) {
 			for (ServerPlayer player : level.getPlayers(player -> true)) {
-				NetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new TransmitSpeedSyncPacket(event.getUpdatedData()));
+				NetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new TransmitSpeedSyncPacket(event.getChanged(), event.getDeleted()));
 			}
 		}
 	}
@@ -36,7 +36,7 @@ public class EventHandler {
 	public static void syncRootToClient(TransmitNetworkEvent.UpdateRootEvent event) {
 		if (event.getLevel() instanceof ServerLevel level) {
 			for (ServerPlayer player : level.getPlayers(player -> true)) {
-				NetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new TransmitRootSyncPacket(event.getUpdatedData()));
+				NetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new TransmitRootSyncPacket(event.getChanged(), event.getDeleted()));
 			}
 		}
 	}

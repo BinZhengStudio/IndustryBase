@@ -1,6 +1,6 @@
 package cn.bzgzs.largeprojects.network.server;
 
-import cn.bzgzs.largeprojects.api.energy.TransmitNetwork;
+import cn.bzgzs.largeprojects.api.util.TransmitNetwork;
 import cn.bzgzs.largeprojects.network.CustomPacket;
 import com.google.common.collect.Sets;
 import net.minecraft.client.Minecraft;
@@ -35,11 +35,7 @@ public class TransmitSpeedSyncPacket extends CustomPacket {
 
 	@Override
 	public void consumer(Supplier<NetworkEvent.Context> context) {
-		context.get().enqueueWork(() -> Optional.ofNullable(Minecraft.getInstance().level).ifPresent(level -> {
-			TransmitNetwork network = TransmitNetwork.Factory.get(level);
-			network.getSpeedCollection().putAll(this.speedCollection);
-			this.deleted.forEach(pos -> network.getSpeedCollection().remove(pos));
-		}));
+		context.get().enqueueWork(() -> Optional.ofNullable(Minecraft.getInstance().level).ifPresent(level -> TransmitNetwork.Manager.get(level).updateSpeedCollection(this.speedCollection, this.deleted)));
 		context.get().setPacketHandled(true);
 	}
 }

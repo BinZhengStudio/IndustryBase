@@ -1,7 +1,6 @@
 package cn.bzgzs.largeprojects.world.level.block.entity;
 
 import cn.bzgzs.largeprojects.api.CapabilityList;
-import cn.bzgzs.largeprojects.api.energy.IMechanicalTransmit;
 import cn.bzgzs.largeprojects.api.world.level.block.entity.BaseTransmitBlockEntity;
 import cn.bzgzs.largeprojects.world.level.block.TransmissionRodBlock;
 import net.minecraft.core.BlockPos;
@@ -13,41 +12,25 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class TransmissionRodBlockEntity extends BaseTransmitBlockEntity {
-	private final LazyOptional<IMechanicalTransmit> transmit = LazyOptional.of(() -> new IMechanicalTransmit() {
-		@Override
-		public int getPower() {
-			return 0;
-		}
-
-		@Override
-		public int getResistance() {
-			return 0;
-		}
-
-		@Override
-		public double getSpeed() {
-			return TransmissionRodBlockEntity.this.getNetwork().speed(TransmissionRodBlockEntity.this.worldPosition);
-		}
-
-		@Override
-		public boolean canExtract() { // TODO
-			return false;
-		}
-
-		@Override
-		public boolean canReceive() { // TODO
-			return false;
-		}
-	});
 
 	public TransmissionRodBlockEntity(BlockPos pos, BlockState state) {
 		super(BlockEntityTypeList.TRANSMISSION_ROD.get(), pos, state);
 	}
 
 	@Override
+	public boolean canExtract() { // TODO
+		return false;
+	}
+
+	@Override
+	public boolean canReceive() { // TODO
+		return false;
+	}
+
+	@Override
 	public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
 		if (side != null && side.getAxis() == this.getBlockState().getValue(TransmissionRodBlock.AXIS)) {
-			return cap == CapabilityList.MECHANICAL_TRANSMIT ? this.transmit.cast() : super.getCapability(cap, side);
+			return cap == CapabilityList.MECHANICAL_TRANSMIT ? this.getTransmit().cast() : super.getCapability(cap, side);
 		}
 		return super.getCapability(cap, side);
 	}

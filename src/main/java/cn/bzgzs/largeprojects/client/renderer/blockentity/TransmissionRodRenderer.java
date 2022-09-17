@@ -1,7 +1,7 @@
 package cn.bzgzs.largeprojects.client.renderer.blockentity;
 
 import cn.bzgzs.largeprojects.LargeProjects;
-import cn.bzgzs.largeprojects.api.energy.TransmitNetwork;
+import cn.bzgzs.largeprojects.api.util.TransmitNetwork;
 import cn.bzgzs.largeprojects.world.level.block.TransmissionRodBlock;
 import cn.bzgzs.largeprojects.world.level.block.entity.TransmissionRodBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -33,7 +33,7 @@ public class TransmissionRodRenderer implements BlockEntityRenderer<Transmission
 		MeshDefinition meshdefinition = new MeshDefinition();
 		PartDefinition partdefinition = meshdefinition.getRoot();
 
-		PartDefinition main = partdefinition.addOrReplaceChild("main", CubeListBuilder.create().texOffs(0, 0).addBox(-2.0F, -8.0F, -2.0F, 4.0F, 16.0F, 4.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 0.0F));
+		partdefinition.addOrReplaceChild("main", CubeListBuilder.create().texOffs(0, 0).addBox(-2.0F, -8.0F, -2.0F, 4.0F, 16.0F, 4.0F, new CubeDeformation(0.0F)), PartPose.offset(0.0F, 0.0F, 0.0F));
 
 		return LayerDefinition.create(meshdefinition, 32, 32);
 	}
@@ -47,10 +47,11 @@ public class TransmissionRodRenderer implements BlockEntityRenderer<Transmission
 			case Z -> poseStack.mulPose(Vector3f.XP.rotationDegrees(-90.0F));
 		}
 		Optional.ofNullable(blockEntity.getLevel()).ifPresent(level -> {
-			long time = level.getGameTime() % 20;
-			double oldDegree = (time - 1) * 18.0D * TransmitNetwork.Factory.get(level).speed(blockEntity.getBlockPos()) % 360.0D;
-			double degree = time * 18.0D * TransmitNetwork.Factory.get(level).speed(blockEntity.getBlockPos()) % 360.0D;
-			poseStack.mulPose(Vector3f.YP.rotationDegrees((float) Mth.lerp(partialTick, oldDegree, degree))); // TODO 可能会出现角度问题
+			long time = level.getGameTime() % 24000;
+			double speed = TransmitNetwork.Manager.get(blockEntity.getLevel()).speed(blockEntity.getBlockPos());
+			double oldDegree = (time - 1) * 18.0D * speed % 360.0D;
+			double degree = time * 18.0D * speed % 360.0D;
+			poseStack.mulPose(Vector3f.YP.rotationDegrees(Mth.rotLerp(partialTick, (float) oldDegree, (float) degree)));
 		});
 		main.render(poseStack, bufferSource.getBuffer(RenderType.entityCutout(TEXTURE)), packedLight, packedOverlay, 1.0F, 1.0F, 1.0F, 1.0F);
 		poseStack.popPose();

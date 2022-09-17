@@ -37,7 +37,6 @@ public class BlockConnectNetwork implements IBlockNetwork {
 		return this.components.getOrDefault(node, ImmutableSet.of(node.immutable())).iterator().next();
 	}
 
-	@Override
 	public void cut(BlockPos node, Direction direction, ConnectivityListener afterSplit) {
 		if (this.connections.remove(node, direction)) {
 			BlockPos another = node.offset(direction.getNormal());
@@ -79,7 +78,6 @@ public class BlockConnectNetwork implements IBlockNetwork {
 		}
 	}
 
-	@Override
 	public void link(BlockPos node, Direction direction, ConnectivityListener beforeMerge) {
 		BlockPos secondary = node.immutable();
 		if (this.connections.put(secondary, direction)) {

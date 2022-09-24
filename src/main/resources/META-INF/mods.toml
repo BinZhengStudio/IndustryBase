@@ -1,17 +1,17 @@
 modLoader="javafml"
 loaderVersion="[43,)"
 license="Mozilla Public License Version 2.0"
-issueTrackerURL="https://github.com/BinZhengStudio/LargeProjects/issues" #optional
+issueTrackerURL="https://github.com/BinZhengStudio/IndustryBase/issues" #optional
 
 [[mods]]
-modId="largeprojects"
+modId="industrybase"
 version="${file.jarVersion}"
-displayName="LargeProjects"
+displayName="Industry Base"
 #updateJSONURL="https://change.me.example.invalid/updates.json" #optional
-displayURL="https://github.com/BinZhengStudio/LargeProjects/" #optional
-logoFile="largeprojects.png" #optional
+displayURL="https://github.com/BinZhengStudio/IndustryBase/" #optional
+logoFile="industrybase.png" #optional
 credits="Thanks for this example mod goes to Java" #optional
-authors="BinZhengStudio vvvbbbcz FengMing Nyaruko suifeng7663 essesoul" #optional
+authors="BinZhengStudio vvvbbbcz FengMing suifeng7663" #optional
 # Display Test controls the display for your mod in the server connection screen
 # MATCH_VERSION means that your mod will cause a red X if the versions on client and server differ. This is the default behaviour and should be what you choose if you have server and client elements to your mod.
 # IGNORE_SERVER_VERSION means that your mod will not cause a red X if it's present on the server but not on the client. This is what you should use if you're a server only mod.
@@ -24,14 +24,14 @@ authors="BinZhengStudio vvvbbbcz FengMing Nyaruko suifeng7663 essesoul" #optiona
 description='''
 '''
 
-[[dependencies.largeprojects]] #optional
+[[dependencies.industrybase]] #optional
     modId="forge"
     mandatory=true
     versionRange="[43,)"
     ordering="NONE"
     side="BOTH"
 
-[[dependencies.largeprojects]]
+[[dependencies.industrybase]]
     modId="minecraft"
     mandatory=true
     versionRange="[1.19.2]"

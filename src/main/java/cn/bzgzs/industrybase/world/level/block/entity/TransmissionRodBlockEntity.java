@@ -18,16 +18,6 @@ public class TransmissionRodBlockEntity extends BaseTransmitBlockEntity {
 	}
 
 	@Override
-	public boolean canExtract() { // TODO
-		return false;
-	}
-
-	@Override
-	public boolean canReceive() { // TODO
-		return false;
-	}
-
-	@Override
 	public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
 		if (side != null && side.getAxis() == this.getBlockState().getValue(TransmissionRodBlock.AXIS)) {
 			return cap == CapabilityList.MECHANICAL_TRANSMIT ? this.getTransmit().cast() : super.getCapability(cap, side);

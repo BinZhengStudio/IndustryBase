@@ -32,16 +32,6 @@ public abstract class BaseTransmitBlockEntity extends BlockEntity {
 		public double getSpeed() {
 			return BaseTransmitBlockEntity.this.getSpeed();
 		}
-
-		@Override
-		public boolean canExtract() {
-			return BaseTransmitBlockEntity.this.canExtract();
-		}
-
-		@Override
-		public boolean canReceive() {
-			return BaseTransmitBlockEntity.this.canReceive();
-		}
 	});
 
 	public BaseTransmitBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -75,10 +65,6 @@ public abstract class BaseTransmitBlockEntity extends BlockEntity {
 	public double getSpeed() {
 		return this.network.speed(this.worldPosition);
 	}
-
-	public abstract boolean canExtract();
-
-	public abstract boolean canReceive();
 
 	public LazyOptional<IMechanicalTransmit> getTransmit() {
 		return this.transmit;

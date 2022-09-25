@@ -2,10 +2,15 @@ package cn.bzgzs.industrybase.api.energy;
 
 import net.minecraftforge.common.capabilities.AutoRegisterCapability;
 
+/**
+ * ME（MechanicalEnergy）能量系统
+ * <p><strong>EP 是功率单位，不是能量单位</strong>
+ * <p>1 ME = π W ≈ 0.062831853072 FE/tick (1.25663706144 FE/s)
+ */
 @AutoRegisterCapability
 public interface IMechanicalTransmit {
 	/**
-	 * 获取功率，单位ME(MechanicalEnergy)/s，仅限输出源需要设置
+	 * 获取功率，无输出设置 0 即可
 	 * @return 功率
 	 */
 	int getPower();
@@ -17,14 +22,4 @@ public interface IMechanicalTransmit {
 	int getResistance();
 
 	double getSpeed();
-
-	/**
-	 * 能否输出
-	 */
-	boolean canExtract();
-
-	/**
-	 * 能否输入
-	 */
-	boolean canReceive();
 }

@@ -25,16 +25,6 @@ public class SteamEngineBlockEntity extends BaseTransmitBlockEntity {
 	}
 
 	@Override
-	public boolean canExtract() {
-		return true;
-	}
-
-	@Override
-	public boolean canReceive() {
-		return false;
-	}
-
-	@Override
 	public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
 		if (side != null && side.getAxis() == this.getBlockState().getValue(SteamEngineBlock.AXIS)) {
 			return cap == CapabilityList.MECHANICAL_TRANSMIT ? this.getTransmit().cast() : super.getCapability(cap, side);

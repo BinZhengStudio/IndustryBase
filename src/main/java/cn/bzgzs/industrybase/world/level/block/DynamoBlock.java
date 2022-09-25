@@ -1,6 +1,5 @@
 package cn.bzgzs.industrybase.world.level.block;
 
-import cn.bzgzs.industrybase.api.IMachine;
 import cn.bzgzs.industrybase.world.level.block.entity.BlockEntityTypeList;
 import cn.bzgzs.industrybase.world.level.block.entity.DynamoBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -20,7 +19,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import org.jetbrains.annotations.Nullable;
 
-public class DynamoBlock extends BaseEntityBlock implements IMachine {
+public class DynamoBlock extends BaseEntityBlock {
 	public static final DirectionProperty FACING = BlockStateProperties.FACING;
 
 	public DynamoBlock() {

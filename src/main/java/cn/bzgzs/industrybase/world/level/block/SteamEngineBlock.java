@@ -1,6 +1,5 @@
 package cn.bzgzs.industrybase.world.level.block;
 
-import cn.bzgzs.industrybase.api.IMachine;
 import cn.bzgzs.industrybase.world.level.block.entity.SteamEngineBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -15,7 +14,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import org.jetbrains.annotations.Nullable;
 
-public class SteamEngineBlock extends BaseEntityBlock implements IMachine {
+public class SteamEngineBlock extends BaseEntityBlock {
 	public static final EnumProperty<Direction.Axis> AXIS = BlockStateProperties.AXIS;
 
 	protected SteamEngineBlock() {

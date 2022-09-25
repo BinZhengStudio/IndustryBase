@@ -59,16 +59,6 @@ public class DynamoBlockEntity extends BaseTransmitBlockEntity {
 		this.setResistance(1);
 	}
 
-	@Override
-	public boolean canExtract() {
-		return false;
-	}
-
-	@Override
-	public boolean canReceive() {
-		return true;
-	}
-
 	public static void serverTick(Level level, BlockPos pos, BlockState state, DynamoBlockEntity blockEntity) {
 	}
 

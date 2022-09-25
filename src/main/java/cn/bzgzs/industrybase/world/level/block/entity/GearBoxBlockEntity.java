@@ -16,16 +16,6 @@ public class GearBoxBlockEntity extends BaseTransmitBlockEntity {
 	}
 
 	@Override
-	public boolean canExtract() {
-		return false;
-	}
-
-	@Override
-	public boolean canReceive() {
-		return false;
-	}
-
-	@Override
 	public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
 		return cap == CapabilityList.MECHANICAL_TRANSMIT ? this.getTransmit().cast() : super.getCapability(cap);
 	}

@@ -66,10 +66,6 @@ public abstract class ContainerTransmitBlockEntity extends BaseContainerBlockEnt
 		return this.network.speed(this.worldPosition);
 	}
 
-	public abstract boolean canExtract();
-
-	public abstract boolean canReceive();
-
 	public LazyOptional<IMechanicalTransmit> getTransmit() {
 		return this.transmit;
 	}

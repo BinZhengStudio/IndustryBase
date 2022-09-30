@@ -29,7 +29,7 @@ public class DynamoBlock extends BaseEntityBlock {
 
 	@Override
 	@SuppressWarnings("deprecation")
-	public RenderShape getRenderShape(BlockState pState) {
+	public RenderShape getRenderShape(BlockState state) {
 		return RenderShape.MODEL;
 	}
 
@@ -50,13 +50,8 @@ public class DynamoBlock extends BaseEntityBlock {
 		return new DynamoBlockEntity(pos, state);
 	}
 
-	@javax.annotation.Nullable
-	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-		return createDynamoTicker(level, blockEntityType, BlockEntityTypeList.DYNAMO.get());
-	}
-
 	@Nullable
-	protected static <T extends BlockEntity> BlockEntityTicker<T> createDynamoTicker(Level level, BlockEntityType<T> serverType, BlockEntityType<? extends DynamoBlockEntity> clientType) {
-		return level.isClientSide ? null : createTickerHelper(serverType, clientType, DynamoBlockEntity::serverTick);
+	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> serverType) {
+		return level.isClientSide ? null : createTickerHelper(serverType, BlockEntityTypeList.DYNAMO.get(), DynamoBlockEntity::serverTick);
 	}
 }

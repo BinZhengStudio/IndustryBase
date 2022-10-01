@@ -2,6 +2,7 @@ package cn.bzgzs.industrybase;
 
 import cn.bzgzs.industrybase.client.gui.screens.MenuScreenManager;
 import cn.bzgzs.industrybase.network.NetworkManager;
+import cn.bzgzs.industrybase.world.inventory.MenuTypeList;
 import cn.bzgzs.industrybase.world.item.ItemList;
 import cn.bzgzs.industrybase.world.level.block.BlockList;
 import cn.bzgzs.industrybase.world.level.block.entity.BlockEntityTypeList;
@@ -24,6 +25,7 @@ public class IndustryBase {
 
 		BlockList.BLOCKS.register(modBus);
 		BlockEntityTypeList.BLOCK_ENTITY_TYPES.register(modBus);
+		MenuTypeList.MENU_TYPES.register(modBus);
 		ItemList.ITEMS.register(modBus);
 
 		modBus.addListener(this::setup);

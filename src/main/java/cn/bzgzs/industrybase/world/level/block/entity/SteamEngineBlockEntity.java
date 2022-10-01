@@ -8,13 +8,17 @@ import cn.bzgzs.industrybase.world.level.block.SteamEngineBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.WaterFluid;
@@ -28,21 +32,24 @@ import net.minecraftforge.fluids.capability.templates.FluidTank;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SteamEngineBlockEntity extends ContainerTransmitBlockEntity {
-	private int power;
+public class SteamEngineBlockEntity extends ContainerTransmitBlockEntity implements WorldlyContainer {
 	private int burnTime;
+	private int totalBurnTime;
 	private int shrinkTick;
 	public static final int MAX_POWER = 100;
+	public static final int MAX_WATER = FluidType.BUCKET_VOLUME * 2;
 	private final NonNullList<ItemStack> inventory = NonNullList.withSize(1, ItemStack.EMPTY);
-	private final FluidTank tank = new FluidTank(FluidType.BUCKET_VOLUME * 4, fluidStack -> fluidStack.getFluid() instanceof WaterFluid);
+	private final FluidTank tank = new FluidTank(MAX_WATER, fluidStack -> fluidStack.getFluid() instanceof WaterFluid);
 	private final LazyOptional<IFluidHandler> fluidHandler = LazyOptional.of(() -> tank);
 	private final ContainerData data = new ContainerData() { // 用于向客户端发送服务端的相关数据
 		@Override
 		public int get(int index) {
 			return switch (index) {
-				case 0 -> power;
-				case 1 -> burnTime;
-				case 2 -> SteamEngineBlockEntity.this.tank.getFluidAmount();
+				case 0 -> getPower();
+				case 1 -> (int) (getSpeed() * 100);
+				case 2 -> burnTime;
+				case 3 -> totalBurnTime;
+				case 4 -> tank.getFluidAmount();
 				default -> 0;
 			};
 		}
@@ -50,16 +57,17 @@ public class SteamEngineBlockEntity extends ContainerTransmitBlockEntity {
 		@Override
 		public void set(int index, int value) { // 这个是让在服务端的Menu中也能更改BlockEntity的数据
 			switch (index) {
-				case 0 -> power = value;
-				case 1 -> burnTime = value;
-				// 水量不能更改
-				default -> {}
+				case 0 -> setPower(value);
+				case 2 -> burnTime = value;
+				case 3 -> totalBurnTime = value;
+				default -> {
+				}
 			}
 		}
 
 		@Override
 		public int getCount() {
-			return 3;
+			return 5;
 		}
 	};
 
@@ -76,32 +84,45 @@ public class SteamEngineBlockEntity extends ContainerTransmitBlockEntity {
 			if (!blockEntity.tank.isEmpty()) {
 				if (blockEntity.shrinkTick <= 0) { // 消耗水
 					blockEntity.tank.drain(1, IFluidHandler.FluidAction.EXECUTE);
-					blockEntity.shrinkTick = 12; // 每12tick减一次waterAmount，这样水不会少的太快
+					blockEntity.shrinkTick = 6; // 每 6tick 减一次 waterAmount，这样水不会少的太快
 				} else {
 					--blockEntity.shrinkTick;
 				}
 
-				if (blockEntity.power < MAX_POWER) { // 增加功率，使之达到最大
-					++blockEntity.power;
-				}
+				// TODO
+//				if (blockEntity.getPower() < MAX_POWER) { // 增加功率，使之达到最大
+//					blockEntity.setPower(blockEntity.getPower() + 1);
+//				}
+			}
+			// TODO
+			if (blockEntity.getPower() < MAX_POWER) { // 增加功率，使之达到最大
+				blockEntity.setPower(blockEntity.getPower() + 1);
 			}
 			flag = true;
 		}
 
-		if (!blockEntity.isLit() || !blockEntity.tank.isEmpty()) {
-			if (blockEntity.power > 0) {
-				--blockEntity.power;
+		if (!blockEntity.isLit() /* || blockEntity.tank.isEmpty() */) {
+			if (blockEntity.getPower() > 0) {
+				blockEntity.setPower(blockEntity.getPower() - 1);
 				flag = true;
 			}
 		}
 
-		if (!blockEntity.isLit() && blockEntity.tank.isEmpty()) { // 如果没有燃烧，并且有水，则消耗燃料并燃烧
+		if (!blockEntity.isLit() /* TODO && !blockEntity.tank.isEmpty() */) { // 如果没有燃烧，并且有水，则消耗燃料并燃烧
 			ItemStack stack = blockEntity.inventory.get(0);
-			int time = ForgeHooks.getBurnTime(stack, null);
+			int time = ForgeHooks.getBurnTime(stack, RecipeType.SMELTING);
 			if (time > 0) {
-				stack.shrink(1);
-				blockEntity.burnTime = time;
 				flag = true;
+				blockEntity.burnTime = time;
+				blockEntity.totalBurnTime = time;
+				if (stack.hasCraftingRemainingItem()) {
+					blockEntity.inventory.set(0, stack.getCraftingRemainingItem());
+				} else if (!stack.isEmpty()) {
+					stack.shrink(1);
+					if (stack.isEmpty()) {
+						blockEntity.inventory.set(0, stack.getCraftingRemainingItem());
+					}
+				}
 			}
 		}
 
@@ -119,11 +140,14 @@ public class SteamEngineBlockEntity extends ContainerTransmitBlockEntity {
 		return this.burnTime > 0;
 	}
 
+	public static boolean isFuel(ItemStack stack) {
+		return ForgeHooks.getBurnTime(stack, RecipeType.SMELTING) > 0;
+	}
+
 	@Override
 	public void onLoad() {
 		super.onLoad();
-		this.setPower(1);
-		this.setResistance(1);
+		this.setResistance(10);
 	}
 
 	@Override
@@ -146,6 +170,24 @@ public class SteamEngineBlockEntity extends ContainerTransmitBlockEntity {
 			}
 		}
 		return super.getCapability(cap, side);
+	}
+
+	@Override
+	public void load(CompoundTag tag) {
+		super.load(tag);
+		ContainerHelper.loadAllItems(tag, this.inventory);
+		this.burnTime = tag.getInt("BurnTime");
+		this.totalBurnTime = tag.getInt("TotalBurnTime");
+		this.shrinkTick = tag.getInt("ShrinkTick");
+	}
+
+	@Override
+	protected void saveAdditional(CompoundTag tag) {
+		super.saveAdditional(tag);
+		ContainerHelper.saveAllItems(tag, this.inventory);
+		tag.putInt("BurnTime", this.burnTime);
+		tag.putInt("TotalBurnTime", this.totalBurnTime);
+		tag.putInt("ShrinkTick", this.shrinkTick);
 	}
 
 	@Override
@@ -193,5 +235,25 @@ public class SteamEngineBlockEntity extends ContainerTransmitBlockEntity {
 	@Override
 	public void clearContent() {
 		this.inventory.clear();
+	}
+
+	@Override
+	public int[] getSlotsForFace(Direction side) {
+		return new int[]{0};
+	}
+
+	@Override
+	public boolean canPlaceItem(int index, ItemStack stack) {
+		return isFuel(stack) || stack.is(Items.BUCKET);
+	}
+
+	@Override
+	public boolean canPlaceItemThroughFace(int index, ItemStack stack, @Nullable Direction direction) {
+		return this.canPlaceItem(index, stack);
+	}
+
+	@Override
+	public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction direction) {
+		return stack.is(Items.WATER_BUCKET) || stack.is(Items.BUCKET);
 	}
 }

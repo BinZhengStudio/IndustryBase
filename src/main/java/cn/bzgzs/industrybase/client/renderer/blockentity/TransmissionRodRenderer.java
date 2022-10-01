@@ -47,11 +47,8 @@ public class TransmissionRodRenderer implements BlockEntityRenderer<Transmission
 			case Z -> poseStack.mulPose(Vector3f.XP.rotationDegrees(-90.0F));
 		}
 		Optional.ofNullable(blockEntity.getLevel()).ifPresent(level -> {
-			int time = (int) (level.getGameTime() % 24000);
-			double speed = TransmitNetwork.Manager.get(blockEntity.getLevel()).speed(blockEntity.getBlockPos());
-			double oldDegree = (time - 1) * 18.0D * speed % 360.0D;
-			double degree = time * 18.0D * speed % 360.0D;
-			poseStack.mulPose(Vector3f.YP.rotationDegrees(Mth.rotLerp(partialTick, (float) oldDegree, (float) degree)));
+			TransmitNetwork.RotateContext context = TransmitNetwork.Manager.get(blockEntity.getLevel()).getRotateContext(blockEntity.getBlockPos());
+			poseStack.mulPose(Vector3f.YP.rotationDegrees(Mth.rotLerp(partialTick, (float) context.getOldDegree(), (float) context.getDegree())));
 		});
 		main.render(poseStack, bufferSource.getBuffer(RenderType.entityCutout(IRON)), packedLight, packedOverlay, 1.0F, 1.0F, 1.0F, 1.0F);
 		poseStack.popPose();

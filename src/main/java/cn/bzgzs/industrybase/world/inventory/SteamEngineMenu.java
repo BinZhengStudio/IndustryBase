@@ -1,20 +1,20 @@
 package cn.bzgzs.industrybase.world.inventory;
 
+import cn.bzgzs.industrybase.world.level.block.entity.SteamEngineBlockEntity;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraftforge.common.ForgeHooks;
+import net.minecraft.world.item.Items;
 
 public class SteamEngineMenu extends AbstractContainerMenu {
 	private final Container container;
 	private final ContainerData data;
 
 	public SteamEngineMenu(int id, Inventory playerInventory) {
-		this(id, playerInventory, new SimpleContainer(2), new SimpleContainerData(9));
+		this(id, playerInventory, new SimpleContainer(1), new SimpleContainerData(5));
 	}
 
 	public SteamEngineMenu(int id, Inventory inventory, Container container, ContainerData data) {
@@ -22,12 +22,12 @@ public class SteamEngineMenu extends AbstractContainerMenu {
 		this.container = container;
 		this.data = data;
 		checkContainerSize(container, 1);
-		checkContainerDataCount(data, 3);
+		checkContainerDataCount(data, 5);
 
 		this.addSlot(new Slot(container, 0, 70, 42) {
 			@Override
 			public boolean mayPlace(ItemStack stack) {
-				return isFuel(stack) || FurnaceFuelSlot.isBucket(stack);
+				return SteamEngineBlockEntity.isFuel(stack) || FurnaceFuelSlot.isBucket(stack);
 			}
 
 			@Override
@@ -64,7 +64,7 @@ public class SteamEngineMenu extends AbstractContainerMenu {
 				if (!this.moveItemStackTo(stack1, 1, this.slots.size(), true)) {
 					return ItemStack.EMPTY;
 				}
-			} else if (isFuel(stack1)) {
+			} else if (SteamEngineBlockEntity.isFuel(stack1) || stack1.is(Items.BUCKET)) {
 				if (!this.moveItemStackTo(stack1, 0, 1, false)) {
 					return ItemStack.EMPTY;
 				}
@@ -83,10 +83,6 @@ public class SteamEngineMenu extends AbstractContainerMenu {
 			slot.onTake(player, stack1);
 		}
 		return stack;
-	}
-
-	public static boolean isFuel(ItemStack pStack) {
-		return ForgeHooks.getBurnTime(pStack, RecipeType.SMELTING) > 0;
 	}
 
 	@Override

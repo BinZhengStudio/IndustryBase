@@ -1,8 +1,9 @@
 package cn.bzgzs.industrybase.api.util;
 
-import cn.bzgzs.industrybase.api.event.TransmitNetworkEvent;
 import cn.bzgzs.industrybase.api.CapabilityList;
+import cn.bzgzs.industrybase.api.event.TransmitNetworkEvent;
 import com.google.common.collect.*;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.LevelAccessor;
@@ -24,6 +25,7 @@ public class TransmitNetwork {
 	private final Multiset<BlockPos> resistanceCollection;
 	private final Map<BlockPos, Double> speedCollection;
 	private final Map<BlockPos, BlockPos> rootCollection;
+	private final Map<BlockPos, RotateContext> rotateCollection; // Only update in client
 	private final Multiset<BlockPos> machinePower;
 	private final Multiset<BlockPos> machineResistance;
 
@@ -35,6 +37,7 @@ public class TransmitNetwork {
 		this.powerCollection = HashMultiset.create();
 		this.resistanceCollection = HashMultiset.create();
 		this.speedCollection = new HashMap<>();
+		this.rotateCollection = new HashMap<>();
 		this.rootCollection = new HashMap<>();
 		this.machinePower = HashMultiset.create();
 		this.machineResistance = HashMultiset.create();
@@ -63,6 +66,11 @@ public class TransmitNetwork {
 		return this.speedCollection.getOrDefault(root, 0.0D);
 	}
 
+	public RotateContext getRotateContext(BlockPos pos) {
+		BlockPos root = this.root(pos);
+		return this.rotateCollection.getOrDefault(root, new RotateContext(0.0D, 0.0D));
+	}
+
 	public Map<BlockPos, Double> getSpeedCollection() {
 		return new HashMap<>(this.speedCollection);
 	}
@@ -70,7 +78,10 @@ public class TransmitNetwork {
 	public void updateSpeedCollection(Map<BlockPos, Double> dataToUpdate, Set<BlockPos> deleted) {
 		if (this.level.isClientSide()) {
 			this.speedCollection.putAll(dataToUpdate);
-			deleted.forEach(this.speedCollection::remove);
+			deleted.forEach(pos -> {
+				this.speedCollection.remove(pos);
+				this.rotateCollection.remove(pos);
+			});
 		}
 	}
 
@@ -367,10 +378,19 @@ public class TransmitNetwork {
 		}
 	}
 
-	private void tickStart() {
+	private void serverTick() {
 		for (Runnable runnable = this.tasks.poll(); runnable != null; runnable = this.tasks.poll()) {
 			runnable.run();
 		}
+	}
+
+	private void clientTick() {
+		this.speedCollection.forEach((pos, speed) -> {
+			RotateContext context = this.rotateCollection.computeIfAbsent(pos, blockPos -> new RotateContext(0.0D, 0.0D));
+			double degree = context.getDegree();
+			context.setOldDegree(degree);
+			context.setDegree(degree + (speed * 18.0D));
+		});
 	}
 
 	public class BFSIterator implements Iterator<BlockPos> {
@@ -405,6 +425,32 @@ public class TransmitNetwork {
 		}
 	}
 
+	public static class RotateContext {
+		private double oldDegree;
+		private double degree;
+
+		public RotateContext(double oldDegree, double degree) {
+			this.oldDegree = oldDegree;
+			this.degree = degree;
+		}
+
+		public double getOldDegree() {
+			return this.oldDegree;
+		}
+
+		public void setOldDegree(double oldDegree) {
+			this.oldDegree = oldDegree % 360.0D;
+		}
+
+		public double getDegree() {
+			return this.degree;
+		}
+
+		public void setDegree(double degree) {
+			this.degree = degree % 360.0D;
+		}
+	}
+
 	@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
 	public static class Manager {
 		private static final Map<LevelAccessor, TransmitNetwork> INSTANCES = new IdentityHashMap<>();
@@ -419,11 +465,18 @@ public class TransmitNetwork {
 		}
 
 		@SubscribeEvent
-		public static void onWorldTick(TickEvent.LevelTickEvent event) {
-			if (event.side.isServer()) {
-				if (event.phase == TickEvent.Phase.START) {
-					get(event.level).tickStart();
+		public static void onLevelTick(TickEvent.LevelTickEvent event) {
+			if (event.phase == TickEvent.Phase.START) {
+				if (event.side.isServer()) {
+					get(event.level).serverTick();
 				}
+			}
+		}
+
+		@SubscribeEvent
+		public static void onClientTick(TickEvent.ClientTickEvent event) {
+			if (event.phase == TickEvent.Phase.START) {
+				Optional.ofNullable(Minecraft.getInstance().level).ifPresent(level -> get(level).clientTick());
 			}
 		}
 	}

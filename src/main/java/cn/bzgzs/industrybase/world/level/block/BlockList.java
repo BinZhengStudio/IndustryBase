@@ -13,4 +13,5 @@ public class BlockList {
 	public static final RegistryObject<Block> TRANSMISSION_ROD = BLOCKS.register("transmission_rod", TransmissionRodBlock::new);
 	public static final RegistryObject<Block> STEAM_ENGINE = BLOCKS.register("steam_engine", SteamEngineBlock::new);
 	public static final RegistryObject<Block> GEAR_BOX = BLOCKS.register("gear_box", GearBoxBlock::new);
+	public static final RegistryObject<Block> WIRE = BLOCKS.register("wire", WireBlock::new);
 }

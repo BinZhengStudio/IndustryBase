@@ -13,21 +13,21 @@ public interface IElectricPower {
 	 * 获取输出功率，无输出设置 0 即可
 	 * @return 功率
 	 */
-	float getOutputPower();
+	double getOutputPower();
 
 	/**
 	 * 获取额定输入功率，无输入设置 0 即可
 	 * @return 功率
 	 */
-	float getInputPower();
+	double getInputPower();
 
-	/**
-	 * 能否输出
-	 */
-	boolean canExtract();
+//	/**
+//	 * 能否输出
+//	 */
+//	boolean canExtract();
 
-	/**
-	 * 能否输入
-	 */
-	boolean canReceive();
+//	/**
+//	 * 能否输入
+//	 */
+//	boolean canReceive();
 }

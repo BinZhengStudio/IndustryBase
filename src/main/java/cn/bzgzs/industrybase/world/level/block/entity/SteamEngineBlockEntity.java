@@ -101,7 +101,7 @@ public class SteamEngineBlockEntity extends ContainerTransmitBlockEntity impleme
 			flag = true;
 		}
 
-		if (!blockEntity.isLit() /* || blockEntity.tank.isEmpty() */) {
+		if (!blockEntity.isLit() /* || blockEntity.tank.isEmpty() */) { // TODO 小细节待修复
 			if (blockEntity.getPower() > 0) {
 				blockEntity.setPower(blockEntity.getPower() - 1);
 				flag = true;

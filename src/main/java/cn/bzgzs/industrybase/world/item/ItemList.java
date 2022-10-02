@@ -15,4 +15,5 @@ public class ItemList {
 	public static final RegistryObject<BlockItem> TRANSMISSION_ROD = ITEMS.register("transmission_rod", () -> new BlockItem(BlockList.TRANSMISSION_ROD.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
 	public static final RegistryObject<BlockItem> STEAM_ENGINE = ITEMS.register("steam_engine", () -> new BlockItem(BlockList.STEAM_ENGINE.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
 	public static final RegistryObject<BlockItem> GEAR_BOX = ITEMS.register("gear_box", () -> new BlockItem(BlockList.GEAR_BOX.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
+	public static final RegistryObject<BlockItem> WIRE = ITEMS.register("wire", () -> new BlockItem(BlockList.WIRE.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
 }

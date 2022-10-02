@@ -38,8 +38,8 @@ public abstract class BaseTransmitBlockEntity extends BlockEntity {
 		super(type, pos, state);
 	}
 
-	public int getPower() { // TODO overrides
-		return this.getNetwork().getMachinePower(this.worldPosition);
+	public int getPower() {
+		return this.network.getMachinePower(this.worldPosition);
 	}
 
 	protected int setPower(int power) {
@@ -50,7 +50,7 @@ public abstract class BaseTransmitBlockEntity extends BlockEntity {
 		return diff;
 	}
 
-	public int getResistance() { // TODO overrides
+	public int getResistance() {
 		return this.network.getMachineResistance(this.worldPosition);
 	}
 

@@ -411,7 +411,7 @@ public class TransmitNetwork {
 		@Override
 		public BlockPos next() {
 			BlockPos node = this.queue.remove();
-			for (Direction direction : TransmitNetwork.this.connections.get(node)) {
+			for (Direction direction : connections.get(node)) {
 				BlockPos another = node.offset(direction.getNormal());
 				if (this.searched.add(another)) {
 					this.queue.offer(another);

@@ -38,8 +38,8 @@ public abstract class BaseTransmitBlockEntity extends BlockEntity {
 		super(type, pos, state);
 	}
 
-	public int getPower() { // TODO overrides
-		return this.getNetwork().getMachinePower(this.worldPosition);
+	public int getPower() {
+		return this.network.getMachinePower(this.worldPosition);
 	}
 
 	protected int setPower(int power) {
@@ -68,10 +68,6 @@ public abstract class BaseTransmitBlockEntity extends BlockEntity {
 
 	public LazyOptional<IMechanicalTransmit> getTransmit() {
 		return this.transmit;
-	}
-
-	public TransmitNetwork getNetwork() {
-		return this.network;
 	}
 
 	@Override

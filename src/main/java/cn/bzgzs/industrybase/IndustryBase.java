@@ -37,7 +37,7 @@ public class IndustryBase {
 		event.enqueueWork(NetworkManager::register);
 	}
 
-	private void doClientStuff(final FMLClientSetupEvent event) { // 与客户端相关的代码
-		event.enqueueWork(MenuScreenManager::register); // 绑定Container与Screen
+	private void doClientStuff(final FMLClientSetupEvent event) {
+		event.enqueueWork(MenuScreenManager::register);
 	}
 }

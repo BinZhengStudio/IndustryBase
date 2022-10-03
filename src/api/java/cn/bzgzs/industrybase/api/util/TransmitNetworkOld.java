@@ -3,65 +3,56 @@ package cn.bzgzs.industrybase.api.util;
 import cn.bzgzs.industrybase.api.CapabilityList;
 import cn.bzgzs.industrybase.api.event.TransmitNetworkEvent;
 import com.google.common.collect.*;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 
 import java.util.*;
 
-public class TransmitNetwork {
-	private final Map<ComponentContext, SingleNetwork> networkMap;
-//	private final Map<BlockPos, Set<BlockPos>> components;
-//	private final SetMultimap<BlockPos, Direction> connections;
+public class TransmitNetworkOld {
+	private final Map<BlockPos, Set<BlockPos>> components;
+	private final SetMultimap<BlockPos, Direction> connections;
 	private final LevelAccessor level;
 	private final Queue<Runnable> tasks;
-	private final Multiset<BlockPos> powerCollection; // Only for client
-	private final Multiset<BlockPos> resistanceCollection; // TODO direction
+	private final Multiset<BlockPos> powerCollection; // BlockPos 是中心块的坐标，出现个数为连通域总功率的数值
+	private final Multiset<BlockPos> resistanceCollection;
 	private final Map<BlockPos, Double> speedCollection;
 	private final Map<BlockPos, BlockPos> rootCollection;
 	private final Map<BlockPos, RotateContext> rotateCollection; // Only update in client
+	private final Multiset<BlockPos> machinePower;
+	private final Multiset<BlockPos> machineResistance;
 
-	public TransmitNetwork(LevelAccessor level) {
-		this.networkMap = new HashMap<>();
-//		this.components = new HashMap<>();
-//		this.connections = Multimaps.newSetMultimap(new HashMap<>(), () -> EnumSet.noneOf(Direction.class));
+	public TransmitNetworkOld(LevelAccessor level) {
+		this.components = new HashMap<>();
+		this.connections = Multimaps.newSetMultimap(new HashMap<>(), () -> EnumSet.noneOf(Direction.class));
 		this.level = level;
-		this.tasks = new ArrayDeque<>();
+		this.tasks = Queues.newArrayDeque();
 		this.powerCollection = HashMultiset.create();
 		this.resistanceCollection = HashMultiset.create();
 		this.speedCollection = new HashMap<>();
 		this.rotateCollection = new HashMap<>();
 		this.rootCollection = new HashMap<>();
-//		this.machinePower = HashMultiset.create();
-//		this.machineResistance = HashMultiset.create();
+		this.machinePower = HashMultiset.create();
+		this.machineResistance = HashMultiset.create();
 	}
 
-	public int size(BlockPos pos, Direction direction) {
-		return this.networkMap.containsKey(new ComponentContext(pos, direction)) ? this.getNetwork(pos, direction).size() : 1;
+	public int size(BlockPos pos) {
+		return this.components.containsKey(pos) ? this.components.get(pos).size() : 1;
 	}
 
-	public BlockPos root(BlockPos pos, Direction direction) { // TODO context
-		if (this.level.isClientSide()) {
-			return this.rootCollection.getOrDefault(pos, pos);
-		} else {
-			return this.containsNetwork(pos, direction) ? this.getNetwork(pos, direction).components.iterator().next() : pos;
-		}
+	public BlockPos root(BlockPos pos) {
+		return this.level.isClientSide() ? this.rootCollection.getOrDefault(pos, pos) : this.components.getOrDefault(pos, ImmutableSet.of(pos.immutable())).iterator().next();
 	}
 
-	public int totalPower(BlockPos pos, Direction direction) {
-		BlockPos root = this.root(pos, direction);
+	public int totalPower(BlockPos pos) {
+		BlockPos root = this.root(pos);
 		return this.powerCollection.count(root);
 	}
 
-	public int totalResistance(BlockPos pos, Direction direction) {
-		BlockPos root = this.root(pos, direction);
+	public int totalResistance(BlockPos pos) {
+		BlockPos root = this.root(pos);
 		return this.resistanceCollection.count(root);
 	}
 
@@ -132,7 +123,7 @@ public class TransmitNetwork {
 
 	private void updateSpeed(BlockPos pos) {
 		BlockPos root = this.root(pos);
-		if (this.networkMap.containsKey(pos)) {
+		if (this.components.containsKey(pos)) {
 			int power = this.powerCollection.count(root);
 			int resistance = this.resistanceCollection.count(root);
 			if (power > 0 && resistance > 0) {
@@ -156,14 +147,6 @@ public class TransmitNetwork {
 		}
 	}
 
-	private boolean containsNetwork(BlockPos pos, Direction direction) {
-		return this.networkMap.containsKey(new ComponentContext(pos, direction));
-	}
-
-	private SingleNetwork getNetwork(BlockPos pos, Direction direction) {
-		return this.networkMap.get(new ComponentContext(pos, direction));
-	}
-
 	public void removeBlock(BlockPos pos, Runnable callback) {
 		this.tasks.offer(() -> {
 			for (Direction side : Direction.values()) {
@@ -172,6 +155,112 @@ public class TransmitNetwork {
 			callback.run();
 		});
 	}
+
+	private void cut(BlockPos node, Direction direction) {
+		if (this.connections.remove(node, direction)) {
+			BlockPos another = node.offset(direction.getNormal());
+			this.connections.remove(another, direction.getOpposite());
+			BFSIterator nodeIterator = new BFSIterator(node);
+			BFSIterator anotherIterator = new BFSIterator(another);
+
+			while (nodeIterator.hasNext()) {
+				BlockPos next = nodeIterator.next();
+				if (!anotherIterator.getSearched().contains(next)) {
+					// 互换 iterator
+					BFSIterator iterator = anotherIterator;
+					anotherIterator = nodeIterator;
+					nodeIterator = iterator;
+					continue;
+				}
+				return; // 如果两个 iterator 存在重复方块（连通域没有断开），则直接退出
+			}
+
+			Set<BlockPos> primaryComponent = this.components.get(node);
+			Set<BlockPos> secondaryComponent;
+			BlockPos primaryNode = primaryComponent.iterator().next();
+			Set<BlockPos> searched = nodeIterator.getSearched();
+
+			if (searched.contains(primaryNode)) {
+				secondaryComponent = new LinkedHashSet<>(Sets.difference(primaryComponent, searched));
+				primaryComponent.retainAll(searched);
+			} else {
+				secondaryComponent = searched;
+				primaryComponent.removeAll(searched);
+			}
+
+			BlockPos secondaryNode = secondaryComponent.iterator().next();
+			Multiset<BlockPos> updatedPower = HashMultiset.create();
+			Set<BlockPos> deletedPower = new HashSet<>();
+			Multiset<BlockPos> updatedResistance = HashMultiset.create();
+			Set<BlockPos> deletedResistance = new HashSet<>();
+			Map<BlockPos, BlockPos> updatedRoot = new HashMap<>();
+			Set<BlockPos> deletedRoot = new HashSet<>();
+			if (secondaryComponent.size() <= 1) {
+				this.components.remove(secondaryNode);
+
+				int powerDiff = this.machinePower.count(secondaryNode);
+				int resistanceDiff = this.machineResistance.count(secondaryNode);
+				int power = this.powerCollection.remove(primaryNode, powerDiff) - powerDiff;
+				int resistance = this.resistanceCollection.remove(primaryNode, resistanceDiff) - resistanceDiff;
+				if (power > 0) {
+					updatedPower.setCount(primaryNode, power);
+				} else {
+					deletedPower.add(primaryNode);
+				}
+				if (resistance > 0) {
+					updatedPower.setCount(primaryNode, resistance);
+				} else {
+					deletedPower.add(primaryNode);
+				}
+
+				this.rootCollection.remove(secondaryNode);
+				deletedRoot.add(secondaryNode);
+			} else {
+				int powerDiff = 0;
+				int resistanceDiff = 0;
+				for (BlockPos pos : secondaryComponent) {
+					this.components.put(pos, secondaryComponent);
+
+					powerDiff += this.machinePower.count(pos);
+					resistanceDiff += this.machineResistance.count(pos);
+					// 将原先从主连通域分离的映射移到子连通域
+					this.rootCollection.put(pos, secondaryNode);
+					updatedRoot.put(pos, secondaryNode);
+				}
+				int primaryPower = this.powerCollection.remove(primaryNode, powerDiff) - powerDiff;
+				int primaryResistance = this.resistanceCollection.remove(primaryNode, resistanceDiff) - resistanceDiff;
+				if (primaryPower > 0) {
+					updatedPower.setCount(primaryNode, primaryPower);
+				} else {
+					deletedPower.add(primaryNode);
+				}
+				if (primaryResistance > 0) {
+					updatedPower.setCount(primaryNode, primaryResistance);
+				} else {
+					deletedPower.add(primaryNode);
+				}
+				updatedPower.setCount(secondaryNode, this.powerCollection.add(secondaryNode, powerDiff) + powerDiff);
+				updatedResistance.setCount(secondaryNode, this.resistanceCollection.add(secondaryNode, resistanceDiff) + resistanceDiff);
+			}
+			if (primaryComponent.size() <= 1) {
+				this.components.remove(primaryNode);
+
+				this.powerCollection.setCount(primaryNode, 0);
+				deletedPower.add(primaryNode);
+				this.resistanceCollection.setCount(primaryNode, 0);
+				deletedResistance.add(primaryNode);
+				this.rootCollection.remove(primaryNode);
+				deletedRoot.add(primaryNode);
+			}
+			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdatePowerEvent(this.level, updatedPower, deletedPower));
+			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateResistanceEvent(this.level, updatedResistance, deletedResistance));
+			MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateRootEvent(this.level, updatedRoot, deletedRoot));
+
+			this.updateSpeed(primaryNode);
+			this.updateSpeed(secondaryNode);
+		}
+	}
+
 	public void addOrChangeBlock(BlockPos pos, Runnable callback) {
 		this.tasks.offer(() -> {
 			for (Direction side : Direction.values()) {
@@ -300,7 +389,7 @@ public class TransmitNetwork {
 	}
 
 	public class BFSIterator implements Iterator<BlockPos> {
-		private final LinkedHashSet<BlockPos> searched = new LinkedHashSet<>();
+		private final Set<BlockPos> searched = new LinkedHashSet<>();
 		private final Queue<BlockPos> queue = new ArrayDeque<>();
 
 		public BFSIterator(BlockPos node) {
@@ -317,7 +406,7 @@ public class TransmitNetwork {
 		@Override
 		public BlockPos next() {
 			BlockPos node = this.queue.remove();
-			for (Direction direction : TransmitNetwork.this.connections.get(node)) {
+			for (Direction direction : TransmitNetworkOld.this.connections.get(node)) {
 				BlockPos another = node.offset(direction.getNormal());
 				if (this.searched.add(another)) {
 					this.queue.offer(another);
@@ -326,154 +415,9 @@ public class TransmitNetwork {
 			return node;
 		}
 
-		public LinkedHashSet<BlockPos> getSearched() {
+		public Set<BlockPos> getSearched() {
 			return this.searched;
 		}
-	}
-
-	public class SingleNetwork {
-		private final LinkedHashSet<BlockPos> components;
-		private final SetMultimap<BlockPos, Direction> connections;
-		private final Multiset<BlockPos> machinePower;
-		private final Multiset<BlockPos> machineResistance;
-		private int power;
-		private int resistance;
-
-		public SingleNetwork(LinkedHashSet<BlockPos> components, SetMultimap<BlockPos, Direction> connections) {
-			this.machinePower = HashMultiset.create();
-			this.machineResistance = HashMultiset.create();
-			this.components = components;
-			this.connections = connections;
-		}
-
-		public int size() {
-			return this.components.size();
-		}
-
-		public BlockPos root() {
-			return this.components.iterator().next();
-		}
-
-		public LinkedHashSet<BlockPos> getComponents() {
-			return this.components;
-		}
-
-		public SetMultimap<BlockPos, Direction> getConnections() {
-			return this.connections;
-		}
-
-		public void cut(BlockPos node, Direction direction) {
-			if (this.connections.remove(node, direction)) {
-				BlockPos another = node.offset(direction.getNormal());
-				this.connections.remove(another, direction.getOpposite());
-				BFSIterator nodeIterator = new BFSIterator(node);
-				BFSIterator anotherIterator = new BFSIterator(another);
-
-				while (nodeIterator.hasNext()) {
-					BlockPos next = nodeIterator.next();
-					if (!anotherIterator.getSearched().contains(next)) {
-						// 互换 iterator
-						BFSIterator iterator = anotherIterator;
-						anotherIterator = nodeIterator;
-						nodeIterator = iterator;
-						continue;
-					}
-					return; // 如果两个 iterator 存在重复方块（连通域没有断开），则直接退出
-				}
-
-				Set<BlockPos> primaryComponent = this.components;
-				LinkedHashSet<BlockPos> secondaryComponent;
-				BlockPos primaryNode = primaryComponent.iterator().next();
-				LinkedHashSet<BlockPos> searched = nodeIterator.getSearched();
-
-				if (searched.contains(primaryNode)) {
-					secondaryComponent = new LinkedHashSet<>(Sets.difference(primaryComponent, searched));
-					primaryComponent.retainAll(searched);
-				} else {
-					secondaryComponent = searched;
-					primaryComponent.removeAll(searched);
-				}
-
-				BlockPos secondaryNode = secondaryComponent.iterator().next();
-				Multiset<BlockPos> updatedPower = HashMultiset.create();
-				Set<BlockPos> deletedPower = new HashSet<>();
-				Multiset<BlockPos> updatedResistance = HashMultiset.create();
-				Set<BlockPos> deletedResistance = new HashSet<>();
-				Map<BlockPos, BlockPos> updatedRoot = new HashMap<>();
-				Set<BlockPos> deletedRoot = new HashSet<>();
-				if (secondaryComponent.size() <= 1) {
-					this.components.remove(secondaryNode);
-
-					int powerDiff = this.machinePower.count(secondaryNode);
-					int resistanceDiff = this.machineResistance.count(secondaryNode);
-					this.power -= powerDiff;
-					this.resistance -= resistanceDiff; // TODO collection
-					if (this.power > 0) {
-						updatedPower.setCount(primaryNode, this.power);
-					} else {
-						deletedPower.add(primaryNode);
-					}
-					if (this.resistance > 0) {
-						updatedPower.setCount(primaryNode, this.resistance);
-					} else {
-						deletedPower.add(primaryNode);
-					}
-
-					this.rootCollection.remove(secondaryNode); // TODO root direction
-					deletedRoot.add(secondaryNode);
-				} else {
-					int powerDiff = 0;
-					int resistanceDiff = 0;
-					SetMultimap<BlockPos, Direction> secondaryConnections = Multimaps.newSetMultimap(new HashMap<>(), () -> EnumSet.noneOf(Direction.class));
-					SingleNetwork network = new SingleNetwork(secondaryComponent, secondaryConnections);
-					for (BlockPos pos : secondaryComponent) {
-						this.components.remove(pos);
-						this.connections.removeAll(pos);
-
-						networkMap.put(pos, network); // TODO direction
-
-						powerDiff += this.machinePower.count(pos);
-						resistanceDiff += this.machineResistance.count(pos);
-						// 将原先从主连通域分离的映射移到子连通域
-						this.rootCollection.put(pos, secondaryNode);
-						updatedRoot.put(pos, secondaryNode);
-					}
-					this.power -= powerDiff;
-					this.resistance -= resistanceDiff;
-					if (this.power > 0) {
-						updatedPower.setCount(primaryNode, this.power);
-					} else {
-						deletedPower.add(primaryNode);
-					}
-					if (this.resistance > 0) {
-						updatedPower.setCount(primaryNode, this.resistance);
-					} else {
-						deletedPower.add(primaryNode);
-					}
-					updatedPower.setCount(secondaryNode, this.powerCollection.add(secondaryNode, powerDiff) + powerDiff);
-					updatedResistance.setCount(secondaryNode, this.resistanceCollection.add(secondaryNode, resistanceDiff) + resistanceDiff);
-				}
-				if (primaryComponent.size() <= 1) {
-					this.components.remove(primaryNode);
-
-					this.powerCollection.setCount(primaryNode, 0);
-					deletedPower.add(primaryNode);
-					this.resistanceCollection.setCount(primaryNode, 0);
-					deletedResistance.add(primaryNode);
-					this.rootCollection.remove(primaryNode);
-					deletedRoot.add(primaryNode);
-				}
-				MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdatePowerEvent(this.level, updatedPower, deletedPower));
-				MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateResistanceEvent(this.level, updatedResistance, deletedResistance));
-				MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateRootEvent(this.level, updatedRoot, deletedRoot));
-
-				this.updateSpeed(primaryNode);
-				this.updateSpeed(secondaryNode);
-			}
-		}
-	}
-
-	public record ComponentContext(BlockPos pos, Direction direction) {
 	}
 
 	public static class RotateContext {
@@ -502,33 +446,33 @@ public class TransmitNetwork {
 		}
 	}
 
-	@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
-	public static class Manager {
-		private static final Map<LevelAccessor, TransmitNetwork> INSTANCES = new IdentityHashMap<>();
-
-		public static TransmitNetwork get(LevelAccessor level) {
-			return INSTANCES.computeIfAbsent(level, TransmitNetwork::new);
-		}
-
-		@SubscribeEvent
-		public static void onUnload(LevelEvent.Unload event) {
-			INSTANCES.remove(event.getLevel());
-		}
-
-		@SubscribeEvent
-		public static void onLevelTick(TickEvent.LevelTickEvent event) {
-			if (event.phase == TickEvent.Phase.START) {
-				if (event.side.isServer()) {
-					get(event.level).serverTick();
-				}
-			}
-		}
-
-		@SubscribeEvent
-		public static void onClientTick(TickEvent.ClientTickEvent event) {
-			if (event.phase == TickEvent.Phase.START) {
-				Optional.ofNullable(Minecraft.getInstance().level).ifPresent(level -> get(level).clientTick());
-			}
-		}
-	}
+//	@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
+//	public static class Manager {
+//		private static final Map<LevelAccessor, TransmitNetworkOld> INSTANCES = new IdentityHashMap<>();
+//
+//		public static TransmitNetworkOld get(LevelAccessor level) {
+//			return INSTANCES.computeIfAbsent(level, TransmitNetworkOld::new);
+//		}
+//
+//		@SubscribeEvent
+//		public static void onUnload(LevelEvent.Unload event) {
+//			INSTANCES.remove(event.getLevel());
+//		}
+//
+//		@SubscribeEvent
+//		public static void onLevelTick(TickEvent.LevelTickEvent event) {
+//			if (event.phase == TickEvent.Phase.START) {
+//				if (event.side.isServer()) {
+//					get(event.level).serverTick();
+//				}
+//			}
+//		}
+//
+//		@SubscribeEvent
+//		public static void onClientTick(TickEvent.ClientTickEvent event) {
+//			if (event.phase == TickEvent.Phase.START) {
+//				Optional.ofNullable(Minecraft.getInstance().level).ifPresent(level -> get(level).clientTick());
+//			}
+//		}
+//	}
 }

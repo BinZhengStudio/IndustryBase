@@ -1,6 +1,7 @@
 package cn.bzgzs.industrybase.api.energy;
 
 import cn.bzgzs.industrybase.api.util.TransmitNetwork;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -50,6 +51,7 @@ public class MechanicalTransmit implements IMechanicalTransmit, INBTSerializable
 		return this.network.getMachinePower(this.pos);
 	}
 
+	@CanIgnoreReturnValue
 	public int setPower(int power) {
 		int diff = this.network.setMachinePower(this.pos, power);
 		if (diff != 0) {
@@ -63,6 +65,7 @@ public class MechanicalTransmit implements IMechanicalTransmit, INBTSerializable
 		return this.network.getMachineResistance(this.pos);
 	}
 
+	@CanIgnoreReturnValue
 	public int setResistance(int resistance) {
 		int diff = this.network.setMachineResistance(this.pos, resistance);
 		if (diff != 0) {

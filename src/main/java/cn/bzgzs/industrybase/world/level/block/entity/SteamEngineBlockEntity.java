@@ -3,7 +3,6 @@ package cn.bzgzs.industrybase.world.level.block.entity;
 import cn.bzgzs.industrybase.IndustryBase;
 import cn.bzgzs.industrybase.api.CapabilityList;
 import cn.bzgzs.industrybase.api.energy.MechanicalTransmit;
-import cn.bzgzs.industrybase.api.world.level.block.entity.ContainerTransmitBlockEntity;
 import cn.bzgzs.industrybase.world.inventory.SteamEngineMenu;
 import cn.bzgzs.industrybase.world.level.block.SteamEngineBlock;
 import net.minecraft.core.BlockPos;
@@ -21,6 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.WaterFluid;
 import net.minecraftforge.common.ForgeHooks;
@@ -33,7 +33,7 @@ import net.minecraftforge.fluids.capability.templates.FluidTank;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SteamEngineBlockEntity extends ContainerTransmitBlockEntity implements WorldlyContainer {
+public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
 	private int burnTime;
 	private int totalBurnTime;
 	private int shrinkTick;
@@ -42,13 +42,13 @@ public class SteamEngineBlockEntity extends ContainerTransmitBlockEntity impleme
 	private final NonNullList<ItemStack> inventory = NonNullList.withSize(1, ItemStack.EMPTY);
 	private final FluidTank tank = new FluidTank(MAX_WATER, fluidStack -> fluidStack.getFluid() instanceof WaterFluid);
 	private final LazyOptional<IFluidHandler> fluidHandler = LazyOptional.of(() -> tank);
-	private final MechanicalTransmit transmit = new MechanicalTransmit(this, 0, 5);
+	private final MechanicalTransmit transmit = new MechanicalTransmit(this);
 	private final ContainerData data = new ContainerData() { // 用于向客户端发送服务端的相关数据
 		@Override
 		public int get(int index) {
 			return switch (index) {
-				case 0 -> getPower();
-				case 1 -> (int) (getSpeed() * 100);
+				case 0 -> SteamEngineBlockEntity.this.transmit.getPower();
+				case 1 -> (int) (SteamEngineBlockEntity.this.transmit.getSpeed() * 100);
 				case 2 -> burnTime;
 				case 3 -> totalBurnTime;
 				case 4 -> tank.getFluidAmount();
@@ -59,7 +59,7 @@ public class SteamEngineBlockEntity extends ContainerTransmitBlockEntity impleme
 		@Override
 		public void set(int index, int value) { // 这个是让在服务端的Menu中也能更改BlockEntity的数据
 			switch (index) {
-				case 0 -> setPower(value);
+				case 0 -> SteamEngineBlockEntity.this.transmit.setPower(value);
 				case 2 -> burnTime = value;
 				case 3 -> totalBurnTime = value;
 				default -> {
@@ -97,15 +97,15 @@ public class SteamEngineBlockEntity extends ContainerTransmitBlockEntity impleme
 //				}
 			}
 			// TODO
-			if (blockEntity.getPower() < MAX_POWER) { // 增加功率，使之达到最大
-				blockEntity.setPower(blockEntity.getPower() + 1);
+			if (blockEntity.transmit.getPower() < MAX_POWER) { // 增加功率，使之达到最大
+				blockEntity.transmit.setPower(blockEntity.transmit.getPower() + 1);
 			}
 			flag = true;
 		}
 
 		if (!blockEntity.isLit() /* || blockEntity.tank.isEmpty() */) { // TODO 小细节待修复
-			if (blockEntity.getPower() > 0) {
-				blockEntity.setPower(blockEntity.getPower() - 1);
+			if (blockEntity.transmit.getPower() > 0) {
+				blockEntity.transmit.setPower(blockEntity.transmit.getPower() - 1);
 				flag = true;
 			}
 		}
@@ -149,7 +149,8 @@ public class SteamEngineBlockEntity extends ContainerTransmitBlockEntity impleme
 	@Override
 	public void onLoad() {
 		super.onLoad();
-		this.setResistance(5);
+		this.transmit.registerToNetwork();
+		this.transmit.setResistance(5);
 	}
 
 	@Override
@@ -166,7 +167,7 @@ public class SteamEngineBlockEntity extends ContainerTransmitBlockEntity impleme
 	public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
 		if (side != null) {
 			if (side.getAxis() == this.getBlockState().getValue(SteamEngineBlock.AXIS)) {
-				return cap == CapabilityList.MECHANICAL_TRANSMIT ? this.getTransmit().cast() : super.getCapability(cap, side);
+				return cap == CapabilityList.MECHANICAL_TRANSMIT ? this.transmit.cast() : super.getCapability(cap, side);
 			} else {
 				return cap == ForgeCapabilities.FLUID_HANDLER ? this.fluidHandler.cast() : super.getCapability(cap, side);
 			}
@@ -177,6 +178,7 @@ public class SteamEngineBlockEntity extends ContainerTransmitBlockEntity impleme
 	@Override
 	public void load(CompoundTag tag) {
 		super.load(tag);
+		this.transmit.readFromNBT(tag);
 		ContainerHelper.loadAllItems(tag, this.inventory);
 		this.burnTime = tag.getInt("BurnTime");
 		this.totalBurnTime = tag.getInt("TotalBurnTime");
@@ -187,11 +189,24 @@ public class SteamEngineBlockEntity extends ContainerTransmitBlockEntity impleme
 	@Override
 	protected void saveAdditional(CompoundTag tag) {
 		super.saveAdditional(tag);
+		this.transmit.writeToNBT(tag);
 		ContainerHelper.saveAllItems(tag, this.inventory);
 		tag.putInt("BurnTime", this.burnTime);
 		tag.putInt("TotalBurnTime", this.totalBurnTime);
 		tag.putInt("ShrinkTick", this.shrinkTick);
 		this.tank.writeToNBT(tag);
+	}
+
+	@Override
+	public void onChunkUnloaded() {
+		this.transmit.removeFromNetwork();
+		super.onChunkUnloaded();
+	}
+
+	@Override
+	public void setRemoved() {
+		this.transmit.removeFromNetwork();
+		super.setRemoved();
 	}
 
 	@Override

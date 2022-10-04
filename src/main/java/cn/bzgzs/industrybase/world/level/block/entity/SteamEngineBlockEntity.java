@@ -2,6 +2,7 @@ package cn.bzgzs.industrybase.world.level.block.entity;
 
 import cn.bzgzs.industrybase.IndustryBase;
 import cn.bzgzs.industrybase.api.CapabilityList;
+import cn.bzgzs.industrybase.api.energy.MechanicalTransmit;
 import cn.bzgzs.industrybase.api.world.level.block.entity.ContainerTransmitBlockEntity;
 import cn.bzgzs.industrybase.world.inventory.SteamEngineMenu;
 import cn.bzgzs.industrybase.world.level.block.SteamEngineBlock;
@@ -41,6 +42,7 @@ public class SteamEngineBlockEntity extends ContainerTransmitBlockEntity impleme
 	private final NonNullList<ItemStack> inventory = NonNullList.withSize(1, ItemStack.EMPTY);
 	private final FluidTank tank = new FluidTank(MAX_WATER, fluidStack -> fluidStack.getFluid() instanceof WaterFluid);
 	private final LazyOptional<IFluidHandler> fluidHandler = LazyOptional.of(() -> tank);
+	private final MechanicalTransmit transmit = new MechanicalTransmit(this, 0, 5);
 	private final ContainerData data = new ContainerData() { // 用于向客户端发送服务端的相关数据
 		@Override
 		public int get(int index) {

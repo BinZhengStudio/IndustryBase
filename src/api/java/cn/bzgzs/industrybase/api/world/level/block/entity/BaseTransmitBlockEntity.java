@@ -84,8 +84,8 @@ public abstract class BaseTransmitBlockEntity extends BlockEntity {
 	@Override
 	protected void saveAdditional(CompoundTag tag) {
 		super.saveAdditional(tag);
-		tag.putInt("MechanicalPower", this.network.getMachinePower(this.worldPosition));
-		tag.putInt("MechanicalResistance", this.network.getMachineResistance(this.worldPosition));
+		tag.putInt("MechanicalPower", this.tmpPower);
+		tag.putInt("MechanicalResistance", this.tmpResistance);
 	}
 
 	@Override
@@ -107,6 +107,8 @@ public abstract class BaseTransmitBlockEntity extends BlockEntity {
 	@Override
 	public void onChunkUnloaded() {
 		if (this.level != null && !this.level.isClientSide) {
+			this.tmpPower = this.network.getMachinePower(this.worldPosition);
+			this.tmpResistance = this.network.getMachineResistance(this.worldPosition);
 			this.setPower(0);
 			this.setResistance(0);
 			network.removeBlock(this.worldPosition, this::setChanged);

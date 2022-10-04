@@ -15,11 +15,17 @@ public interface IMechanicalTransmit {
 	 */
 	int getPower();
 
+//	@CanIgnoreReturnValue
+//	int setPower(int power);
+
 	/**
 	 * 获取阻力数值，无单位。
 	 * @return 阻力
 	 */
 	int getResistance();
+
+//	@CanIgnoreReturnValue
+//	int setResistance(int resistance);
 
 	double getSpeed();
 }

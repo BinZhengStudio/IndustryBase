@@ -84,8 +84,13 @@ public abstract class ContainerTransmitBlockEntity extends BaseContainerBlockEnt
 	@Override
 	protected void saveAdditional(CompoundTag tag) {
 		super.saveAdditional(tag);
-		tag.putInt("MechanicalPower", this.network.getMachinePower(this.worldPosition));
-		tag.putInt("MechanicalResistance", this.network.getMachineResistance(this.worldPosition));
+//		if (TransmitNetwork.Manager.get(this.level).hasBlock(this.worldPosition)) {
+			tag.putInt("MechanicalPower", this.network.getMachinePower(this.worldPosition));
+			tag.putInt("MechanicalResistance", this.network.getMachineResistance(this.worldPosition));
+//		} else {
+//			tag.putInt("MechanicalPower", this.tmpPower);
+//			tag.putInt("MechanicalResistance", this.tmpResistance);
+//		}
 	}
 
 	@Override
@@ -107,8 +112,6 @@ public abstract class ContainerTransmitBlockEntity extends BaseContainerBlockEnt
 	@Override
 	public void onChunkUnloaded() {
 		if (this.level != null && !this.level.isClientSide) {
-			this.setPower(0);
-			this.setResistance(0);
 			network.removeBlock(this.worldPosition, this::setChanged);
 		}
 		super.onChunkUnloaded();
@@ -117,8 +120,6 @@ public abstract class ContainerTransmitBlockEntity extends BaseContainerBlockEnt
 	@Override
 	public void setRemoved() {
 		if (this.level != null && !this.level.isClientSide) {
-			this.setPower(0);
-			this.setResistance(0);
 			network.removeBlock(this.worldPosition, this::setChanged);
 		}
 		super.setRemoved();

@@ -51,6 +51,10 @@ public class TransmitNetwork {
 		return this.level.isClientSide() ? this.rootCollection.getOrDefault(pos, pos) : this.components.getOrDefault(pos, ImmutableSet.of(pos.immutable())).iterator().next();
 	}
 
+	public boolean hasBlock(BlockPos pos) {
+		return this.components.containsKey(pos);
+	}
+
 	public int totalPower(BlockPos pos) {
 		BlockPos root = this.root(pos);
 		return this.powerCollection.count(root);
@@ -177,6 +181,8 @@ public class TransmitNetwork {
 
 	public void removeBlock(BlockPos pos, Runnable callback) {
 		this.tasks.offer(() -> {
+			this.setMachinePower(pos, 0);
+			this.setMachineResistance(pos, 0);
 			for (Direction side : Direction.values()) {
 				this.cut(pos, side);
 			}

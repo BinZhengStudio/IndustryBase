@@ -147,7 +147,7 @@ public class SteamEngineBlockEntity extends ContainerTransmitBlockEntity impleme
 	@Override
 	public void onLoad() {
 		super.onLoad();
-		this.setResistance(10);
+		this.setResistance(5);
 	}
 
 	@Override
@@ -169,7 +169,7 @@ public class SteamEngineBlockEntity extends ContainerTransmitBlockEntity impleme
 				return cap == ForgeCapabilities.FLUID_HANDLER ? this.fluidHandler.cast() : super.getCapability(cap, side);
 			}
 		}
-		return super.getCapability(cap, side);
+		return super.getCapability(cap, null);
 	}
 
 	@Override
@@ -179,6 +179,7 @@ public class SteamEngineBlockEntity extends ContainerTransmitBlockEntity impleme
 		this.burnTime = tag.getInt("BurnTime");
 		this.totalBurnTime = tag.getInt("TotalBurnTime");
 		this.shrinkTick = tag.getInt("ShrinkTick");
+		this.tank.readFromNBT(tag);
 	}
 
 	@Override
@@ -188,6 +189,7 @@ public class SteamEngineBlockEntity extends ContainerTransmitBlockEntity impleme
 		tag.putInt("BurnTime", this.burnTime);
 		tag.putInt("TotalBurnTime", this.totalBurnTime);
 		tag.putInt("ShrinkTick", this.shrinkTick);
+		this.tank.writeToNBT(tag);
 	}
 
 	@Override

@@ -102,10 +102,22 @@ public class TransmitNetwork {
 
 	public int setMachinePower(BlockPos pos, int power) {
 		int diff = power - this.machinePower.setCount(pos, power);
-		if (diff >= 0) {
-			this.powerCollection.add(this.root(pos), diff);
-		} else {
-			this.powerCollection.remove(this.root(pos), -diff);
+		if (this.components.containsKey(pos)) {
+			BlockPos root = this.root(pos);
+			int netPower;
+			if (diff >= 0) {
+				netPower = this.powerCollection.add(root, diff) + diff;
+			} else {
+				netPower = this.powerCollection.remove(root, -diff) - diff;
+			}
+			if (netPower > 0) {
+				Multiset<BlockPos> updated = HashMultiset.create();
+				updated.setCount(root, netPower);
+				MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdatePowerEvent(this.level, updated, new HashSet<>()));
+			} else {
+				MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdatePowerEvent(this.level, HashMultiset.create(), ImmutableSet.of(root)));
+			}
+
 		}
 		this.updateSpeed(pos);
 		return diff;
@@ -117,10 +129,21 @@ public class TransmitNetwork {
 
 	public int setMachineResistance(BlockPos pos, int resistance) {
 		int diff = resistance - this.machineResistance.setCount(pos, resistance);
-		if (diff >= 0) {
-			this.resistanceCollection.add(this.root(pos), diff);
-		} else {
-			this.resistanceCollection.remove(this.root(pos), -diff);
+		if (this.components.containsKey(pos)) {
+			BlockPos root = this.root(pos);
+			int netResistance;
+			if (diff >= 0) {
+				netResistance = this.resistanceCollection.add(root, diff) + diff;
+			} else {
+				netResistance = this.resistanceCollection.remove(root, -diff) - diff;
+			}
+			if (netResistance > 0) {
+				Multiset<BlockPos> updated = HashMultiset.create();
+				updated.setCount(root, netResistance);
+				MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateResistanceEvent(this.level, updated, new HashSet<>()));
+			} else {
+				MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateResistanceEvent(this.level, HashMultiset.create(), ImmutableSet.of(root)));
+			}
 		}
 		this.updateSpeed(pos);
 		return diff;
@@ -232,6 +255,7 @@ public class TransmitNetwork {
 					this.rootCollection.put(pos, secondaryNode);
 					updatedRoot.put(pos, secondaryNode);
 				}
+
 				int primaryPower = this.powerCollection.remove(primaryNode, powerDiff) - powerDiff;
 				int primaryResistance = this.resistanceCollection.remove(primaryNode, resistanceDiff) - resistanceDiff;
 				if (primaryPower > 0) {
@@ -244,6 +268,7 @@ public class TransmitNetwork {
 				} else {
 					deletedPower.add(primaryNode);
 				}
+
 				updatedPower.setCount(secondaryNode, this.powerCollection.add(secondaryNode, powerDiff) + powerDiff);
 				updatedResistance.setCount(secondaryNode, this.resistanceCollection.add(secondaryNode, resistanceDiff) + resistanceDiff);
 			}
@@ -411,7 +436,7 @@ public class TransmitNetwork {
 		@Override
 		public BlockPos next() {
 			BlockPos node = this.queue.remove();
-			for (Direction direction : connections.get(node)) {
+			for (Direction direction : TransmitNetwork.this.connections.get(node)) {
 				BlockPos another = node.offset(direction.getNormal());
 				if (this.searched.add(another)) {
 					this.queue.offer(another);

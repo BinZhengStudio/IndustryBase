@@ -56,8 +56,8 @@ public class TransmitNetworkNew {
 			if (this.components.remove(node, direction)) {
 				BlockPos another = node.offset(direction.getNormal());
 				this.components.remove(another, direction.getOpposite());
-				BFSIterator nodeIterator = new BFSIterator(node);
-				BFSIterator anotherIterator = new BFSIterator(another);
+				BFSIterator nodeIterator = new BFSIterator(node, this);
+				BFSIterator anotherIterator = new BFSIterator(another, this);
 
 				while (nodeIterator.hasNext()) {
 					BlockPos next = nodeIterator.next();
@@ -71,13 +71,13 @@ public class TransmitNetworkNew {
 					return; // 如果两个 iterator 存在重复方块（连通域没有断开），则直接退出
 				}
 
-				LinkedHashSet<BlockPos> primaryComponent = this.components;
+				LinkedHashMultimap<BlockPos, Direction> primaryComponent = this.components;
 				LinkedHashSet<BlockPos> secondaryComponent;
 				SetMultimap<BlockPos, Direction> secondaryConn;
 				BlockPos primaryNode = primaryComponent.iterator().next();
-				LinkedHashSet<BlockPos> searched = nodeIterator.getSearched();
+				LinkedHashMultimap<BlockPos, Direction> searched = nodeIterator.getSearched();
 
-				if (searched.contains(primaryNode)) {
+				if (searched.containsKey(primaryNode)) {
 					secondaryComponent = new LinkedHashSet<>(Sets.difference(primaryComponent, searched));
 					secondaryConn = HashMultimap.create(Multimaps.filterKeys(nodeIterator.conn, pos -> !searched.contains(pos))); // TODO Hash?
 					primaryComponent.retainAll(searched);
@@ -197,6 +197,11 @@ public class TransmitNetworkNew {
 
 		public LinkedHashMultimap<BlockPos, Direction> getSearched() {
 			return this.searched;
+		}
+
+		public boolean contains(ComponentContext context) {
+			this.
+			return
 		}
 	}
 }

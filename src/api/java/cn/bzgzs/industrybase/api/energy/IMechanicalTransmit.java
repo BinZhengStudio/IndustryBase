@@ -1,5 +1,6 @@
 package cn.bzgzs.industrybase.api.energy;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import net.minecraftforge.common.capabilities.AutoRegisterCapability;
 
 /**
@@ -15,8 +16,8 @@ public interface IMechanicalTransmit {
 	 */
 	int getPower();
 
-//	@CanIgnoreReturnValue
-//	int setPower(int power);
+	@CanIgnoreReturnValue
+	int setPower(int power);
 
 	/**
 	 * 获取阻力数值，无单位。
@@ -24,8 +25,8 @@ public interface IMechanicalTransmit {
 	 */
 	int getResistance();
 
-//	@CanIgnoreReturnValue
-//	int setResistance(int resistance);
+	@CanIgnoreReturnValue
+	int setResistance(int resistance);
 
 	double getSpeed();
 }

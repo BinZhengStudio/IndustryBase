@@ -53,7 +53,7 @@ public class MechanicalTransmit implements IMechanicalTransmit {
 		return this.network.getMachinePower(this.pos);
 	}
 
-//	@Override
+	@Override
 	public int setPower(int power) {
 		int diff = this.network.setMachinePower(this.pos, power);
 		if (diff != 0) {
@@ -67,7 +67,7 @@ public class MechanicalTransmit implements IMechanicalTransmit {
 		return this.network.getMachineResistance(this.pos);
 	}
 
-//	@Override
+	@Override
 	public int setResistance(int resistance) {
 		int diff = this.network.setMachineResistance(this.pos, resistance);
 		if (diff != 0) {

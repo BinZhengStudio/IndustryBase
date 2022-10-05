@@ -1,6 +1,5 @@
 package cn.bzgzs.industrybase.api.world.level.block.entity;
 
-import cn.bzgzs.industrybase.api.energy.IElectricPower;
 import cn.bzgzs.industrybase.api.util.ElectricNetwork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -8,7 +7,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,17 +15,17 @@ public abstract class BaseElectricBlockEntity extends BlockEntity {
 	private ElectricNetwork network;
 	private int tmpPower;
 	private int tmpResistance;
-	private final LazyOptional<IElectricPower> electricPower = LazyOptional.of(() -> new IElectricPower() {
-		@Override
-		public double getOutputPower() {
-			return BaseElectricBlockEntity.this.getOutput();
-		}
-
-		@Override
-		public double getInputPower() {
-			return BaseElectricBlockEntity.this.getInput();
-		}
-	});
+//	private final LazyOptional<IElectricPower> electricPower = LazyOptional.of(() -> new IElectricPower() {
+//		@Override
+//		public double getOutputPower() {
+//			return BaseElectricBlockEntity.this.getOutput();
+//		}
+//
+//		@Override
+//		public double getInputPower() {
+//			return BaseElectricBlockEntity.this.getInput();
+//		}
+//	});
 
 	public BaseElectricBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
 		super(type, pos, blockState);
@@ -49,9 +47,9 @@ public abstract class BaseElectricBlockEntity extends BlockEntity {
 		this.network.setMachineInput(this.worldPosition, input);
 	}
 
-	public LazyOptional<IElectricPower> getElectricPower() {
-		return this.electricPower;
-	}
+//	public LazyOptional<IElectricPower> getElectricPower() {
+//		return this.electricPower;
+//	}
 
 	public ElectricNetwork getNetwork() {
 		return this.network;

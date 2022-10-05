@@ -89,13 +89,16 @@ public class ElectricNetwork {
 	public void removeBlock(BlockPos pos, Runnable callback) {
 		this.tasks.offer(() -> {
 			for (Direction side : Direction.values()) {
-				this.cut(pos, side);
+				this.cutSide(pos, side);
+			}
+			for (BlockPos another : this.wireConn.get(pos)) {
+				this.cutWire(pos, another);
 			}
 			callback.run();
 		});
 	}
 
-	private void cut(BlockPos node, Direction direction) {
+	private void cutSide(BlockPos node, Direction direction) {
 		if (this.sideConn.remove(node, direction)) {
 			BlockPos another = node.offset(direction.getNormal());
 			this.sideConn.remove(another, direction.getOpposite());
@@ -164,6 +167,8 @@ public class ElectricNetwork {
 		}
 	}
 
+	private void cutWire(BlockPos pos, BlockPos another) {
+	}
 
 	public void addOrChangeBlock(BlockPos pos, Runnable callback) {
 		this.tasks.offer(() -> {
@@ -171,7 +176,7 @@ public class ElectricNetwork {
 				if (this.hasElectricalConnection(pos, side)) { // 某个方向上有与其他传动设备连接
 					this.link(pos, side);
 				} else {
-					this.cut(pos, side);
+					this.cutSide(pos, side);
 				}
 			}
 			callback.run();
@@ -283,8 +288,13 @@ public class ElectricNetwork {
 		@Override
 		public BlockPos next() {
 			BlockPos node = this.queue.remove();
-			for (Direction direction : sideConn.get(node)) {
+			for (Direction direction : ElectricNetwork.this.sideConn.get(node)) {
 				BlockPos another = node.offset(direction.getNormal());
+				if (this.searched.add(another)) {
+					this.queue.offer(another);
+				}
+			}
+			for (BlockPos another : ElectricNetwork.this.wireConn.get(node)) {
 				if (this.searched.add(another)) {
 					this.queue.offer(another);
 				}

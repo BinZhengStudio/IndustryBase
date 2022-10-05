@@ -15,11 +15,15 @@ public interface IElectricPower {
 	 */
 	double getOutputPower();
 
+	double setOutputPower();
+
 	/**
 	 * 获取额定输入功率，无输入设置 0 即可
 	 * @return 功率
 	 */
 	double getInputPower();
+
+	double setInputPower();
 
 //	/**
 //	 * 能否输出

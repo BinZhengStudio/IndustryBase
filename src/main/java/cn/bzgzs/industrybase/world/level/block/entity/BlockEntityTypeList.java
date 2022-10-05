@@ -16,4 +16,6 @@ public class BlockEntityTypeList {
 	public static final RegistryObject<BlockEntityType<SteamEngineBlockEntity>> STEAM_ENGINE = BLOCK_ENTITY_TYPES.register("steam_engine", () -> BlockEntityType.Builder.of(SteamEngineBlockEntity::new, BlockList.STEAM_ENGINE.get()).build(DSL.remainderType()));
 	public static final RegistryObject<BlockEntityType<GearBoxBlockEntity>> GEAR_BOX = BLOCK_ENTITY_TYPES.register("gear_box", () -> BlockEntityType.Builder.of(GearBoxBlockEntity::new, BlockList.GEAR_BOX.get()).build(DSL.remainderType()));
 	public static final RegistryObject<BlockEntityType<WireBlockEntity>> WIRE = BLOCK_ENTITY_TYPES.register("wire", () -> BlockEntityType.Builder.of(WireBlockEntity::new, BlockList.WIRE.get()).build(DSL.remainderType()));
+	public static final RegistryObject<BlockEntityType<WireConnectorBlockEntity>> WIRE_CONNECTOR = BLOCK_ENTITY_TYPES.register("wire_connector", () -> BlockEntityType.Builder.of(WireConnectorBlockEntity::new, BlockList.WIRE_CONNECTOR.get()).build(DSL.remainderType()));
+
 }

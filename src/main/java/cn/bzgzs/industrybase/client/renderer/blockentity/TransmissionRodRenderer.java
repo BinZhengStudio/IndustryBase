@@ -50,7 +50,7 @@ public class TransmissionRodRenderer implements BlockEntityRenderer<Transmission
 			TransmitNetwork.RotateContext context = TransmitNetwork.Manager.get(blockEntity.getLevel()).getRotateContext(blockEntity.getBlockPos());
 			poseStack.mulPose(Vector3f.YP.rotationDegrees(Mth.rotLerp(partialTick, (float) context.getOldDegree(), (float) context.getDegree())));
 		});
-		main.render(poseStack, bufferSource.getBuffer(RenderType.entityCutout(IRON)), packedLight, packedOverlay, 1.0F, 1.0F, 1.0F, 1.0F);
+		main.render(poseStack, bufferSource.getBuffer(RenderType.entityCutout(IRON)), packedLight, packedOverlay);
 		poseStack.popPose();
 	}
 }

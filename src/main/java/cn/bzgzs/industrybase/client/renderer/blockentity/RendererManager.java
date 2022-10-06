@@ -11,10 +11,12 @@ public class RendererManager {
 	@SubscribeEvent
 	public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
 		event.registerBlockEntityRenderer(BlockEntityTypeList.TRANSMISSION_ROD.get(), TransmissionRodRenderer::new);
+		event.registerBlockEntityRenderer(BlockEntityTypeList.STEAM_ENGINE.get(), SteamEngineRenderer::new);
 	}
 
 	@SubscribeEvent
 	public static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
 		event.registerLayerDefinition(TransmissionRodRenderer.MAIN, TransmissionRodRenderer::createBodyLayer);
+		event.registerLayerDefinition(SteamEngineRenderer.MAIN, SteamEngineRenderer::createBodyLayer);
 	}
 }

@@ -3,16 +3,11 @@ package cn.bzgzs.industrybase.api.util;
 import cn.bzgzs.industrybase.api.CapabilityList;
 import cn.bzgzs.industrybase.api.event.TransmitNetworkEvent;
 import com.google.common.collect.*;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 
 import java.util.*;
 
@@ -191,38 +186,137 @@ public class TransmitNetworkNew {
 	}
 
 	private void cutAll(BlockPos node) {
-		Set<BlockPos> origin = this.components.remove(node);
+		Set<BlockPos> primaryComponent = this.components.remove(node);
+		BlockPos primaryNode = primaryComponent.iterator().next();
 		Set<Set<BlockPos>> allComponents = new HashSet<>();
 		LinkedHashSet<BFSIterator> iterators = new LinkedHashSet<>();
 		for (Direction side : this.connections.removeAll(node)) {
 			BlockPos another = node.offset(side.getNormal());
 			this.connections.remove(another, side.getOpposite());
-			iterators.add(new BFSIterator(another));
+			BFSIterator iterator = new BFSIterator(another);
+			iterators.add(iterator);
+			allComponents.add(iterator.searched);
 		}
 		while (iterators.size() > 1) {
 			for (BFSIterator iterator : new LinkedHashSet<>(iterators)) {
 				if (iterator.hasNext()) {
 					BlockPos next = iterator.next();
-					for (BFSIterator bfsIterator : iterators) {
+					for (BFSIterator bfsIterator : new LinkedHashSet<>(iterators)) {
 						if (bfsIterator != iterator) {
 							if (bfsIterator.searched.contains(next)) {
 								iterator.searched.addAll(bfsIterator.searched);
 								iterators.remove(bfsIterator);
+								if (iterators.size() <= 1) return;
 							}
 						}
 					}
 				} else {
-					allComponents.add(iterator.searched);
 					iterators.remove(iterator);
 				}
 			}
 		}
-		allComponents.forEach(subNetwork -> {
-			BlockPos subNode = subNetwork.iterator().next();
-			if (subNetwork.size() <= 1) {
-				origin.remove(subNode);
+		allComponents.forEach(primaryComponent::removeAll);
+
+		Multiset<BlockPos> updatedPower = HashMultiset.create();
+		Set<BlockPos> deletedPower = new HashSet<>();
+		Multiset<BlockPos> updatedResistance = HashMultiset.create();
+		Set<BlockPos> deletedResistance = new HashSet<>();
+		Map<BlockPos, BlockPos> updatedRoot = new HashMap<>();
+		Set<BlockPos> deletedRoot = new HashSet<>();
+
+		this.rootCollection.remove(node);
+		deletedRoot.add(node);
+
+		if (!primaryComponent.contains(primaryNode)) {
+			BlockPos oldNode = primaryNode;
+			primaryNode = primaryComponent.iterator().next();
+
+			for (BlockPos pos : primaryComponent) {
+				this.rootCollection.put(pos, primaryNode);
+				updatedRoot.put(pos, primaryNode);
 			}
-		});
+
+			int power = this.powerCollection.setCount(oldNode, 0);
+			this.powerCollection.setCount(primaryNode, power);
+			updatedPower.setCount(primaryNode, power);
+			deletedPower.add(oldNode);
+
+			int resistance = this.resistanceCollection.setCount(oldNode, 0);
+			this.resistanceCollection.setCount(primaryNode, resistance);
+			updatedResistance.setCount(primaryNode, power);
+			deletedResistance.add(oldNode);
+
+			this.updateSpeed(oldNode);
+		}
+
+		for (Set<BlockPos> secondaryComponent : allComponents) {
+			BlockPos secondaryNode = secondaryComponent.iterator().next();
+			if (secondaryComponent.size() <= 1) {
+				this.components.remove(secondaryNode);
+
+				int powerDiff = this.machinePower.count(secondaryNode);
+				int resistanceDiff = this.machineResistance.count(secondaryNode);
+				int power = this.powerCollection.remove(primaryNode, powerDiff) - powerDiff;
+				int resistance = this.resistanceCollection.remove(primaryNode, resistanceDiff) - resistanceDiff;
+				if (power > 0) {
+					updatedPower.setCount(primaryNode, power);
+				} else {
+					deletedPower.add(primaryNode);
+				}
+				if (resistance > 0) {
+					updatedPower.setCount(primaryNode, resistance);
+				} else {
+					deletedPower.add(primaryNode);
+				}
+
+				this.rootCollection.remove(secondaryNode);
+				deletedRoot.add(secondaryNode);
+			} else {
+				int powerDiff = 0;
+				int resistanceDiff = 0;
+				for (BlockPos pos : secondaryComponent) {
+					this.components.put(pos, secondaryComponent);
+
+					powerDiff += this.machinePower.count(pos);
+					resistanceDiff += this.machineResistance.count(pos);
+					// 将原先从主连通域分离的映射移到子连通域
+					this.rootCollection.put(pos, secondaryNode);
+					updatedRoot.put(pos, secondaryNode);
+				}
+
+				int primaryPower = this.powerCollection.remove(primaryNode, powerDiff) - powerDiff;
+				int primaryResistance = this.resistanceCollection.remove(primaryNode, resistanceDiff) - resistanceDiff;
+				if (primaryPower > 0) {
+					updatedPower.setCount(primaryNode, primaryPower);
+				} else {
+					deletedPower.add(primaryNode);
+				}
+				if (primaryResistance > 0) {
+					updatedPower.setCount(primaryNode, primaryResistance);
+				} else {
+					deletedPower.add(primaryNode);
+				}
+
+				updatedPower.setCount(secondaryNode, this.powerCollection.add(secondaryNode, powerDiff) + powerDiff);
+				updatedResistance.setCount(secondaryNode, this.resistanceCollection.add(secondaryNode, resistanceDiff) + resistanceDiff);
+			}
+			this.updateSpeed(secondaryNode);
+		}
+		if (primaryComponent.size() <= 1) {
+			this.components.remove(primaryNode);
+
+			this.powerCollection.setCount(primaryNode, 0);
+			deletedPower.add(primaryNode);
+			this.resistanceCollection.setCount(primaryNode, 0);
+			deletedResistance.add(primaryNode);
+			this.rootCollection.remove(primaryNode);
+			deletedRoot.add(primaryNode);
+		}
+		MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdatePowerEvent(this.level, updatedPower, deletedPower));
+		MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateResistanceEvent(this.level, updatedResistance, deletedResistance));
+		MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateRootEvent(this.level, updatedRoot, deletedRoot));
+
+		this.updateSpeed(primaryNode);
 	}
 
 	private void cut(BlockPos node, Direction direction) {
@@ -517,33 +611,33 @@ public class TransmitNetworkNew {
 		}
 	}
 
-	@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
-	public static class Manager {
-		private static final Map<LevelAccessor, TransmitNetworkNew> INSTANCES = new IdentityHashMap<>();
-
-		public static TransmitNetworkNew get(LevelAccessor level) {
-			return INSTANCES.computeIfAbsent(level, TransmitNetworkNew::new);
-		}
-
-		@SubscribeEvent
-		public static void onUnload(LevelEvent.Unload event) {
-			INSTANCES.remove(event.getLevel());
-		}
-
-		@SubscribeEvent
-		public static void onLevelTick(TickEvent.LevelTickEvent event) {
-			if (event.phase == TickEvent.Phase.START) {
-				if (event.side.isServer()) {
-					get(event.level).serverTick();
-				}
-			}
-		}
-
-		@SubscribeEvent
-		public static void onClientTick(TickEvent.ClientTickEvent event) {
-			if (event.phase == TickEvent.Phase.START) {
-				Optional.ofNullable(Minecraft.getInstance().level).ifPresent(level -> get(level).clientTick());
-			}
-		}
-	}
+//	@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
+//	public static class Manager {
+//		private static final Map<LevelAccessor, TransmitNetworkNew> INSTANCES = new IdentityHashMap<>();
+//
+//		public static TransmitNetworkNew get(LevelAccessor level) {
+//			return INSTANCES.computeIfAbsent(level, TransmitNetworkNew::new);
+//		}
+//
+//		@SubscribeEvent
+//		public static void onUnload(LevelEvent.Unload event) {
+//			INSTANCES.remove(event.getLevel());
+//		}
+//
+//		@SubscribeEvent
+//		public static void onLevelTick(TickEvent.LevelTickEvent event) {
+//			if (event.phase == TickEvent.Phase.START) {
+//				if (event.side.isServer()) {
+//					get(event.level).serverTick();
+//				}
+//			}
+//		}
+//
+//		@SubscribeEvent
+//		public static void onClientTick(TickEvent.ClientTickEvent event) {
+//			if (event.phase == TickEvent.Phase.START) {
+//				Optional.ofNullable(Minecraft.getInstance().level).ifPresent(level -> get(level).clientTick());
+//			}
+//		}
+//	}
 }

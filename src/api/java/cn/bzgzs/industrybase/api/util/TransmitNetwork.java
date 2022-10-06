@@ -50,11 +50,6 @@ public class TransmitNetwork {
 	public BlockPos root(BlockPos pos) {
 		return this.level.isClientSide() ? this.rootCollection.getOrDefault(pos, pos) : this.components.getOrDefault(pos, ImmutableSet.of(pos.immutable())).iterator().next();
 	}
-
-	public boolean hasBlock(BlockPos pos) {
-		return this.components.containsKey(pos);
-	}
-
 	public int totalPower(BlockPos pos) {
 		BlockPos root = this.root(pos);
 		return this.powerCollection.count(root);
@@ -183,11 +178,148 @@ public class TransmitNetwork {
 		this.tasks.offer(() -> {
 			this.setMachinePower(pos, 0);
 			this.setMachineResistance(pos, 0);
-			for (Direction side : Direction.values()) {
-				this.cut(pos, side);
+//			for (Direction side : Direction.values()) {
+//				this.cut(pos, side);
+//			}
+			if (this.components.containsKey(pos)) {
+				this.cutAll(pos);
 			}
 			callback.run();
 		});
+	}
+
+	private void cutAll(BlockPos node) {
+		Set<BlockPos> primaryComponent = this.components.remove(node);
+		BlockPos primaryNode = primaryComponent.iterator().next();
+		Set<Set<BlockPos>> allComponents = new HashSet<>();
+		LinkedHashSet<BFSIterator> iterators = new LinkedHashSet<>();
+		for (Direction side : this.connections.removeAll(node)) {
+			BlockPos another = node.offset(side.getNormal());
+			this.connections.remove(another, side.getOpposite());
+			BFSIterator iterator = new BFSIterator(another);
+			iterators.add(iterator);
+			allComponents.add(iterator.searched);
+		}
+		while (iterators.size() > 1) {
+			for (BFSIterator iterator : new LinkedHashSet<>(iterators)) {
+				if (iterator.hasNext()) {
+					BlockPos next = iterator.next();
+					for (BFSIterator bfsIterator : new LinkedHashSet<>(iterators)) {
+						if (bfsIterator != iterator) {
+							if (bfsIterator.searched.contains(next)) {
+								iterator.searched.addAll(bfsIterator.searched);
+								iterators.remove(bfsIterator);
+								if (iterators.size() <= 1) return;
+							}
+						}
+					}
+				} else {
+					iterators.remove(iterator);
+				}
+			}
+		}
+		allComponents.forEach(primaryComponent::removeAll);
+
+		Multiset<BlockPos> updatedPower = HashMultiset.create();
+		Set<BlockPos> deletedPower = new HashSet<>();
+		Multiset<BlockPos> updatedResistance = HashMultiset.create();
+		Set<BlockPos> deletedResistance = new HashSet<>();
+		Map<BlockPos, BlockPos> updatedRoot = new HashMap<>();
+		Set<BlockPos> deletedRoot = new HashSet<>();
+
+		this.rootCollection.remove(node);
+		deletedRoot.add(node);
+
+		if (!primaryComponent.contains(primaryNode)) {
+			BlockPos oldNode = primaryNode;
+			primaryNode = primaryComponent.iterator().next();
+
+			for (BlockPos pos : primaryComponent) {
+				this.rootCollection.put(pos, primaryNode);
+				updatedRoot.put(pos, primaryNode);
+			}
+
+			int power = this.powerCollection.setCount(oldNode, 0);
+			this.powerCollection.setCount(primaryNode, power);
+			updatedPower.setCount(primaryNode, power);
+			deletedPower.add(oldNode);
+
+			int resistance = this.resistanceCollection.setCount(oldNode, 0);
+			this.resistanceCollection.setCount(primaryNode, resistance);
+			updatedResistance.setCount(primaryNode, power);
+			deletedResistance.add(oldNode);
+
+			this.updateSpeed(oldNode);
+		}
+
+		for (Set<BlockPos> secondaryComponent : allComponents) {
+			BlockPos secondaryNode = secondaryComponent.iterator().next();
+			if (secondaryComponent.size() <= 1) {
+				this.components.remove(secondaryNode);
+
+				int powerDiff = this.machinePower.count(secondaryNode);
+				int resistanceDiff = this.machineResistance.count(secondaryNode);
+				int power = this.powerCollection.remove(primaryNode, powerDiff) - powerDiff;
+				int resistance = this.resistanceCollection.remove(primaryNode, resistanceDiff) - resistanceDiff;
+				if (power > 0) {
+					updatedPower.setCount(primaryNode, power);
+				} else {
+					deletedPower.add(primaryNode);
+				}
+				if (resistance > 0) {
+					updatedPower.setCount(primaryNode, resistance);
+				} else {
+					deletedPower.add(primaryNode);
+				}
+
+				this.rootCollection.remove(secondaryNode);
+				deletedRoot.add(secondaryNode);
+			} else {
+				int powerDiff = 0;
+				int resistanceDiff = 0;
+				for (BlockPos pos : secondaryComponent) {
+					this.components.put(pos, secondaryComponent);
+
+					powerDiff += this.machinePower.count(pos);
+					resistanceDiff += this.machineResistance.count(pos);
+					// 将原先从主连通域分离的映射移到子连通域
+					this.rootCollection.put(pos, secondaryNode);
+					updatedRoot.put(pos, secondaryNode);
+				}
+
+				int primaryPower = this.powerCollection.remove(primaryNode, powerDiff) - powerDiff;
+				int primaryResistance = this.resistanceCollection.remove(primaryNode, resistanceDiff) - resistanceDiff;
+				if (primaryPower > 0) {
+					updatedPower.setCount(primaryNode, primaryPower);
+				} else {
+					deletedPower.add(primaryNode);
+				}
+				if (primaryResistance > 0) {
+					updatedPower.setCount(primaryNode, primaryResistance);
+				} else {
+					deletedPower.add(primaryNode);
+				}
+
+				updatedPower.setCount(secondaryNode, this.powerCollection.add(secondaryNode, powerDiff) + powerDiff);
+				updatedResistance.setCount(secondaryNode, this.resistanceCollection.add(secondaryNode, resistanceDiff) + resistanceDiff);
+			}
+			this.updateSpeed(secondaryNode);
+		}
+		if (primaryComponent.size() <= 1) {
+			this.components.remove(primaryNode);
+
+			this.powerCollection.setCount(primaryNode, 0);
+			deletedPower.add(primaryNode);
+			this.resistanceCollection.setCount(primaryNode, 0);
+			deletedResistance.add(primaryNode);
+			this.rootCollection.remove(primaryNode);
+			deletedRoot.add(primaryNode);
+		}
+		MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdatePowerEvent(this.level, updatedPower, deletedPower));
+		MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateResistanceEvent(this.level, updatedResistance, deletedResistance));
+		MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdateRootEvent(this.level, updatedRoot, deletedRoot));
+
+		this.updateSpeed(primaryNode);
 	}
 
 	private void cut(BlockPos node, Direction direction) {

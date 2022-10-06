@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -14,6 +15,7 @@ import net.minecraftforge.fml.common.Mod;
 import java.util.*;
 
 public class ElectricNetwork {
+	private final Random random;
 	private final Map<BlockPos, Set<BlockPos>> components;
 	private final SetMultimap<BlockPos, Direction> sideConn;
 	private final SetMultimap<BlockPos, BlockPos> wireConn;
@@ -24,9 +26,10 @@ public class ElectricNetwork {
 	//	private final Map<BlockPos, BlockPos> rootCollection; // TODO
 	private final Map<BlockPos, Double> machineOutput;
 	private final Map<BlockPos, Double> machineInput;
-	private final SetMultimap<BlockPos, Direction> machinesFE;
+	private final SetMultimap<BlockPos, Direction> FEMachines;
 
 	public ElectricNetwork(LevelAccessor level) {
+		this.random = new Random();
 		this.components = new HashMap<>();
 		this.sideConn = Multimaps.newSetMultimap(new HashMap<>(), () -> EnumSet.noneOf(Direction.class));
 		this.wireConn = HashMultimap.create();
@@ -37,7 +40,7 @@ public class ElectricNetwork {
 //		this.rootCollection = new HashMap<>();
 		this.machineOutput = new HashMap<>();
 		this.machineInput = new HashMap<>();
-		this.machinesFE = Multimaps.newSetMultimap(new HashMap<>(), () -> EnumSet.noneOf(Direction.class));
+		this.FEMachines = Multimaps.newSetMultimap(new HashMap<>(), () -> EnumSet.noneOf(Direction.class));
 	}
 
 	public int size(BlockPos pos) {
@@ -96,8 +99,8 @@ public class ElectricNetwork {
 		});
 	}
 
-	public void removeConnection(BlockPos from, BlockPos to) {
-		this.cutWire(from, to);
+	public void removeWire(BlockPos from, BlockPos to) {
+		this.tasks.offer(() -> this.cutWire(from, to));
 	}
 
 	private void cutSide(BlockPos node, Direction direction) {
@@ -108,7 +111,7 @@ public class ElectricNetwork {
 			BFSIterator anotherIterator = new BFSIterator(another);
 
 			while (nodeIterator.hasNext()) {
-				BlockPos next = nodeIterator.nextSide();
+				BlockPos next = nodeIterator.next();
 				if (!anotherIterator.getSearched().contains(next)) {
 					BFSIterator iterator = anotherIterator;
 					anotherIterator = nodeIterator;
@@ -169,14 +172,14 @@ public class ElectricNetwork {
 		}
 	}
 
-	private void cutWire(BlockPos node, BlockPos another) {
-		if (this.wireConn.remove(node, another)) {
-			this.wireConn.remove(another, node);
-			BFSIterator nodeIterator = new BFSIterator(node);
-			BFSIterator anotherIterator = new BFSIterator(another);
+	public void cutWire(BlockPos from, BlockPos to) {
+		if (this.wireConn.remove(from, to)) {
+			this.wireConn.remove(to, from);
+			BFSIterator nodeIterator = new BFSIterator(from);
+			BFSIterator anotherIterator = new BFSIterator(to);
 
 			while (nodeIterator.hasNext()) {
-				BlockPos next = nodeIterator.nextWire();
+				BlockPos next = nodeIterator.next();
 				if (!anotherIterator.getSearched().contains(next)) {
 					BFSIterator iterator = anotherIterator;
 					anotherIterator = nodeIterator;
@@ -186,7 +189,7 @@ public class ElectricNetwork {
 				return;
 			}
 
-			Set<BlockPos> primaryComponent = this.components.get(node);
+			Set<BlockPos> primaryComponent = this.components.get(from);
 			Set<BlockPos> secondaryComponent;
 			BlockPos primaryNode = primaryComponent.iterator().next();
 			Set<BlockPos> searched = nodeIterator.getSearched();
@@ -218,17 +221,20 @@ public class ElectricNetwork {
 
 	public void addOrChangeBlock(BlockPos pos, Runnable callback) {
 		this.tasks.offer(() -> {
+			Set<BlockPos> initSet = new LinkedHashSet<>();
+			initSet.add(pos);
+			this.components.put(pos, initSet);
 			for (Direction side : Direction.values()) {
 				if (this.hasElectricalCapability(pos, side)) {
 					if (this.hasElectricalCapability(pos.offset(side.getNormal()), side.getOpposite())) {
-						this.machinesFE.remove(pos, side);
+						this.FEMachines.remove(pos, side);
 						this.linkSide(pos, side);
-					} else {
-						this.machinesFE.put(pos, side);
+					} else if (this.hasFECapability(pos.offset(side.getNormal()), side.getOpposite())) {
+						this.FEMachines.put(pos, side);
 						this.cutSide(pos, side);
 					}
 				} else {
-					this.machinesFE.remove(pos, side);
+					this.FEMachines.remove(pos, side);
 					this.cutSide(pos, side);
 				}
 			}
@@ -236,7 +242,8 @@ public class ElectricNetwork {
 		});
 	}
 
-	public void addConnection(BlockPos from, BlockPos to) {
+	public void addWire(BlockPos from, BlockPos to) {
+		this.tasks.offer(() -> linkWire(from, to));
 	}
 
 	@SuppressWarnings("deprecation")
@@ -244,6 +251,15 @@ public class ElectricNetwork {
 		if (this.level.isAreaLoaded(pos, 0)) {
 			BlockEntity blockEntity = this.level.getBlockEntity(pos);
 			return blockEntity != null && blockEntity.getCapability(CapabilityList.ELECTRIC_POWER, side).isPresent();
+		}
+		return false;
+	}
+
+	@SuppressWarnings("deprecation")
+	private boolean hasFECapability(BlockPos pos, Direction side) {
+		if (this.level.isAreaLoaded(pos, 0)) {
+			BlockEntity blockEntity = this.level.getBlockEntity(pos);
+			return blockEntity != null && blockEntity.getCapability(ForgeCapabilities.ENERGY, side).isPresent();
 		}
 		return false;
 	}
@@ -317,13 +333,118 @@ public class ElectricNetwork {
 		}
 	}
 
-	private void serverTick() {
+	private void linkWire(BlockPos from, BlockPos to) {
+		BlockPos secondary = from.immutable();
+		BlockPos primary = to.immutable();
+		if (this.wireConn.put(secondary, primary)) {
+			this.wireConn.put(primary, secondary);
+			Set<BlockPos> primaryComponent = this.components.get(primary);
+			Set<BlockPos> secondaryComponent = this.components.get(secondary);
+
+			double primaryOutput = this.machineOutput.getOrDefault(primary, 0.0D);
+			double secondaryOutput = this.machineOutput.getOrDefault(secondary, 0.0D);
+			double primaryInput = this.machineInput.getOrDefault(primary, 0.0D);
+			double secondaryInput = this.machineInput.getOrDefault(secondary, 0.0D);
+
+			if (primaryComponent == null && secondaryComponent == null) {
+				Set<BlockPos> union = new LinkedHashSet<>();
+				this.components.put(secondary, union);
+				this.components.put(primary, union);
+				union.add(secondary);
+				union.add(primary);
+
+				this.outputCollection.put(secondary, primaryOutput + secondaryOutput);
+				this.inputCollection.put(secondary, primaryInput + secondaryInput);
+
+//				this.rootCollection.put(secondary, secondary);
+//				this.rootCollection.put(primary, secondary);
+			} else if (primaryComponent == null) {
+				BlockPos secondaryNode = secondaryComponent.iterator().next();
+				this.components.put(primary, secondaryComponent);
+				secondaryComponent.add(primary);
+
+				double outputOld = this.outputCollection.getOrDefault(secondaryNode, 0.0D);
+				this.outputCollection.put(secondaryNode, outputOld + primaryOutput);
+				double inputOld = this.inputCollection.getOrDefault(secondaryNode, 0.0D);
+				this.inputCollection.put(secondaryNode, inputOld + primaryInput);
+
+//				this.rootCollection.put(primary, secondaryNode);
+			} else if (secondaryComponent == null) {
+				BlockPos primaryNode = primaryComponent.iterator().next();
+				this.components.put(secondary, primaryComponent);
+				primaryComponent.add(secondary);
+
+				double outputOld = this.outputCollection.getOrDefault(primaryNode, 0.0D);
+				this.outputCollection.put(primaryNode, outputOld + secondaryOutput);
+				double inputOld = this.inputCollection.getOrDefault(primaryNode, 0.0D);
+				this.inputCollection.put(primaryNode, inputOld + secondaryInput);
+
+//				this.rootCollection.put(secondary, primaryNode);
+			} else if (primaryComponent != secondaryComponent) {
+				BlockPos primaryNode = primaryComponent.iterator().next();
+				BlockPos secondaryNode = secondaryComponent.iterator().next();
+				Set<BlockPos> union = new LinkedHashSet<>(Sets.union(primaryComponent, secondaryComponent));
+				union.forEach(pos -> {
+					this.components.put(pos, union);
+//					this.rootCollection.put(pos, primaryNode);
+				});
+
+				double outputDiff = this.outputCollection.getOrDefault(secondaryNode, 0.0D);
+				double outputOld = this.outputCollection.getOrDefault(primaryNode, 0.0D);
+				this.outputCollection.remove(secondaryNode);
+				this.outputCollection.put(primaryNode, outputOld + outputDiff);
+
+				double inputDiff = this.inputCollection.getOrDefault(secondaryNode, 0.0D);
+				double inputOld = this.inputCollection.getOrDefault(primaryNode, 0.0D);
+				this.inputCollection.remove(secondaryNode);
+				this.inputCollection.put(primaryNode, inputOld + inputDiff);
+			}
+		}
+	}
+
+	private void tickStart() {
 		for (Runnable runnable = this.tasks.poll(); runnable != null; runnable = this.tasks.poll()) {
 			runnable.run();
 		}
 	}
 
-	public class BFSIterator {
+	@SuppressWarnings("deprecation")
+	private void tickEnd() {
+		HashSet<BlockPos> updated = new HashSet<>();
+		Multiset<BlockPos> forgeEnergy = HashMultiset.create();
+		for (Map.Entry<BlockPos, Direction> entry : this.shuffle(this.FEMachines.entries())) {
+			BlockPos pos = entry.getKey();
+			BlockPos root = this.root(pos);
+			if (updated.add(root)) {
+				double power = this.outputCollection.getOrDefault(root, 0.0D);
+				if (power > 0.0D) {
+					double energy = power - this.inputCollection.getOrDefault(root, 0.0D);
+					if (energy > 0.0D) {
+						forgeEnergy.add(root, (int) Math.floor(energy));
+					}
+				}
+			}
+
+			Direction direction = entry.getValue();
+			BlockPos target = pos.offset(direction.getNormal());
+			if (this.level.isAreaLoaded(target, 0)) {
+				Optional.ofNullable(this.level.getBlockEntity(target)).ifPresent(blockEntity -> blockEntity.getCapability(ForgeCapabilities.ENERGY, direction.getOpposite()).ifPresent(capability -> {
+					if (capability.canReceive()) {
+						int diff = forgeEnergy.count(root);
+						forgeEnergy.remove(root, capability.receiveEnergy(diff, false));
+					}
+				}));
+			}
+		}
+	}
+
+	private <T> List<T> shuffle(Collection<? extends T> iterable) {
+		List<T> list = new ArrayList<>(iterable);
+		Collections.shuffle(list, this.random);
+		return list;
+	}
+
+	public class BFSIterator implements Iterator<BlockPos> {
 		private final Set<BlockPos> searched = Sets.newLinkedHashSet();
 		private final Queue<BlockPos> queue = Queues.newArrayDeque();
 
@@ -337,7 +458,8 @@ public class ElectricNetwork {
 			return this.queue.size() > 0;
 		}
 
-		public BlockPos nextSide() {
+		@Override
+		public BlockPos next() {
 			BlockPos node = this.queue.remove();
 			for (Direction direction : ElectricNetwork.this.sideConn.get(node)) {
 				BlockPos another = node.offset(direction.getNormal());
@@ -345,11 +467,6 @@ public class ElectricNetwork {
 					this.queue.offer(another);
 				}
 			}
-			return node;
-		}
-
-		public BlockPos nextWire() {
-			BlockPos node = this.queue.remove();
 			for (BlockPos another : ElectricNetwork.this.wireConn.get(node)) {
 				if (this.searched.add(another)) {
 					this.queue.offer(another);
@@ -378,9 +495,12 @@ public class ElectricNetwork {
 
 		@SubscribeEvent
 		public static void onLevelTick(TickEvent.LevelTickEvent event) {
-			if (event.phase == TickEvent.Phase.START) {
-				if (event.side.isServer()) {
-					get(event.level).serverTick();
+			if (event.side.isServer()) {
+				ElectricNetwork network = get(event.level);
+				if (event.phase == TickEvent.Phase.START) {
+					network.tickStart();
+				} else {
+					network.tickEnd();
 				}
 			}
 		}

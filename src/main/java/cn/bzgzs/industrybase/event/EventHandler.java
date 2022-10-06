@@ -1,7 +1,7 @@
 package cn.bzgzs.industrybase.event;
 
 import cn.bzgzs.industrybase.api.event.TransmitNetworkEvent;
-import cn.bzgzs.industrybase.api.util.TransmitNetwork;
+import cn.bzgzs.industrybase.api.transmit.TransmitNetwork;
 import cn.bzgzs.industrybase.network.NetworkManager;
 import cn.bzgzs.industrybase.network.server.TransmitInitInfoPacket;
 import cn.bzgzs.industrybase.network.server.TransmitRootSyncPacket;

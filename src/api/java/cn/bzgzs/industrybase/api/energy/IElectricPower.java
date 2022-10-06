@@ -1,5 +1,6 @@
 package cn.bzgzs.industrybase.api.energy;
 
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import net.minecraftforge.common.capabilities.AutoRegisterCapability;
 
 /**
@@ -15,7 +16,8 @@ public interface IElectricPower {
 	 */
 	double getOutputPower();
 
-	double setOutputPower();
+	@CanIgnoreReturnValue
+	double setOutputPower(int power);
 
 	/**
 	 * 获取额定输入功率，无输入设置 0 即可
@@ -23,15 +25,18 @@ public interface IElectricPower {
 	 */
 	double getInputPower();
 
-	double setInputPower();
+	@CanIgnoreReturnValue
+	double setInputPower(int power);
 
-//	/**
-//	 * 能否输出
-//	 */
-//	boolean canExtract();
+	double getRealInput();
 
-//	/**
-//	 * 能否输入
-//	 */
-//	boolean canReceive();
+	/**
+	 * @return 能否输出
+	 */
+	boolean canExtract();
+
+	/**
+	 * @return 能否输入
+	 */
+	boolean canReceive();
 }

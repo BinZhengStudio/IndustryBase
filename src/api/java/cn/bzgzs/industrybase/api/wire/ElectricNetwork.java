@@ -1,4 +1,4 @@
-package cn.bzgzs.industrybase.api.util;
+package cn.bzgzs.industrybase.api.wire;
 
 import cn.bzgzs.industrybase.api.CapabilityList;
 import com.google.common.collect.*;
@@ -63,27 +63,58 @@ public class ElectricNetwork {
 	}
 
 	public double getMachineOutput(BlockPos pos) {
-		return this.machineOutput.get(pos);
+		return this.machineOutput.getOrDefault(pos, 0.0D);
 	}
 
-	public void setMachineOutput(BlockPos pos, double power) {
+	public double setMachineOutput(BlockPos pos, double power) {
+		double diff;
 		if (power > 0) {
+			diff = power - this.machineOutput.getOrDefault(pos, 0.0D);
 			this.machineOutput.put(pos, power);
 		} else {
+			diff = -this.machineOutput.getOrDefault(pos, 0.0D);
 			this.machineOutput.remove(pos);
 		}
+		if (this.components.containsKey(pos)) {
+			BlockPos root = this.root(pos);
+			this.outputCollection.put(root, this.outputCollection.getOrDefault(root, 0.0D) + diff); // TODO test
+		}
+		return diff;
 	}
 
 	public double getMachineInput(BlockPos pos) {
-		return this.machineInput.get(pos);
+		return this.machineInput.getOrDefault(pos, 0.0D);
 	}
 
-	public void setMachineInput(BlockPos pos, double power) {
+	public double setMachineInput(BlockPos pos, double power) {
+		double diff;
 		if (power > 0) {
+			diff = power - this.machineInput.getOrDefault(pos, 0.0D);
 			this.machineInput.put(pos, power);
 		} else {
+			diff = -this.machineInput.getOrDefault(pos, 0.0D);
 			this.machineInput.remove(pos);
 		}
+		if (this.components.containsKey(pos)) {
+			BlockPos root = this.root(pos);
+			this.inputCollection.put(root, this.inputCollection.getOrDefault(root, 0.0D) + diff); // TODO test
+		}
+		return diff;
+	}
+
+	public double getRealInput(BlockPos pos) {
+		BlockPos root = this.root(pos);
+		double totalOutput = this.outputCollection.getOrDefault(root, 0.0D);
+		double totalInput = this.inputCollection.getOrDefault(root, 0.0D);
+		double machineInput = this.machineInput.getOrDefault(pos, 0.0D);
+		if (totalInput > 0.0D) {
+			if (totalOutput >= totalInput) {
+				return this.machineInput.getOrDefault(pos, 0.0D);
+			} else {
+				return machineInput * totalOutput / totalInput;
+			}
+		}
+		return 0;
 	}
 
 	public void removeBlock(BlockPos pos, Runnable callback) {

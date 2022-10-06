@@ -1,6 +1,6 @@
-package cn.bzgzs.industrybase.api.energy;
+package cn.bzgzs.industrybase.api.transmit;
 
-import cn.bzgzs.industrybase.api.util.TransmitNetwork;
+import cn.bzgzs.industrybase.api.energy.IMechanicalTransmit;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -56,9 +56,7 @@ public class MechanicalTransmit implements IMechanicalTransmit {
 	@Override
 	public int setPower(int power) {
 		int diff = this.network.setMachinePower(this.pos, power);
-		if (diff != 0) {
-			this.blockEntity.setChanged();
-		}
+		if (diff != 0) this.blockEntity.setChanged();
 		return diff;
 	}
 

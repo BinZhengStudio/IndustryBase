@@ -1,7 +1,7 @@
 package cn.bzgzs.industrybase.world.level.block.entity;
 
 import cn.bzgzs.industrybase.api.CapabilityList;
-import cn.bzgzs.industrybase.api.energy.MechanicalTransmit;
+import cn.bzgzs.industrybase.api.transmit.MechanicalTransmit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;

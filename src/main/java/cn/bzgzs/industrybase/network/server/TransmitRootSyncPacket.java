@@ -1,6 +1,6 @@
 package cn.bzgzs.industrybase.network.server;
 
-import cn.bzgzs.industrybase.api.util.TransmitNetwork;
+import cn.bzgzs.industrybase.api.transmit.TransmitNetwork;
 import cn.bzgzs.industrybase.network.CustomPacket;
 import com.google.common.collect.Sets;
 import net.minecraft.client.Minecraft;

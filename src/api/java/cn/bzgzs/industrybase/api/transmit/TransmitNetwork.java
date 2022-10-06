@@ -1,4 +1,4 @@
-package cn.bzgzs.industrybase.api.util;
+package cn.bzgzs.industrybase.api.transmit;
 
 import cn.bzgzs.industrybase.api.CapabilityList;
 import cn.bzgzs.industrybase.api.event.TransmitNetworkEvent;
@@ -121,7 +121,6 @@ public class TransmitNetwork {
 			} else {
 				MinecraftForge.EVENT_BUS.post(new TransmitNetworkEvent.UpdatePowerEvent(this.level, HashMultiset.create(), ImmutableSet.of(root)));
 			}
-
 		}
 		this.updateSpeed(pos);
 		return diff;

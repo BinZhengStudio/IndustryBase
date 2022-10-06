@@ -2,7 +2,7 @@ package cn.bzgzs.industrybase.world.level.block.entity;
 
 import cn.bzgzs.industrybase.IndustryBase;
 import cn.bzgzs.industrybase.api.CapabilityList;
-import cn.bzgzs.industrybase.api.energy.MechanicalTransmit;
+import cn.bzgzs.industrybase.api.transmit.MechanicalTransmit;
 import cn.bzgzs.industrybase.world.inventory.SteamEngineMenu;
 import cn.bzgzs.industrybase.world.level.block.SteamEngineBlock;
 import net.minecraft.core.BlockPos;

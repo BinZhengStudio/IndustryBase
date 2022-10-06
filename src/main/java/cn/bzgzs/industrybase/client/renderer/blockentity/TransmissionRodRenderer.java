@@ -1,7 +1,7 @@
 package cn.bzgzs.industrybase.client.renderer.blockentity;
 
 import cn.bzgzs.industrybase.IndustryBase;
-import cn.bzgzs.industrybase.api.util.TransmitNetwork;
+import cn.bzgzs.industrybase.api.transmit.TransmitNetwork;
 import cn.bzgzs.industrybase.world.level.block.TransmissionRodBlock;
 import cn.bzgzs.industrybase.world.level.block.entity.TransmissionRodBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;

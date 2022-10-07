@@ -17,7 +17,7 @@ public interface IElectricPower {
 	double getOutputPower();
 
 	@CanIgnoreReturnValue
-	double setOutputPower(int power);
+	double setOutputPower(double power);
 
 	/**
 	 * 获取额定输入功率，无输入设置 0 即可
@@ -26,7 +26,7 @@ public interface IElectricPower {
 	double getInputPower();
 
 	@CanIgnoreReturnValue
-	double setInputPower(int power);
+	double setInputPower(double power);
 
 	double getRealInput();
 

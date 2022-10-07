@@ -1,6 +1,6 @@
 @ParametersAreNonnullByDefault
 @MethodsReturnNonnullByDefault
-package cn.bzgzs.industrybase.api.world.level.block.entity;
+package cn.bzgzs.industrybase.api.electric;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
 

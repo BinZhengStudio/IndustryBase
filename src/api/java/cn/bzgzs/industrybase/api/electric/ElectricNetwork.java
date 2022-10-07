@@ -1,4 +1,4 @@
-package cn.bzgzs.industrybase.api.wire;
+package cn.bzgzs.industrybase.api.electric;
 
 import cn.bzgzs.industrybase.api.CapabilityList;
 import com.google.common.collect.*;
@@ -54,12 +54,12 @@ public class ElectricNetwork {
 
 	public double totalOutput(BlockPos pos) {
 		BlockPos root = this.root(pos);
-		return this.outputCollection.get(root);
+		return this.outputCollection.getOrDefault(root, 0.0D);
 	}
 
 	public double totalInput(BlockPos pos) {
 		BlockPos root = this.root(pos);
-		return this.inputCollection.get(root);
+		return this.inputCollection.getOrDefault(root, 0.0D);
 	}
 
 	public double getMachineOutput(BlockPos pos) {
@@ -273,8 +273,14 @@ public class ElectricNetwork {
 		});
 	}
 
-	public void addWire(BlockPos from, BlockPos to) {
-		this.tasks.offer(() -> linkWire(from, to));
+	public boolean addWire(BlockPos from, BlockPos to, Runnable callback) {
+		if (!from.equals(to) && this.wireConn.containsEntry(from, to)) {
+			return this.tasks.offer(() -> {
+				linkWire(from, to);
+				callback.run();
+			});
+		}
+		return false;
 	}
 
 	@SuppressWarnings("deprecation")
@@ -516,7 +522,7 @@ public class ElectricNetwork {
 		private static final Map<LevelAccessor, ElectricNetwork> INSTANCES = new IdentityHashMap<>();
 
 		public static ElectricNetwork get(LevelAccessor level) {
-			return INSTANCES.computeIfAbsent(level, ElectricNetwork::new);
+			return INSTANCES.computeIfAbsent(Objects.requireNonNull(level, "Level can't be null!"), ElectricNetwork::new);
 		}
 
 		@SubscribeEvent

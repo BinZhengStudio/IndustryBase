@@ -1,6 +1,5 @@
-package cn.bzgzs.industrybase.api.world.level.block.entity;
+package cn.bzgzs.industrybase.api.transmit;
 
-import cn.bzgzs.industrybase.api.transmit.MechanicalTransmit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;

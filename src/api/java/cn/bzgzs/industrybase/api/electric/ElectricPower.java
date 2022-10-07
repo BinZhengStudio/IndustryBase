@@ -1,7 +1,9 @@
-package cn.bzgzs.industrybase.api.wire;
+package cn.bzgzs.industrybase.api.electric;
 
 import cn.bzgzs.industrybase.api.energy.IElectricPower;
+import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.Nullable;
@@ -9,8 +11,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 
 public class ElectricPower implements IElectricPower {
-	private int tmpOutputPower;
-	private int tmpInputPower;
+	private double tmpOutputPower;
+	private double tmpInputPower;
 	private final BlockEntity blockEntity;
 	private final BlockPos pos;
 	@Nullable
@@ -38,13 +40,21 @@ public class ElectricPower implements IElectricPower {
 		});
 	}
 
+	public void removeFromNetwork() {
+		Optional.ofNullable(this.blockEntity.getLevel()).ifPresent(level -> {
+			if (this.network != null && !level.isClientSide) {
+				network.removeBlock(this.pos, this.blockEntity::setChanged);
+			}
+		});
+	}
+
 	@Override
 	public double getOutputPower() {
 		return this.network.getMachineOutput(this.pos);
 	}
 
 	@Override
-	public double setOutputPower(int power) {
+	public double setOutputPower(double power) {
 		double diff = this.network.setMachineOutput(this.pos, power);
 		if (diff != 0) this.blockEntity.setChanged();
 		return diff;
@@ -56,7 +66,7 @@ public class ElectricPower implements IElectricPower {
 	}
 
 	@Override
-	public double setInputPower(int power) {
+	public double setInputPower(double power) {
 		double diff = this.network.setMachineInput(this.pos, power);
 		if (diff != 0) this.blockEntity.setChanged();
 		return diff;
@@ -75,5 +85,27 @@ public class ElectricPower implements IElectricPower {
 	@Override
 	public boolean canReceive() {
 		return this.getInputPower() > 0.0D;
+	}
+
+	@CanIgnoreReturnValue
+	public ElectricPower readFromNBT(CompoundTag tag) {
+		CompoundTag nbt = tag.getCompound("ElectricPower");
+		this.tmpOutputPower = nbt.getDouble("Output");
+		this.tmpInputPower = nbt.getDouble("Input");
+		return this;
+	}
+
+	@CanIgnoreReturnValue
+	public CompoundTag writeToNBT(CompoundTag tag) {
+		CompoundTag nbt = new CompoundTag();
+		if (this.network != null) {
+			nbt.putDouble("Output", this.getOutputPower());
+			nbt.putDouble("Input", this.getInputPower());
+		} else {
+			nbt.putDouble("Output", this.tmpOutputPower);
+			nbt.putDouble("Input", this.tmpInputPower);
+		}
+		tag.put("ElectricPower", nbt);
+		return tag;
 	}
 }

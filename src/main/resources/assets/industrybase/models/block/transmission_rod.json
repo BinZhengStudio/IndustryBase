@@ -1,5 +1,5 @@
 {
   "textures": {
-    "particle": "minecraft:block/furnace_top"
+    "particle": "industrybase:item/iron_transmission_rod"
   }
 }

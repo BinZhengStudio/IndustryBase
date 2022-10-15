@@ -11,13 +11,13 @@ import net.minecraftforge.registries.RegistryObject;
 public class ItemList {
 	public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, IndustryBase.MODID);
 
-	public static final RegistryObject<Item> WIRE_COIL = ITEMS.register("wire_coil", WireCoilItem::new);
+//	public static final RegistryObject<Item> WIRE_COIL = ITEMS.register("wire_coil", WireCoilItem::new);
 
 	public static final RegistryObject<BlockItem> DYNAMO = ITEMS.register("dynamo", () -> new BlockItem(BlockList.DYNAMO.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
 	public static final RegistryObject<BlockItem> TRANSMISSION_ROD = ITEMS.register("transmission_rod", () -> new BlockItem(BlockList.TRANSMISSION_ROD.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
 	public static final RegistryObject<BlockItem> STEAM_ENGINE = ITEMS.register("steam_engine", () -> new BlockItem(BlockList.STEAM_ENGINE.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
 	public static final RegistryObject<BlockItem> GEAR_BOX = ITEMS.register("gear_box", () -> new BlockItem(BlockList.GEAR_BOX.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
-	public static final RegistryObject<BlockItem> WIRE = ITEMS.register("wire", () -> new BlockItem(BlockList.WIRE.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
-	public static final RegistryObject<BlockItem> WIRE_CONNECTOR = ITEMS.register("wire_connector", () -> new BlockItem(BlockList.WIRE_CONNECTOR.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
+//	public static final RegistryObject<BlockItem> WIRE = ITEMS.register("wire", () -> new BlockItem(BlockList.WIRE.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
+//	public static final RegistryObject<BlockItem> WIRE_CONNECTOR = ITEMS.register("wire_connector", () -> new BlockItem(BlockList.WIRE_CONNECTOR.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
 
 }

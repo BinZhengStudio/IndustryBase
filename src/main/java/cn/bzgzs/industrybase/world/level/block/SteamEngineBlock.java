@@ -29,7 +29,7 @@ public class SteamEngineBlock extends BaseEntityBlock {
 	public static final BooleanProperty LIT = BlockStateProperties.LIT;
 
 	protected SteamEngineBlock() {
-		super(Properties.copy(Blocks.IRON_BLOCK).noOcclusion());
+		super(Properties.copy(Blocks.IRON_BLOCK).noOcclusion().lightLevel(state -> state.getValue(LIT) ? 13 : 0));
 		this.registerDefaultState(this.stateDefinition.any().setValue(AXIS, Direction.Axis.X).setValue(LIT, false));
 	}
 

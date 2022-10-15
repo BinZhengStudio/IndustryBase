@@ -10,7 +10,7 @@ displayName="Industry Base"
 #updateJSONURL="https://change.me.example.invalid/updates.json" #optional
 displayURL="https://github.com/BinZhengStudio/IndustryBase/" #optional
 logoFile="industrybase.png" #optional
-credits="Thanks for this example mod goes to Java" #optional
+credits="Make Minecraft great again!" #optional
 authors="BinZhengStudio vvvbbbcz FengMing suifeng7663" #optional
 # Display Test controls the display for your mod in the server connection screen
 # MATCH_VERSION means that your mod will cause a red X if the versions on client and server differ. This is the default behaviour and should be what you choose if you have server and client elements to your mod.

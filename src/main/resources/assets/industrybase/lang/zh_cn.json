@@ -1,0 +1,13 @@
+{
+  "itemGroup.industrybase": "工业基石",
+
+  "block.industrybase.steam_engine": "小型蒸汽机",
+  "block.industrybase.transmission_rod": "传动杆",
+  "block.industrybase.dynamo": "发电机",
+  "block.industrybase.gear_box": "齿轮箱",
+
+  "container.industrybase.steam_engine": "小型蒸汽机",
+  "label.steam_engine.speed": "速度: ",
+  "label.steam_engine.power": "功率: ",
+  "label.steam_engine.water_amount": "水量: "
+}

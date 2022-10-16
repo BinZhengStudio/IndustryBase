@@ -10,7 +10,8 @@ public class BlockList {
 	public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, IndustryBase.MODID);
 
 	public static final RegistryObject<Block> DYNAMO = BLOCKS.register("dynamo", DynamoBlock::new);
-	public static final RegistryObject<Block> TRANSMISSION_ROD = BLOCKS.register("transmission_rod", TransmissionRodBlock::new);
+	public static final RegistryObject<Block> IRON_TRANSMISSION_ROD = BLOCKS.register("iron_transmission_rod", IronTransmissionRodBlock::new);
+	public static final RegistryObject<Block> GOLD_TRANSMISSION_ROD = BLOCKS.register("gold_transmission_rod", GoldTransmissionRodBlock::new);
 	public static final RegistryObject<Block> STEAM_ENGINE = BLOCKS.register("steam_engine", SteamEngineBlock::new);
 	public static final RegistryObject<Block> AXIS_CONNECTOR = BLOCKS.register("axis_connector", AxisConnectorBlock::new);
 	public static final RegistryObject<Block> WIRE = BLOCKS.register("wire", WireBlock::new);

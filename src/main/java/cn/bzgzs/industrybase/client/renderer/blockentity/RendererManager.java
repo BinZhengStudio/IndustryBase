@@ -10,7 +10,8 @@ import net.minecraftforge.fml.common.Mod;
 public class RendererManager {
 	@SubscribeEvent
 	public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
-		event.registerBlockEntityRenderer(BlockEntityTypeList.TRANSMISSION_ROD.get(), TransmissionRodRenderer::new);
+		event.registerBlockEntityRenderer(BlockEntityTypeList.IRON_TRANSMISSION_ROD.get(), TransmissionRodRenderer::new);
+		event.registerBlockEntityRenderer(BlockEntityTypeList.GOLD_TRANSMISSION_ROD.get(), TransmissionRodRenderer::new);
 		event.registerBlockEntityRenderer(BlockEntityTypeList.STEAM_ENGINE.get(), SteamEngineRenderer::new);
 	}
 

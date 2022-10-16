@@ -4,7 +4,7 @@
   "block.industrybase.steam_engine": "小型蒸汽机",
   "block.industrybase.transmission_rod": "传动杆",
   "block.industrybase.dynamo": "发电机",
-  "block.industrybase.gear_box": "齿轮箱",
+  "block.industrybase.axis_connector": "轴连接器",
 
   "container.industrybase.steam_engine": "小型蒸汽机",
   "label.steam_engine.speed": "速度: ",

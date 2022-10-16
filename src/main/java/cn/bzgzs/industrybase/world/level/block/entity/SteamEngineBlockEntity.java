@@ -90,27 +90,23 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 				} else {
 					--blockEntity.shrinkTick;
 				}
-
-				// TODO
-//				if (blockEntity.getPower() < MAX_POWER) { // 增加功率，使之达到最大
-//					blockEntity.setPower(blockEntity.getPower() + 1);
-//				}
-			}
-			// TODO
-			if (blockEntity.transmit.getPower() < MAX_POWER) { // 增加功率，使之达到最大
-				blockEntity.transmit.setPower(blockEntity.transmit.getPower() + 1);
+				if (blockEntity.transmit.getPower() < MAX_POWER) { // 增加功率，使之达到最大
+					blockEntity.transmit.setPower(blockEntity.transmit.getPower() + 1);
+				}
+			} else {
+				if (blockEntity.transmit.getPower() > 0) {
+					blockEntity.transmit.setPower(blockEntity.transmit.getPower() - 1);
+				}
 			}
 			flag = true;
-		}
-
-		if (!blockEntity.isLit() /* || blockEntity.tank.isEmpty() */) { // TODO 小细节待修复
+		} else {
 			if (blockEntity.transmit.getPower() > 0) {
 				blockEntity.transmit.setPower(blockEntity.transmit.getPower() - 1);
 				flag = true;
 			}
 		}
 
-		if (!blockEntity.isLit() /* TODO && !blockEntity.tank.isEmpty() */) { // 如果没有燃烧，并且有水，则消耗燃料并燃烧
+		if (!blockEntity.isLit() && !blockEntity.tank.isEmpty()) { // 如果没有燃烧，并且有水，则消耗燃料并燃烧
 			ItemStack stack = blockEntity.inventory.get(0);
 			int time = ForgeHooks.getBurnTime(stack, RecipeType.SMELTING);
 			if (time > 0) {

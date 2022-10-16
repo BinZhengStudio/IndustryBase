@@ -1,6 +1,6 @@
 package cn.bzgzs.industrybase.world.level.block;
 
-import cn.bzgzs.industrybase.world.level.block.entity.GearBoxBlockEntity;
+import cn.bzgzs.industrybase.world.level.block.entity.AxisConnectorBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Blocks;
@@ -9,8 +9,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-public class GearBoxBlock extends BaseEntityBlock {
-	protected GearBoxBlock() {
+public class AxisConnectorBlock extends BaseEntityBlock {
+	protected AxisConnectorBlock() {
 		super(Properties.copy(Blocks.IRON_BLOCK).noOcclusion());
 	}
 
@@ -23,6 +23,6 @@ public class GearBoxBlock extends BaseEntityBlock {
 	@Nullable
 	@Override
 	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-		return new GearBoxBlockEntity(pos, state);
+		return new AxisConnectorBlockEntity(pos, state);
 	}
 }

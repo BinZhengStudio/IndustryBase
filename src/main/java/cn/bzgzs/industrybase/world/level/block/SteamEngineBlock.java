@@ -7,6 +7,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -22,6 +24,11 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import org.jetbrains.annotations.Nullable;
 
 public class SteamEngineBlock extends BaseEntityBlock {
@@ -39,7 +46,20 @@ public class SteamEngineBlock extends BaseEntityBlock {
 			return InteractionResult.SUCCESS;
 		} else {
 			if (level.getBlockEntity(pos) instanceof SteamEngineBlockEntity blockEntity) {
-				player.openMenu(blockEntity);
+				ItemStack stack = player.getItemInHand(hand);
+				LazyOptional<IFluidHandlerItem> bucket = stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM);
+				LazyOptional<IFluidHandler> tank = blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER, hit.getDirection());
+				if (bucket.isPresent() && tank.isPresent()) {
+					bucket.ifPresent(itemCapability -> tank.ifPresent(engineCapability ->  {
+						FluidStack drained = itemCapability.drain(Math.max(0, engineCapability.getTankCapacity(0) - engineCapability.getFluidInTank(0).getAmount()), player.isCreative() ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE);
+						engineCapability.fill(drained, IFluidHandler.FluidAction.EXECUTE);
+						if (stack.is(Items.WATER_BUCKET)) { // TODO 兼容性待解决
+							if (!player.isCreative()) player.setItemInHand(hand, new ItemStack(Items.BUCKET));
+						}
+					}));
+				} else {
+					player.openMenu(blockEntity);
+				}
 			}
 			return InteractionResult.CONSUME;
 		}

@@ -5,6 +5,7 @@ import cn.bzgzs.industrybase.world.level.block.SteamEngineBlock;
 import cn.bzgzs.industrybase.world.level.block.entity.SteamEngineBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Vector3f;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -14,6 +15,8 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraftforge.client.model.data.ModelData;
 
 public class SteamEngineRenderer implements BlockEntityRenderer<SteamEngineBlockEntity> {
 	public static final ModelLayerLocation MAIN = new ModelLayerLocation(new ResourceLocation(IndustryBase.MODID, "steam_engine"), "main");
@@ -71,6 +74,12 @@ public class SteamEngineRenderer implements BlockEntityRenderer<SteamEngineBlock
 				rod.render(poseStack, bufferSource.getBuffer(type), packedLight, packedOverlay);
 			}
 		}
+		poseStack.popPose();
+
+		poseStack.pushPose();
+		poseStack.scale(0.875F, 0.875F, 0.875F);
+		poseStack.translate(0.0625D, 0.0625D, 0.0625D); // TODO 需要自己造轮子
+		Minecraft.getInstance().getBlockRenderer().renderSingleBlock(Blocks.WATER.defaultBlockState(), poseStack, bufferSource, packedLight, packedOverlay, ModelData.EMPTY, RenderType.translucent());
 		poseStack.popPose();
 	}
 }

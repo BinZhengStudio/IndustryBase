@@ -11,10 +11,10 @@ import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class GearBoxBlockEntity extends BlockEntity {
+public class AxisConnectorBlockEntity extends BlockEntity {
 	private final MechanicalTransmit transmit = new MechanicalTransmit(this);
 
-	public GearBoxBlockEntity(BlockPos pos, BlockState state) {
+	public AxisConnectorBlockEntity(BlockPos pos, BlockState state) {
 		super(BlockEntityTypeList.GEAR_BOX.get(), pos, state);
 	}
 

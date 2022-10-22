@@ -199,7 +199,7 @@ public class TransmitNetwork {
 			while (nodeIterator.hasNext()) {
 				BlockPos next = nodeIterator.next();
 				if (!anotherIterator.getSearched().contains(next)) {
-					// 互换 iterator
+					// 互换 iterator，轮询连通域
 					BFSIterator iterator = anotherIterator;
 					anotherIterator = nodeIterator;
 					nodeIterator = iterator;

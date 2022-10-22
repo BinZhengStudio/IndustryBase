@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class GoldTransmissionRodBlock extends LayeredTransmissionRodBlock {
 	public GoldTransmissionRodBlock() {
-		super(Properties.copy(Blocks.IRON_BLOCK).noOcclusion(), 80, 0xFF, 0xBF, 0x00);
+		super(Properties.copy(Blocks.IRON_BLOCK).noOcclusion(), 80, 0xFF, 0xE0, 0x00);
 	}
 
 	@Nullable

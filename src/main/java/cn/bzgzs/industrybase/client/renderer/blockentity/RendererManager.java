@@ -18,6 +18,5 @@ public class RendererManager {
 	@SubscribeEvent
 	public static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
 		event.registerLayerDefinition(TransmissionRodRenderer.MAIN, TransmissionRodRenderer::createBodyLayer);
-		event.registerLayerDefinition(SteamEngineRenderer.MAIN, SteamEngineRenderer::createBodyLayer);
 	}
 }

@@ -37,7 +37,7 @@ public abstract class TransmissionRodBlock extends BaseEntityBlock {
 		if (!level.isClientSide) {
 			TransmitNetwork network = TransmitNetwork.Manager.get(level);
 			if (network.speed(pos) > 0.0D && ((double) network.totalResistance(pos) / network.size(pos)) > this.maxResistance) {
-				level.destroyBlock(pos, true); // TODO 方块掉落问题
+				level.destroyBlock(pos, true);
 			}
 		}
 	}

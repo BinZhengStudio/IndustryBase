@@ -1,7 +1,24 @@
 {
   "variants": {
-    "": {
-      "model": "industrybase:block/steam_engine"
+    "axis=x,lit=false": {
+      "model": "industrybase:block/steam_engine_xz",
+      "y": 90
+    },
+    "axis=x,lit=true": {
+      "model": "industrybase:block/steam_engine_xz_lit",
+      "y": 90
+    },
+    "axis=y,lit=false": {
+      "model": "industrybase:block/steam_engine_y"
+    },
+    "axis=y,lit=true": {
+      "model": "industrybase:block/steam_engine_y_lit"
+    },
+    "axis=z,lit=false": {
+      "model": "industrybase:block/steam_engine_xz"
+    },
+    "axis=z,lit=true": {
+      "model": "industrybase:block/steam_engine_xz_lit"
     }
   }
 }

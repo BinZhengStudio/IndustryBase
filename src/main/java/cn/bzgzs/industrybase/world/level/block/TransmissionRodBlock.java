@@ -26,7 +26,7 @@ public abstract class TransmissionRodBlock extends BaseEntityBlock {
 	private final int maxResistance;
 
 	public TransmissionRodBlock(Properties properties, int maxResistance) {
-		super(properties.randomTicks()); // TODO 硬度
+		super(properties.randomTicks());
 		this.maxResistance = maxResistance;
 		this.registerDefaultState(this.stateDefinition.any().setValue(AXIS, Direction.Axis.X));
 	}

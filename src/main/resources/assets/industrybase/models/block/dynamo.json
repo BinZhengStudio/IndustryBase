@@ -1,0 +1,22 @@
+{
+	"parent": "minecraft:block/block",
+	"texture_size": [48, 16],
+	"textures": {
+		"particle": "industrybase:block/dynamo"
+	},
+	"elements": [
+		{
+			"from": [0, 0, 0],
+			"to": [16, 16, 16],
+			"rotation": {"angle": 0, "axis": "x", "origin": [8, 8, 8]},
+			"faces": {
+				"north": {"uv": [5.33333, 0, 10.66667, 16], "texture": "#particle"},
+				"east": {"uv": [0, 0, 5.33333, 15.99999], "rotation": 90, "texture": "#particle"},
+				"south": {"uv": [10.66667, 0, 16, 16], "texture": "#particle"},
+				"west": {"uv": [0, 0, 5.33333, 15.99999], "rotation": 270, "texture": "#particle"},
+				"up": {"uv": [0, 0, 5.33333, 16], "texture": "#particle"},
+				"down": {"uv": [0, 0, 5.33333, 16], "rotation": 180, "texture": "#particle"}
+			}
+		}
+	]
+}

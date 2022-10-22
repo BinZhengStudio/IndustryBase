@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "industrybase:dynamo",
+    "industrybase:iron_transmission_rod",
+    "industrybase:gold_transmission_rod",
+    "industrybase:steam_engine",
+    "industrybase:axis_connector",
+    "industrybase:wire_connector"
+  ]
+}

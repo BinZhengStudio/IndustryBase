@@ -1,11 +1,11 @@
 name: '构建与发布'
 on:
   release:
-    types: [created] # TODO 其他的事件类型待测试完善
+    types: [prereleased, released] # TODO 其他的事件类型待测试完善
 jobs:
   release-publish:
     name: '构建与发布'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-18.04
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v2

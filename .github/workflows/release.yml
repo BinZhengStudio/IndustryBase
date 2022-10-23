@@ -1,0 +1,61 @@
+name: '构建与发布'
+on:
+  release:
+    types: [created] # TODO 其他的事件类型待测试完善
+jobs:
+  release-publish:
+    name: '构建与发布'
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+      - name: Setup JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Apply Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+          restore-keys:
+            ${{ runner.os }}-gradle-
+      - name: Build Mod
+        id: build
+        shell: bash
+        run: |
+          ./gradlew --max-workers=1 build
+      - name: Checkout Release Repo
+        env:
+          KEY: ${{ secrets.RELEASE_KEY }}
+          REPO: ${{ secrets.RELEASE_REPO }}
+        shell: bash
+        run: |
+          echo $KEY > ./key
+          chmod 600 ./key
+          unset KEY
+          GIT_SSH_COMMAND="ssh -i ./key" git clone $REPO release-repo
+          rm ./key
+          unset REPO
+      - name: Copy Mod Files
+        shell: bash
+        run: |
+          mkdir -p release-repo/industrybase
+          cp build/libs/* release-repo/industrybase/
+      - name: Publish
+        env:
+          KEY: ${{ secrets.RELEASE_KEY }}
+        shell: bash
+        run: |
+          cd release-repo/
+          git add .
+          git commit -m "Updated at $(date -R)"
+          echo $KEY > ./key
+          chmod 600 ./key
+          unset KEY
+          GIT_SSH_COMMAND="ssh -i ./key" git push origin master
+          rm ./key
+          cd ..

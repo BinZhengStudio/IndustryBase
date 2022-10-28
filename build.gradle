@@ -219,13 +219,17 @@ jar.finalizedBy('reobfJar')
 publishing {
     repositories {
         maven {
-            url "file://${project.projectDir}/mcmodsrepo"
+            url "file://${project.projectDir}/localRepo"
         }
     }
     publications {
-        mavenJava(MavenPublication) {
+        mavenJar(MavenPublication) {
+            artifactId = archivesBaseName
             artifact jar
             artifact sourcesJar
+        }
+        mavenApiJar(MavenPublication) {
+            artifactId = archivesBaseName + "-api"
             artifact apiJar
             artifact apiSourceJar
         }

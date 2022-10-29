@@ -18,5 +18,6 @@ public class BlockEntityTypeList {
 	public static final RegistryObject<BlockEntityType<AxisConnectorBlockEntity>> GEAR_BOX = BLOCK_ENTITY_TYPES.register("gear_box", () -> BlockEntityType.Builder.of(AxisConnectorBlockEntity::new, BlockList.AXIS_CONNECTOR.get()).build(DSL.remainderType()));
 	public static final RegistryObject<BlockEntityType<WireBlockEntity>> WIRE = BLOCK_ENTITY_TYPES.register("wire", () -> BlockEntityType.Builder.of(WireBlockEntity::new, BlockList.WIRE.get()).build(DSL.remainderType()));
 	public static final RegistryObject<BlockEntityType<WireConnectorBlockEntity>> WIRE_CONNECTOR = BLOCK_ENTITY_TYPES.register("wire_connector", () -> BlockEntityType.Builder.of(WireConnectorBlockEntity::new, BlockList.WIRE_CONNECTOR.get()).build(DSL.remainderType()));
+	public static final RegistryObject<BlockEntityType<ElectricMotorBlockEntity>> ELECTRIC_MOTOR = BLOCK_ENTITY_TYPES.register("electric_motor", () -> BlockEntityType.Builder.of(ElectricMotorBlockEntity::new, BlockList.ELECTRIC_MOTOR.get()).build(DSL.remainderType()));
 
 }

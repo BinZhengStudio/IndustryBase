@@ -16,5 +16,6 @@ public class BlockList {
 	public static final RegistryObject<Block> AXIS_CONNECTOR = BLOCKS.register("axis_connector", AxisConnectorBlock::new);
 	public static final RegistryObject<Block> WIRE = BLOCKS.register("wire", WireBlock::new);
 	public static final RegistryObject<Block> WIRE_CONNECTOR = BLOCKS.register("wire_connector", WireConnectorBlock::new);
+	public static final RegistryObject<Block> ELECTRIC_MOTOR = BLOCKS.register("electric_motor", ElectricMotorBlock::new);
 
 }

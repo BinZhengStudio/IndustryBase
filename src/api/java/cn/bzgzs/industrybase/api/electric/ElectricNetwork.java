@@ -75,10 +75,8 @@ public class ElectricNetwork {
 			diff = -this.machineOutput.getOrDefault(pos, 0.0D);
 			this.machineOutput.remove(pos);
 		}
-		if (this.components.containsKey(pos)) {
-			BlockPos root = this.root(pos);
-			this.outputCollection.put(root, this.outputCollection.getOrDefault(root, 0.0D) + diff); // TODO test
-		}
+		BlockPos root = this.root(pos);
+		this.outputCollection.put(root, this.outputCollection.getOrDefault(root, 0.0D) + diff); // TODO test
 		return diff;
 	}
 
@@ -95,10 +93,8 @@ public class ElectricNetwork {
 			diff = -this.machineInput.getOrDefault(pos, 0.0D);
 			this.machineInput.remove(pos);
 		}
-		if (this.components.containsKey(pos)) {
-			BlockPos root = this.root(pos);
-			this.inputCollection.put(root, this.inputCollection.getOrDefault(root, 0.0D) + diff); // TODO test
-		}
+		BlockPos root = this.root(pos);
+		this.inputCollection.put(root, this.inputCollection.getOrDefault(root, 0.0D) + diff); // TODO test
 		return diff;
 	}
 
@@ -165,7 +161,7 @@ public class ElectricNetwork {
 				primaryComponent.removeAll(searched);
 			}
 
-//			BlockPos secondaryNode = secondaryComponent.iterator().next();
+//			BlockPos secondaryNode = secondaryComponent.iterator().next(); TODO
 //			if (secondaryComponent.size() <= 1) {
 //				this.components.remove(secondaryNode);
 
@@ -183,8 +179,8 @@ public class ElectricNetwork {
 			for (BlockPos pos : secondaryComponent) {
 				this.components.put(pos, secondaryComponent);
 
-				outputDiff += this.machineOutput.get(pos);
-				inputDiff += this.machineInput.get(pos);
+				outputDiff += this.machineOutput.getOrDefault(pos, 0.0D);
+				inputDiff += this.machineInput.getOrDefault(pos, 0.0D);
 
 //				this.rootCollection.put(pos, secondaryNode);
 			}
@@ -238,8 +234,8 @@ public class ElectricNetwork {
 			for (BlockPos pos : secondaryComponent) {
 				this.components.put(pos, secondaryComponent);
 
-				outputDiff += this.machineOutput.get(pos);
-				inputDiff += this.machineInput.get(pos);
+				outputDiff += this.machineOutput.getOrDefault(pos, 0.0D);
+				inputDiff += this.machineInput.getOrDefault(pos, 0.0D);
 
 //				this.rootCollection.put(pos, secondaryNode);
 			}
@@ -359,13 +355,13 @@ public class ElectricNetwork {
 
 				double outputDiff = this.outputCollection.getOrDefault(secondaryNode, 0.0D);
 				double outputOld = this.outputCollection.getOrDefault(primaryNode, 0.0D);
-				this.outputCollection.remove(secondaryNode);
 				this.outputCollection.put(primaryNode, outputOld + outputDiff);
+				this.outputCollection.remove(secondaryNode);
 
 				double inputDiff = this.inputCollection.getOrDefault(secondaryNode, 0.0D);
 				double inputOld = this.inputCollection.getOrDefault(primaryNode, 0.0D);
-				this.inputCollection.remove(secondaryNode);
 				this.inputCollection.put(primaryNode, inputOld + inputDiff);
+				this.inputCollection.remove(secondaryNode);
 			}
 		}
 	}

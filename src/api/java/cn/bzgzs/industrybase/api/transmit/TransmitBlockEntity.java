@@ -1,10 +1,16 @@
 package cn.bzgzs.industrybase.api.transmit;
 
+import cn.bzgzs.industrybase.api.CapabilityList;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unused")
 public class TransmitBlockEntity extends BlockEntity {
@@ -15,21 +21,17 @@ public class TransmitBlockEntity extends BlockEntity {
 	}
 
 	@Override
-	public void load(CompoundTag tag) {
-		super.load(tag);
-		this.transmit.readFromNBT(tag);
-	}
-
-	@Override
-	protected void saveAdditional(CompoundTag tag) {
-		super.saveAdditional(tag);
-		this.transmit.writeToNBT(tag);
-	}
-
-	@Override
 	public void onLoad() {
 		this.transmit.registerToNetwork();
 		super.onLoad();
+	}
+
+	@Override
+	public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+		if (cap == CapabilityList.MECHANICAL_TRANSMIT) {
+			return this.transmit.cast();
+		}
+		return super.getCapability(cap, side);
 	}
 
 	@Override
@@ -42,5 +44,17 @@ public class TransmitBlockEntity extends BlockEntity {
 	public void setRemoved() {
 		this.transmit.removeFromNetwork();
 		super.setRemoved();
+	}
+
+	@Override
+	public void load(CompoundTag tag) {
+		super.load(tag);
+		this.transmit.readFromNBT(tag);
+	}
+
+	@Override
+	protected void saveAdditional(CompoundTag tag) {
+		super.saveAdditional(tag);
+		this.transmit.writeToNBT(tag);
 	}
 }

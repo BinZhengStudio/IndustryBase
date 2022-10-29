@@ -219,7 +219,7 @@ jar.finalizedBy('reobfJar')
 publishing {
     repositories {
         maven {
-            url "file://${project.projectDir}/localRepo"
+            url "file://${project.projectDir}/ModRelease"
         }
     }
     publications {

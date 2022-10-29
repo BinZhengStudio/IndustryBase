@@ -23,10 +23,6 @@ jobs:
           key: industrybase-gradle-${{ hashFiles('**/*.gradle*') }}
           restore-keys:
             industrybase-gradle-
-      - name: 构建模组
-        shell: bash
-        run: |
-          ./gradlew --max-workers=1 publish
       - name: 获取 GitHub App Token
         uses: tibdex/github-app-token@v1
         id: github-app-token
@@ -40,11 +36,11 @@ jobs:
         run: |
           git config --global user.name 'xiangbing-bot'; git config --global user.email 'xiangbing@bzgzs.cn'
           git clone https://x-access-token:$TOKEN@github.com/BinZhengStudio/ModRelease.git --depth 1
-      - name: 移动模组文件
+      - name: 构建模组
         shell: bash
         run: |
-          mv localRepo/* ModRelease/
-      - name: 推送到发布仓
+          ./gradlew --max-workers=1 publish
+      - name: 推送到发布仓库
         shell: bash
         run: |
           cd ModRelease/

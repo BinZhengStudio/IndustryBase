@@ -1,6 +1,7 @@
 package cn.bzgzs.industrybase.client.gui.screens.inventory;
 
-import cn.bzgzs.industrybase.IndustryBase;
+import cn.bzgzs.industrybase.api.Preference;
+import cn.bzgzs.industrybase.api.util.TransmitScreenHelper;
 import cn.bzgzs.industrybase.world.inventory.SteamEngineMenu;
 import cn.bzgzs.industrybase.world.level.block.entity.SteamEngineBlockEntity;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -13,26 +14,29 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
 public class SteamEngineScreen extends AbstractContainerScreen<SteamEngineMenu> {
-	private static final ResourceLocation TEXTURE = new ResourceLocation(IndustryBase.MODID, "textures/gui/container/steam_engine.png");
+	private static final ResourceLocation TEXTURE = new ResourceLocation(Preference.MODID, "textures/gui/container/steam_engine.png");
 
 	public SteamEngineScreen(SteamEngineMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
 		super(pMenu, pPlayerInventory, pTitle);
 	}
 
 	@Override
+	protected void init() {
+		super.init();
+		this.leftPos -= TransmitScreenHelper.PANEL_WIDTH / 2;
+	}
+
+	@Override
 	public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
 		this.renderBackground(poseStack);
 		super.render(poseStack, mouseX, mouseY, partialTicks);
-		this.renderTooltip(poseStack, mouseX, mouseY);
 		MutableComponent speed = Component.translatable("label.steam_engine.speed");
 		MutableComponent power = Component.translatable("label.steam_engine.power");
 		MutableComponent waterAmount = Component.translatable("label.steam_engine.water_amount");
-		this.font.draw(poseStack, speed, this.leftPos + 8, this.topPos + 24, 0x880000);
-		this.font.draw(poseStack, power, this.leftPos + 8, this.topPos + 39, 0x826d00);
-		this.font.draw(poseStack, waterAmount, this.leftPos + 8, this.topPos + 54, 0x006ee4);
-		this.font.draw(poseStack, Float.toString(this.menu.getData().get(1) / 100.0F), this.leftPos + 9 + this.font.width(speed), this.topPos + 24, 0x880000);
-		this.font.draw(poseStack, Integer.toString(this.menu.getData().get(0)), this.leftPos + 9 + this.font.width(power), this.topPos + 39, 0x826d00);
-		this.font.draw(poseStack, Integer.toString(this.menu.getData().get(4)), this.leftPos + 9 + this.font.width(waterAmount), this.topPos + 54, 0x006ee4);
+		this.font.draw(poseStack, waterAmount, this.leftPos + 8, this.topPos + 39, 0x006ee4);
+		this.font.draw(poseStack, Integer.toString(this.menu.getData().get(4)), this.leftPos + 9 + this.font.width(waterAmount), this.topPos + 39, 0x006ee4);
+		TransmitScreenHelper.renderTransmitFont(this.font, poseStack, this.menu.getData().get(1), this.menu.getData().get(0), this.leftPos, this.topPos, this.imageWidth);
+		this.renderTooltip(poseStack, mouseX, mouseY);
 	}
 
 	@Override
@@ -52,5 +56,6 @@ public class SteamEngineScreen extends AbstractContainerScreen<SteamEngineMenu> 
 			int textureHeight = (int) (13.0F * burnTime / totalBurnTime);
 			this.blit(poseStack, this.leftPos + 70, this.topPos + 37 - textureHeight, 176, 79 - textureHeight, 14, textureHeight + 1);
 		}
+		TransmitScreenHelper.renderTransmitPanel(this, poseStack, this.leftPos, this.topPos, this.imageWidth);
 	}
 }

@@ -7,8 +7,8 @@
   "block.industrybase.dynamo": "发电机",
   "block.industrybase.axis_connector": "轴连接器",
 
+  "label.transmit_panel.speed": "速度: ",
+  "label.transmit_panel.power": "功率: ",
   "container.industrybase.steam_engine": "小型蒸汽机",
-  "label.steam_engine.speed": "速度: ",
-  "label.steam_engine.power": "功率: ",
   "label.steam_engine.water_amount": "水量: "
 }

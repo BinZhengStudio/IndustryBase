@@ -1,5 +1,6 @@
 package cn.bzgzs.industrybase;
 
+import cn.bzgzs.industrybase.api.Preference;
 import cn.bzgzs.industrybase.client.gui.screens.MenuScreenManager;
 import cn.bzgzs.industrybase.network.NetworkManager;
 import cn.bzgzs.industrybase.world.inventory.MenuTypeList;
@@ -15,9 +16,8 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 
-@Mod(IndustryBase.MODID)
+@Mod(Preference.MODID)
 public class IndustryBase {
-	public static final String MODID = "industrybase";
 	public static final Logger LOGGER = LogUtils.getLogger();
 
 	public IndustryBase() {

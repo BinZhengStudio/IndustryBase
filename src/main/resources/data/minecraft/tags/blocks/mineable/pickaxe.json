@@ -6,6 +6,7 @@
     "industrybase:gold_transmission_rod",
     "industrybase:steam_engine",
     "industrybase:axis_connector",
-    "industrybase:wire_connector"
+    "industrybase:wire_connector",
+    "industrybase:electric_motor"
   ]
 }

@@ -1,6 +1,6 @@
 package cn.bzgzs.industrybase.world.level.block.entity;
 
-import cn.bzgzs.industrybase.IndustryBase;
+import cn.bzgzs.industrybase.api.Preference;
 import cn.bzgzs.industrybase.world.level.block.BlockList;
 import com.mojang.datafixers.DSL;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -9,7 +9,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 public class BlockEntityTypeList {
-	public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, IndustryBase.MODID);
+	public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, Preference.MODID);
 
 	public static final RegistryObject<BlockEntityType<DynamoBlockEntity>> DYNAMO = BLOCK_ENTITY_TYPES.register("dynamo", () -> BlockEntityType.Builder.of(DynamoBlockEntity::new, BlockList.DYNAMO.get()).build(DSL.remainderType()));
 	public static final RegistryObject<BlockEntityType<IronTransmissionRodBlockEntity>> IRON_TRANSMISSION_ROD = BLOCK_ENTITY_TYPES.register("iron_transmission_rod", () -> BlockEntityType.Builder.of(IronTransmissionRodBlockEntity::new, BlockList.IRON_TRANSMISSION_ROD.get()).build(DSL.remainderType()));

@@ -1,7 +1,7 @@
 package cn.bzgzs.industrybase.world.level.block.entity;
 
-import cn.bzgzs.industrybase.IndustryBase;
 import cn.bzgzs.industrybase.api.CapabilityList;
+import cn.bzgzs.industrybase.api.Preference;
 import cn.bzgzs.industrybase.api.transmit.MechanicalTransmit;
 import cn.bzgzs.industrybase.world.inventory.SteamEngineMenu;
 import cn.bzgzs.industrybase.world.level.block.SteamEngineBlock;
@@ -146,12 +146,12 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 	public void onLoad() {
 		super.onLoad();
 		this.transmit.registerToNetwork();
-		this.transmit.setResistance(5);
+		this.transmit.setResistance(10);
 	}
 
 	@Override
 	protected Component getDefaultName() {
-		return Component.translatable("container." + IndustryBase.MODID + ".steam_engine");
+		return Component.translatable("container." + Preference.MODID + ".steam_engine");
 	}
 
 	@Override

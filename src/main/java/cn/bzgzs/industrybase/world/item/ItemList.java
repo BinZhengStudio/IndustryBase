@@ -1,6 +1,6 @@
 package cn.bzgzs.industrybase.world.item;
 
-import cn.bzgzs.industrybase.IndustryBase;
+import cn.bzgzs.industrybase.api.Preference;
 import cn.bzgzs.industrybase.world.level.block.BlockList;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -9,7 +9,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 public class ItemList {
-	public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, IndustryBase.MODID);
+	public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, Preference.MODID);
 
 //	public static final RegistryObject<Item> WIRE_COIL = ITEMS.register("wire_coil", WireCoilItem::new);
 

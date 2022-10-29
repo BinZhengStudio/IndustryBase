@@ -15,7 +15,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - name: 载入缓存
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/.gradle/caches
@@ -38,12 +38,12 @@ jobs:
           TOKEN: ${{ steps.github-app-token.outputs.token }}
         shell: bash
         run: |
-          git config --global user.name '向冰'; git config --global user.email 'xiangbing@bzgzs.cn'
+          git config --global user.name 'xiangbing-bot'; git config --global user.email 'xiangbing@bzgzs.cn'
           git clone https://x-access-token:$TOKEN@github.com/BinZhengStudio/ModRelease.git --depth 1
       - name: 移动模组文件
         shell: bash
         run: |
-          mv localRepo/ ModRelease/
+          mv localRepo/* ModRelease/
       - name: 推送到发布仓
         shell: bash
         run: |

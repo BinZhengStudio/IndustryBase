@@ -23,7 +23,6 @@ public class ElectricNetwork {
 	private final Queue<Runnable> tasks;
 	private final Map<BlockPos, Double> outputCollection;
 	private final Map<BlockPos, Double> inputCollection;
-	//	private final Map<BlockPos, BlockPos> rootCollection; // TODO
 	private final Map<BlockPos, Double> machineOutput;
 	private final Map<BlockPos, Double> machineInput;
 	private final SetMultimap<BlockPos, Direction> FEMachines;
@@ -37,7 +36,6 @@ public class ElectricNetwork {
 		this.tasks = Queues.newArrayDeque();
 		this.outputCollection = new HashMap<>();
 		this.inputCollection = new HashMap<>();
-//		this.rootCollection = new HashMap<>();
 		this.machineOutput = new HashMap<>();
 		this.machineInput = new HashMap<>();
 		this.FEMachines = Multimaps.newSetMultimap(new HashMap<>(), () -> EnumSet.noneOf(Direction.class));
@@ -48,7 +46,6 @@ public class ElectricNetwork {
 	}
 
 	public BlockPos root(BlockPos pos) {
-//		return this.level.isClientSide() ? this.rootCollection.getOrDefault(pos, pos) : this.components.getOrDefault(pos, ImmutableSet.of(pos.immutable())).iterator().next();
 		return this.components.containsKey(pos) ? this.components.get(pos).iterator().next() : pos;
 	}
 
@@ -76,7 +73,7 @@ public class ElectricNetwork {
 			this.machineOutput.remove(pos);
 		}
 		BlockPos root = this.root(pos);
-		this.outputCollection.put(root, this.outputCollection.getOrDefault(root, 0.0D) + diff); // TODO test
+		this.outputCollection.put(root, this.outputCollection.getOrDefault(root, 0.0D) + diff);
 		return diff;
 	}
 
@@ -94,7 +91,7 @@ public class ElectricNetwork {
 			this.machineInput.remove(pos);
 		}
 		BlockPos root = this.root(pos);
-		this.inputCollection.put(root, this.inputCollection.getOrDefault(root, 0.0D) + diff); // TODO test
+		this.inputCollection.put(root, this.inputCollection.getOrDefault(root, 0.0D) + diff);
 		return diff;
 	}
 
@@ -177,46 +174,22 @@ public class ElectricNetwork {
 			primaryComponent.removeAll(searched);
 		}
 
-//		BlockPos secondaryNode = secondaryComponent.iterator().next(); TODO
-//		if (secondaryComponent.size() <= 1) {
-//			this.components.remove(secondaryNode);
+		BlockPos secondaryNode = secondaryComponent.iterator().next();
+		double outputDiff = 0.0D;
+		double inputDiff = 0.0D;
+		for (BlockPos pos : secondaryComponent) {
+			this.components.put(pos, secondaryComponent);
 
-//			double outputDiff = this.machineOutput.getOrDefault(secondaryNode, 0.0D);
-//			double inputDiff = this.machineInput.getOrDefault(secondaryNode, 0.0D);
-//			double outputOld = this.outputCollection.getOrDefault(primaryNode, 0.0D);
-//			double inputOld = this.inputCollection.getOrDefault(primaryNode, 0.0D);
-//			this.outputCollection.put(primaryNode, outputOld - outputDiff);
-//			this.inputCollection.put(primaryNode, inputOld - inputDiff);
+			outputDiff += this.machineOutput.getOrDefault(pos, 0.0D);
+			inputDiff += this.machineInput.getOrDefault(pos, 0.0D);
 
-//			this.rootCollection.remove(secondaryNode);
-//		} else {
-//		if (secondaryComponent.iterator().hasNext()) {
-			BlockPos secondaryNode = secondaryComponent.iterator().next();
-			double outputDiff = 0.0D;
-			double inputDiff = 0.0D;
-			for (BlockPos pos : secondaryComponent) {
-				this.components.put(pos, secondaryComponent);
-
-				outputDiff += this.machineOutput.getOrDefault(pos, 0.0D);
-				inputDiff += this.machineInput.getOrDefault(pos, 0.0D);
-
-//			this.rootCollection.put(pos, secondaryNode);
-			}
-			double outputOld = this.outputCollection.getOrDefault(primaryNode, 0.0D);
-			double inputOld = this.inputCollection.getOrDefault(primaryNode, 0.0D);
-			this.outputCollection.put(primaryNode, outputOld - outputDiff);
-			this.inputCollection.put(primaryNode, inputOld - inputDiff);
-			this.outputCollection.put(secondaryNode, outputDiff);
-			this.inputCollection.put(secondaryNode, inputDiff);
-//		}
-//		if (primaryComponent.size() <= 1) {
-//			this.components.remove(primaryNode);
-
-//			this.outputCollection.remove(primaryNode);
-//			this.inputCollection.remove(primaryNode);
-//			this.rootCollection.remove(primaryNode);
-//		}
-//		}
+		}
+		double outputOld = this.outputCollection.getOrDefault(primaryNode, 0.0D);
+		double inputOld = this.inputCollection.getOrDefault(primaryNode, 0.0D);
+		this.outputCollection.put(primaryNode, outputOld - outputDiff);
+		this.inputCollection.put(primaryNode, inputOld - inputDiff);
+		this.outputCollection.put(secondaryNode, outputDiff);
+		this.inputCollection.put(secondaryNode, inputDiff);
 	}
 
 	public void addOrChangeBlock(BlockPos pos, Runnable callback) {
@@ -300,9 +273,6 @@ public class ElectricNetwork {
 
 				this.outputCollection.put(secondary, primaryOutput + secondaryOutput);
 				this.inputCollection.put(secondary, primaryInput + secondaryInput);
-
-//				this.rootCollection.put(secondary, secondary);
-//				this.rootCollection.put(primary, secondary);
 			} else if (primaryComponent == null) {
 				BlockPos secondaryNode = secondaryComponent.iterator().next();
 				this.components.put(primary, secondaryComponent);
@@ -312,8 +282,6 @@ public class ElectricNetwork {
 				this.outputCollection.put(secondaryNode, outputOld + primaryOutput);
 				double inputOld = this.inputCollection.getOrDefault(secondaryNode, 0.0D);
 				this.inputCollection.put(secondaryNode, inputOld + primaryInput);
-
-//				this.rootCollection.put(primary, secondaryNode);
 			} else if (secondaryComponent == null) {
 				BlockPos primaryNode = primaryComponent.iterator().next();
 				this.components.put(secondary, primaryComponent);
@@ -323,15 +291,12 @@ public class ElectricNetwork {
 				this.outputCollection.put(primaryNode, outputOld + secondaryOutput);
 				double inputOld = this.inputCollection.getOrDefault(primaryNode, 0.0D);
 				this.inputCollection.put(primaryNode, inputOld + secondaryInput);
-
-//				this.rootCollection.put(secondary, primaryNode);
 			} else if (primaryComponent != secondaryComponent) {
 				BlockPos primaryNode = primaryComponent.iterator().next();
 				BlockPos secondaryNode = secondaryComponent.iterator().next();
 				Set<BlockPos> union = new LinkedHashSet<>(Sets.union(primaryComponent, secondaryComponent));
 				union.forEach(pos -> {
 					this.components.put(pos, union);
-//					this.rootCollection.put(pos, primaryNode);
 				});
 
 				double outputDiff = this.outputCollection.getOrDefault(secondaryNode, 0.0D);
@@ -369,9 +334,6 @@ public class ElectricNetwork {
 
 				this.outputCollection.put(secondary, primaryOutput + secondaryOutput);
 				this.inputCollection.put(secondary, primaryInput + secondaryInput);
-
-//				this.rootCollection.put(secondary, secondary);
-//				this.rootCollection.put(primary, secondary);
 			} else if (primaryComponent == null) {
 				BlockPos secondaryNode = secondaryComponent.iterator().next();
 				this.components.put(primary, secondaryComponent);
@@ -381,8 +343,6 @@ public class ElectricNetwork {
 				this.outputCollection.put(secondaryNode, outputOld + primaryOutput);
 				double inputOld = this.inputCollection.getOrDefault(secondaryNode, 0.0D);
 				this.inputCollection.put(secondaryNode, inputOld + primaryInput);
-
-//				this.rootCollection.put(primary, secondaryNode);
 			} else if (secondaryComponent == null) {
 				BlockPos primaryNode = primaryComponent.iterator().next();
 				this.components.put(secondary, primaryComponent);
@@ -392,15 +352,12 @@ public class ElectricNetwork {
 				this.outputCollection.put(primaryNode, outputOld + secondaryOutput);
 				double inputOld = this.inputCollection.getOrDefault(primaryNode, 0.0D);
 				this.inputCollection.put(primaryNode, inputOld + secondaryInput);
-
-//				this.rootCollection.put(secondary, primaryNode);
 			} else if (primaryComponent != secondaryComponent) {
 				BlockPos primaryNode = primaryComponent.iterator().next();
 				BlockPos secondaryNode = secondaryComponent.iterator().next();
 				Set<BlockPos> union = new LinkedHashSet<>(Sets.union(primaryComponent, secondaryComponent));
 				union.forEach(pos -> {
 					this.components.put(pos, union);
-//					this.rootCollection.put(pos, primaryNode);
 				});
 
 				double outputDiff = this.outputCollection.getOrDefault(secondaryNode, 0.0D);

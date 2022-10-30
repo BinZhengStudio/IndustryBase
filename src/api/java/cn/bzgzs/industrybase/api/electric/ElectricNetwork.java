@@ -133,7 +133,7 @@ public class ElectricNetwork {
 
 	private void cutSide(BlockPos node, Direction direction) {
 		if (this.sideConn.remove(node, direction)) {
-			BlockPos another = node.offset(direction.getNormal());
+			BlockPos another = node.relative(direction);
 			this.sideConn.remove(another, direction.getOpposite());
 			this.spilt(node, another);
 		}
@@ -201,8 +201,8 @@ public class ElectricNetwork {
 						initSet.add(pos);
 						this.components.put(pos, initSet);
 					}
-					if (this.hasElectricalCapability(pos.offset(side.getNormal()), side.getOpposite())) {
-						BlockPos another = pos.offset(side.getNormal());
+					if (this.hasElectricalCapability(pos.relative(side), side.getOpposite())) {
+						BlockPos another = pos.relative(side);
 						if (!this.components.containsKey(another)) {
 							Set<BlockPos> initSet = new LinkedHashSet<>();
 							initSet.add(another);
@@ -210,7 +210,7 @@ public class ElectricNetwork {
 						}
 						this.FEMachines.remove(pos, side);
 						this.linkSide(pos, side);
-					} else if (this.hasFECapability(pos.offset(side.getNormal()), side.getOpposite())) {
+					} else if (this.hasFECapability(pos.relative(side), side.getOpposite())) {
 						this.FEMachines.put(pos, side);
 						this.cutSide(pos, side);
 					}
@@ -254,7 +254,7 @@ public class ElectricNetwork {
 	private void linkSide(BlockPos node, Direction direction) {
 		BlockPos secondary = node.immutable();
 		if (this.sideConn.put(secondary, direction)) {
-			BlockPos primary = secondary.offset(direction.getNormal());
+			BlockPos primary = secondary.relative(direction);
 			this.sideConn.put(primary, direction.getOpposite());
 			Set<BlockPos> primaryComponent = this.components.get(primary);
 			Set<BlockPos> secondaryComponent = this.components.get(secondary);
@@ -397,7 +397,7 @@ public class ElectricNetwork {
 			}
 
 			Direction direction = entry.getValue();
-			BlockPos target = pos.offset(direction.getNormal());
+			BlockPos target = pos.relative(direction);
 			if (this.level.isAreaLoaded(target, 0)) {
 				Optional.ofNullable(this.level.getBlockEntity(target)).ifPresent(blockEntity -> blockEntity.getCapability(ForgeCapabilities.ENERGY, direction.getOpposite()).ifPresent(capability -> {
 					if (capability.canReceive()) {
@@ -433,7 +433,7 @@ public class ElectricNetwork {
 		public BlockPos next() {
 			BlockPos node = this.queue.remove();
 			for (Direction direction : ElectricNetwork.this.sideConn.get(node)) {
-				BlockPos another = node.offset(direction.getNormal());
+				BlockPos another = node.relative(direction);
 				if (this.searched.add(another)) {
 					this.queue.offer(another);
 				}

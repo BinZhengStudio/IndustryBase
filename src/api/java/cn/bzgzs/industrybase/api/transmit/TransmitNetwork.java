@@ -191,7 +191,7 @@ public class TransmitNetwork {
 
 	private void cut(BlockPos node, Direction direction) {
 		if (this.connections.remove(node, direction)) {
-			BlockPos another = node.offset(direction.getNormal());
+			BlockPos another = node.relative(direction);
 			this.connections.remove(another, direction.getOpposite());
 			BFSIterator nodeIterator = new BFSIterator(node);
 			BFSIterator anotherIterator = new BFSIterator(another);
@@ -314,7 +314,7 @@ public class TransmitNetwork {
 		if (this.level.isAreaLoaded(pos, 0)) {
 			BlockEntity blockEntity = this.level.getBlockEntity(pos);
 			boolean flag = blockEntity != null && blockEntity.getCapability(CapabilityList.MECHANICAL_TRANSMIT, side).isPresent();
-			BlockEntity opposite = this.level.getBlockEntity(pos.offset(side.getNormal()));
+			BlockEntity opposite = this.level.getBlockEntity(pos.relative(side));
 			boolean flag1 = opposite != null && opposite.getCapability(CapabilityList.MECHANICAL_TRANSMIT, side.getOpposite()).isPresent();
 			return flag && flag1;
 		}
@@ -324,7 +324,7 @@ public class TransmitNetwork {
 	private void link(BlockPos node, Direction direction) {
 		BlockPos secondary = node.immutable();
 		if (this.connections.put(secondary, direction)) {
-			BlockPos primary = secondary.offset(direction.getNormal());
+			BlockPos primary = secondary.relative(direction);
 			this.connections.put(primary, direction.getOpposite());
 			Set<BlockPos> primaryComponent = this.components.get(primary);
 			Set<BlockPos> secondaryComponent = this.components.get(secondary);
@@ -442,7 +442,7 @@ public class TransmitNetwork {
 		public BlockPos next() {
 			BlockPos node = this.queue.remove();
 			for (Direction direction : TransmitNetwork.this.connections.get(node)) {
-				BlockPos another = node.offset(direction.getNormal());
+				BlockPos another = node.relative(direction);
 				if (this.searched.add(another)) {
 					this.queue.offer(another);
 				}

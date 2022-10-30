@@ -4,6 +4,8 @@ import cn.bzgzs.industrybase.world.level.block.entity.BlockEntityTypeList;
 import cn.bzgzs.industrybase.world.level.block.entity.SteamEngineBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -50,7 +52,7 @@ public class SteamEngineBlock extends BaseEntityBlock {
 				LazyOptional<IFluidHandlerItem> bucket = stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM);
 				LazyOptional<IFluidHandler> tank = blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER, hit.getDirection());
 				if (bucket.isPresent() && tank.isPresent()) {
-					bucket.ifPresent(itemCapability -> tank.ifPresent(engineCapability ->  {
+					bucket.ifPresent(itemCapability -> tank.ifPresent(engineCapability -> {
 						FluidStack drained = itemCapability.drain(Math.max(0, engineCapability.getTankCapacity(0) - engineCapability.getFluidInTank(0).getAmount()), player.isCreative() ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE);
 						engineCapability.fill(drained, IFluidHandler.FluidAction.EXECUTE);
 						if (stack.is(Items.WATER_BUCKET)) { // TODO 兼容性待解决
@@ -62,6 +64,21 @@ public class SteamEngineBlock extends BaseEntityBlock {
 				}
 			}
 			return InteractionResult.CONSUME;
+		}
+	}
+
+	@Override
+	@SuppressWarnings("deprecation")
+	public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+		if (!state.is(newState.getBlock())) {
+			BlockEntity blockEntity = level.getBlockEntity(pos);
+			if (blockEntity instanceof SteamEngineBlockEntity steamEngine) {
+				if (level instanceof ServerLevel) {
+					Containers.dropContents(level, pos, steamEngine);
+				}
+				level.updateNeighbourForOutputSignal(pos, this); // TODO
+			}
+			super.onRemove(state, level, pos, newState, isMoving);
 		}
 	}
 

@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class WireBlock extends BaseEntityBlock {
 	protected WireBlock() {
-		super(Properties.of(Material.GLASS).strength(2).sound(SoundType.METAL));
+		super(Properties.of(Material.GLASS).strength(0.5F).sound(SoundType.METAL));
 	}
 
 	@Override

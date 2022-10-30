@@ -43,7 +43,7 @@ public class ElectricPower implements IElectricPower {
 	public void removeFromNetwork() {
 		Optional.ofNullable(this.blockEntity.getLevel()).ifPresent(level -> {
 			if (this.network != null && !level.isClientSide) {
-				network.removeBlock(this.pos, this.blockEntity::setChanged);
+				this.network.removeBlock(this.pos, this.blockEntity::setChanged);
 			}
 		});
 	}

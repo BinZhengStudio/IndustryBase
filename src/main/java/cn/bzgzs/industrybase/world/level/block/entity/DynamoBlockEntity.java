@@ -3,6 +3,7 @@ package cn.bzgzs.industrybase.world.level.block.entity;
 import cn.bzgzs.industrybase.api.CapabilityList;
 import cn.bzgzs.industrybase.api.electric.ElectricPower;
 import cn.bzgzs.industrybase.api.transmit.MechanicalTransmit;
+import cn.bzgzs.industrybase.api.util.EnergyHelper;
 import cn.bzgzs.industrybase.world.level.block.DynamoBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -31,15 +32,15 @@ public class DynamoBlockEntity extends BlockEntity {
 		this.transmit.registerToNetwork();
 		this.transmit.setResistance(RESISTANCE);
 		this.electricPower.registerToNetwork();
-		this.electricPower.setOutputPower(5.0D);
+//		this.electricPower.setOutputPower(5.0D);
 	}
 
 	public static void serverTick(Level level, BlockPos pos, BlockState state, DynamoBlockEntity blockEntity) {
-//		double power = EnergyHelper.transmitToElectric(blockEntity.transmit.getSpeed(), RESISTANCE);
-//		if (power != blockEntity.oldPower) {
-//			blockEntity.electricPower.setOutputPower(power);
-//			blockEntity.oldPower = power;
-//		}
+		double power = EnergyHelper.transmitToElectric(blockEntity.transmit.getSpeed(), RESISTANCE);
+		if (power != blockEntity.oldPower) {
+			blockEntity.electricPower.setOutputPower(power);
+			blockEntity.oldPower = power;
+		}
 	}
 
 	@Override

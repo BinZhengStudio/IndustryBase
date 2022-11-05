@@ -17,5 +17,12 @@ public class BlockList {
 	public static final RegistryObject<Block> WIRE = BLOCKS.register("wire", WireBlock::new);
 	public static final RegistryObject<Block> WIRE_CONNECTOR = BLOCKS.register("wire_connector", WireConnectorBlock::new);
 	public static final RegistryObject<Block> ELECTRIC_MOTOR = BLOCKS.register("electric_motor", ElectricMotorBlock::new);
+	public static final RegistryObject<Block> OAK_TRANSMISSION_ROD = BLOCKS.register("oak_transmission_rod", OakTransmissionRodBlock::new);
+	public static final RegistryObject<Block> SPRUCE_TRANSMISSION_ROD = BLOCKS.register("spruce_transmission_rod", SpruceTransmissionRodBlock::new);
+	public static final RegistryObject<Block> BIRCH_TRANSMISSION_ROD = BLOCKS.register("birch_transmission_rod", BirchTransmissionRodBlock::new);
+	public static final RegistryObject<Block> JUNGLE_TRANSMISSION_ROD = BLOCKS.register("jungle_transmission_rod", JungleTransmissionRodBlock::new);
+	public static final RegistryObject<Block> ACACIA_TRANSMISSION_ROD = BLOCKS.register("acacia_transmission_rod", AcaciaTransmissionRodBlock::new);
+	public static final RegistryObject<Block> DARK_OAK_TRANSMISSION_ROD = BLOCKS.register("dark_oak_transmission_rod", DarkOakTransmissionRodBlock::new);
+	public static final RegistryObject<Block> MANGROVE_TRANSMISSION_ROD = BLOCKS.register("mangrove_transmission_rod", MangroveTransmissionRodBlock::new);
 
 }

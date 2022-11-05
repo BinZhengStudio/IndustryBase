@@ -21,5 +21,12 @@ public class ItemList {
 	public static final RegistryObject<BlockItem> WIRE = ITEMS.register("wire", () -> new BlockItem(BlockList.WIRE.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
 	public static final RegistryObject<BlockItem> WIRE_CONNECTOR = ITEMS.register("wire_connector", () -> new BlockItem(BlockList.WIRE_CONNECTOR.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
 	public static final RegistryObject<BlockItem> ELECTRIC_MOTOR = ITEMS.register("electric_motor", () -> new BlockItem(BlockList.ELECTRIC_MOTOR.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
+	public static final RegistryObject<BlockItem> OAK_TRANSMISSION_ROD = ITEMS.register("oak_transmission_rod", () -> new BlockItem(BlockList.OAK_TRANSMISSION_ROD.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
+	public static final RegistryObject<BlockItem> SPRUCE_TRANSMISSION_ROD = ITEMS.register("spruce_transmission_rod", () -> new BlockItem(BlockList.SPRUCE_TRANSMISSION_ROD.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
+	public static final RegistryObject<BlockItem> BIRCH_TRANSMISSION_ROD = ITEMS.register("birch_transmission_rod", () -> new BlockItem(BlockList.BIRCH_TRANSMISSION_ROD.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
+	public static final RegistryObject<BlockItem> JUNGLE_TRANSMISSION_ROD = ITEMS.register("jungle_transmission_rod", () -> new BlockItem(BlockList.JUNGLE_TRANSMISSION_ROD.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
+	public static final RegistryObject<BlockItem> ACACIA_TRANSMISSION_ROD = ITEMS.register("acacia_transmission_rod", () -> new BlockItem(BlockList.ACACIA_TRANSMISSION_ROD.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
+	public static final RegistryObject<BlockItem> DARK_OAK_TRANSMISSION_ROD = ITEMS.register("dark_oak_transmission_rod", () -> new BlockItem(BlockList.DARK_OAK_TRANSMISSION_ROD.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
+	public static final RegistryObject<BlockItem> MANGROVE_TRANSMISSION_ROD = ITEMS.register("mangrove_transmission_rod", () -> new BlockItem(BlockList.MANGROVE_TRANSMISSION_ROD.get(), new Item.Properties().tab(CreativeModeTabList.INDUSTRYBASE)));
 
 }

@@ -29,7 +29,7 @@ jobs:
         with:
           app_id: ${{ secrets.XIANGBING_BOT_ID }}
           private_key: ${{ secrets.XIANGBING_BOT_PRIVATE_KEY }}
-      - name: 检出发布仓库
+      - name: 克隆发布仓库
         env:
           TOKEN: ${{ steps.github-app-token.outputs.token }}
         shell: bash
@@ -45,6 +45,26 @@ jobs:
         run: |
           cd ModRelease/
           git add .
-          git commit -m "Updated at $(date -R)"
+          git commit -m "Updated IndustryBase at $(date -R)"
+          git push
+          cd ..
+      - name: 克隆下载页面仓库
+        env:
+          TOKEN: ${{ steps.github-app-token.outputs.token }}
+        shell: bash
+        run: |
+          git config --global user.name 'xiangbing-bot'; git config --global user.email 'xiangbing@bzgzs.cn'
+          git clone https://x-access-token:$TOKEN@github.com/BinZhengStudio/download-page.git --depth 1
+      - name: 复制 maven-metadata
+        shell: bash
+        run: |
+          mkdir -p download-page/maven-metadata/industrybase/industrybase-1.19.2/
+          cp ModRelease/cn/bzgzs/industrybase/industrybase-1.19.2/maven-metadata.xml download-page/maven-metadata/industrybase/industrybase-1.19.2/
+      - name: 推送到下载页面仓库
+        shell: bash
+        run: |
+          cd download-page/
+          git add .
+          git commit -m "Updated IndustryBase at $(date -R)"
           git push
           cd ..

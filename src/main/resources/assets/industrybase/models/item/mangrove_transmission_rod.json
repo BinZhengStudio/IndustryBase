@@ -1,6 +1,6 @@
 {
 	"parent": "industrybase:block/transmission_rod",
 	"textures": {
-		"particle": "industrybase:item/iron_transmission_rod"
+		"particle": "industrybase:item/mangrove_transmission_rod"
 	}
 }

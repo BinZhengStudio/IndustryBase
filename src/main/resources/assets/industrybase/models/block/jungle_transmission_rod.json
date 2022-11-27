@@ -1,5 +1,5 @@
 {
   "textures": {
-    "particle": "industrybase:item/jungle_transmission_rod"
+    "particle": "industrybase:entity/transmission_rod/jungle"
   }
 }

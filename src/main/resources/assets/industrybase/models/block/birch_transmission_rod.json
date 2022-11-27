@@ -1,5 +1,5 @@
 {
   "textures": {
-    "particle": "industrybase:item/birch_transmission_rod"
+    "particle": "industrybase:entity/transmission_rod/birch"
   }
 }

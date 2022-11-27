@@ -21,7 +21,7 @@ public class ElectricNetwork {
 	private final SetMultimap<BlockPos, BlockPos> wireConn;
 	private final LevelAccessor level;
 	private final Queue<Runnable> tasks;
-	private final Map<BlockPos, Double> outputCollection;
+	private final Map<BlockPos, Double> outputCollection; // TODO 需要进一步优化
 	private final Map<BlockPos, Double> inputCollection;
 	private final Map<BlockPos, Double> machineOutput;
 	private final Map<BlockPos, Double> machineInput;
@@ -75,7 +75,7 @@ public class ElectricNetwork {
 		BlockPos root = this.root(pos);
 		double output = this.outputCollection.getOrDefault(root, 0.0D) + diff;
 		if (output > 0) {
-			this.outputCollection.put(root, this.outputCollection.getOrDefault(root, 0.0D) + diff);
+			this.outputCollection.put(root, output);
 		} else {
 			this.outputCollection.remove(root);
 		}
@@ -98,7 +98,7 @@ public class ElectricNetwork {
 		BlockPos root = this.root(pos);
 		double input = this.inputCollection.getOrDefault(root, 0.0D) + diff;
 		if (input > 0) {
-			this.inputCollection.put(root, this.inputCollection.getOrDefault(root, 0.0D) + diff);
+			this.inputCollection.put(root, input);
 		} else {
 			this.inputCollection.remove(root);
 		}
@@ -130,9 +130,6 @@ public class ElectricNetwork {
 			for (BlockPos another : this.wireConn.get(pos)) {
 				this.cutWire(pos, another);
 			}
-			this.components.remove(pos);
-			this.outputCollection.remove(pos);
-			this.inputCollection.remove(pos);
 			callback.run();
 		});
 	}
@@ -185,44 +182,65 @@ public class ElectricNetwork {
 		}
 
 		BlockPos secondaryNode = secondaryComponent.iterator().next();
-		// TODO remove component
-		double outputDiff = 0.0D;
-		double inputDiff = 0.0D;
-		for (BlockPos pos : secondaryComponent) {
-			this.components.put(pos, secondaryComponent);
+		if (secondaryComponent.size() <= 1) {
+			this.components.remove(secondaryNode);
 
-			outputDiff += this.machineOutput.getOrDefault(pos, 0.0D);
-			inputDiff += this.machineInput.getOrDefault(pos, 0.0D);
+			double outputDiff = this.machineOutput.getOrDefault(secondaryNode, 0.0D);
+			double inputDiff = this.machineInput.getOrDefault(secondaryNode, 0.0D);
+			double primaryOutput = this.outputCollection.getOrDefault(primaryNode, 0.0D) - outputDiff;
+			double primaryInput = this.inputCollection.getOrDefault(primaryNode, 0.0D) - inputDiff;
+			if (primaryOutput >= 0) {
+				this.outputCollection.put(primaryNode, primaryOutput);
+			} else {
+				this.outputCollection.remove(primaryNode);
+			}
+			if (primaryInput >= 0) {
+				this.inputCollection.put(primaryNode, primaryInput);
+			} else {
+				this.inputCollection.remove(primaryNode);
+			}
+		} else {
+			double outputDiff = 0.0D;
+			double inputDiff = 0.0D;
+			for (BlockPos pos : secondaryComponent) {
+				this.components.put(pos, secondaryComponent);
 
+				outputDiff += this.machineOutput.getOrDefault(pos, 0.0D);
+				inputDiff += this.machineInput.getOrDefault(pos, 0.0D);
+
+			}
+			double primaryOutput = this.outputCollection.getOrDefault(primaryNode, 0.0D) - outputDiff;
+			double primaryInput = this.inputCollection.getOrDefault(primaryNode, 0.0D) - inputDiff;
+			if (primaryOutput >= 0) {
+				this.outputCollection.put(primaryNode, primaryOutput);
+			} else {
+				this.outputCollection.remove(primaryNode);
+			}
+			if (primaryInput >= 0) {
+				this.inputCollection.put(primaryNode, primaryInput);
+			} else {
+				this.inputCollection.remove(primaryNode);
+			}
+			if (outputDiff > 0) this.outputCollection.put(secondaryNode, outputDiff);
+			if (inputDiff > 0) this.inputCollection.put(secondaryNode, inputDiff);
 		}
-		double outputOld = this.outputCollection.getOrDefault(primaryNode, 0.0D);
-		double inputOld = this.inputCollection.getOrDefault(primaryNode, 0.0D);
-		this.outputCollection.put(primaryNode, outputOld - outputDiff);
-		this.inputCollection.put(primaryNode, inputOld - inputDiff);
-		this.outputCollection.put(secondaryNode, outputDiff);
-		this.inputCollection.put(secondaryNode, inputDiff);
+		if (primaryComponent.size() <= 1) {
+			this.components.remove(primaryNode);
+
+			if (this.outputCollection.getOrDefault(primaryNode, 0.0D) <= 0) this.outputCollection.remove(primaryNode);
+			if (this.inputCollection.getOrDefault(primaryNode, 0.0D) <= 0) this.inputCollection.remove(primaryNode);
+		}
 	}
 
 	public void addOrChangeBlock(BlockPos pos, Runnable callback) {
 		this.tasks.offer(() -> {
 			for (Direction side : Direction.values()) {
 				if (this.hasElectricalCapability(pos, side)) {
-					if (!this.components.containsKey(pos)) {
-						Set<BlockPos> initSet = new LinkedHashSet<>();
-						initSet.add(pos);
-						this.components.put(pos, initSet);
-					}
 					if (this.hasElectricalCapability(pos.relative(side), side.getOpposite())) {
-						BlockPos another = pos.relative(side);
-						if (!this.components.containsKey(another)) {
-							Set<BlockPos> initSet = new LinkedHashSet<>();
-							initSet.add(another);
-							this.components.put(another, initSet);
-						}
 						this.FEMachines.remove(pos, side);
 						this.linkSide(pos, side);
 					} else if (this.hasFECapability(pos.relative(side), side.getOpposite())) {
-						this.FEMachines.put(pos, side);
+						this.FEMachines.put(pos.immutable(), side);
 						this.cutSide(pos, side);
 					}
 				} else {
@@ -235,7 +253,7 @@ public class ElectricNetwork {
 	}
 
 	public boolean addWire(BlockPos from, BlockPos to, Runnable callback) {
-		if (!from.equals(to) && this.wireConn.containsEntry(from, to)) {
+		if (!from.equals(to) && !this.wireConn.containsEntry(from, to)) {
 			return this.tasks.offer(() -> {
 				linkWire(from, to);
 				callback.run();
@@ -306,9 +324,7 @@ public class ElectricNetwork {
 				BlockPos primaryNode = primaryComponent.iterator().next();
 				BlockPos secondaryNode = secondaryComponent.iterator().next();
 				Set<BlockPos> union = new LinkedHashSet<>(Sets.union(primaryComponent, secondaryComponent));
-				union.forEach(pos -> {
-					this.components.put(pos, union);
-				});
+				union.forEach(pos -> this.components.put(pos, union));
 
 				double outputDiff = this.outputCollection.getOrDefault(secondaryNode, 0.0D);
 				double outputOld = this.outputCollection.getOrDefault(primaryNode, 0.0D);
@@ -399,11 +415,9 @@ public class ElectricNetwork {
 			BlockPos root = this.root(pos);
 			if (updated.add(root)) {
 				double power = this.outputCollection.getOrDefault(root, 0.0D);
-				if (power > 0.0D) {
-					double energy = power - this.inputCollection.getOrDefault(root, 0.0D);
-					if (energy > 0.0D) {
-						forgeEnergy.add(root, (int) Math.floor(energy));
-					}
+				double energy = power - this.inputCollection.getOrDefault(root, 0.0D);
+				if (energy > 0.0D) {
+					forgeEnergy.add(root, (int) Math.floor(energy));
 				}
 			}
 

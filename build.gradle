@@ -12,202 +12,154 @@ archivesBaseName = "${modId}-${mcVersion}"
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 sourceSets {
-    api {
-        compileClasspath = main.compileClasspath
-    }
-    main {
-        resources {
-            srcDir 'src/generated/resources'
-        }
-        compileClasspath += api.output
-        runtimeClasspath += api.output
-    }
+	api {
+		compileClasspath = main.compileClasspath
+	}
+	main {
+		resources {
+			srcDir 'src/generated/resources'
+		}
+		compileClasspath += api.output
+		runtimeClasspath += api.output
+	}
 }
 
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
 minecraft {
-    mappings channel: 'parchment', version: "${parchmentVersion}-${mcVersion}"
+	mappings channel: 'parchment', version: "${parchmentVersion}-${mcVersion}"
 
-    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
+	// accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
 
-    runs {
-        client {
-            workingDirectory project.file('run')
+	runs {
+		client {
+			workingDirectory project.file('run')
 
-            // Recommended logging data for a userdev environment
-            // The markers can be added/remove as needed separated by commas.
-            // "SCAN": For mods scan.
-            // "REGISTRIES": For firing of registry events.
-            // "REGISTRYDUMP": For getting the contents of all registries.
-            property 'forge.logging.markers', 'REGISTRIES'
+			// Recommended logging data for a userdev environment
+			// The markers can be added/remove as needed separated by commas.
+			// "SCAN": For mods scan.
+			// "REGISTRIES": For firing of registry events.
+			// "REGISTRYDUMP": For getting the contents of all registries.
+			property 'forge.logging.markers', 'REGISTRIES'
 
-            // Recommended logging level for the console
-            // You can set various levels here.
-            // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
-            property 'forge.logging.console.level', 'debug'
+			property 'forge.logging.console.level', 'debug'
 
-            property 'forge.enabledGameTestNamespaces', 'industrybase'
+			property 'forge.enabledGameTestNamespaces', 'industrybase'
 
-            mods {
-                industrybase {
-                    source sourceSets.main
-                    source sourceSets.api
-                }
-            }
-        }
+			mods {
+				industrybase {
+					source sourceSets.main
+					source sourceSets.api
+				}
+			}
+		}
 
-        server {
-            workingDirectory project.file('run')
+		server {
+			workingDirectory project.file('run')
 
-            property 'forge.logging.markers', 'REGISTRIES'
+			property 'forge.logging.markers', 'REGISTRIES'
 
-            property 'forge.logging.console.level', 'debug'
+			property 'forge.logging.console.level', 'debug'
 
-            property 'forge.enabledGameTestNamespaces', 'industrybase'
+			property 'forge.enabledGameTestNamespaces', 'industrybase'
 
-            mods {
-                industrybase {
-                    source sourceSets.main
-                    source sourceSets.api
-                }
-            }
-        }
+			mods {
+				industrybase {
+					source sourceSets.main
+					source sourceSets.api
+				}
+			}
+		}
 
-        // This run config launches GameTestServer and runs all registered gametests, then exits.
-        // By default, the server will crash when no gametests are provided.
-        // The gametest system is also enabled by default for other run configs under the /test command.
-        gameTestServer {
-            workingDirectory project.file('run')
+		gameTestServer {
+			workingDirectory project.file('run')
 
-            property 'forge.logging.markers', 'REGISTRIES'
+			property 'forge.logging.markers', 'REGISTRIES'
 
-            property 'forge.logging.console.level', 'debug'
+			property 'forge.logging.console.level', 'debug'
 
-            property 'forge.enabledGameTestNamespaces', 'industrybase'
+			property 'forge.enabledGameTestNamespaces', 'industrybase'
 
-            mods {
-                industrybase {
-                    source sourceSets.main
-                    source sourceSets.api
-                }
-            }
-        }
+			mods {
+				industrybase {
+					source sourceSets.main
+					source sourceSets.api
+				}
+			}
+		}
 
-        data {
-            workingDirectory project.file('run')
+		data {
+			workingDirectory project.file('run')
 
-            property 'forge.logging.markers', 'REGISTRIES'
+			property 'forge.logging.markers', 'REGISTRIES'
 
-            property 'forge.logging.console.level', 'debug'
+			property 'forge.logging.console.level', 'debug'
 
-            // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
-            args '--mod', 'industrybase', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+			// Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
+			args '--mod', 'industrybase', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
 
-            mods {
-                industrybase {
-                    source sourceSets.main
-                    source sourceSets.api
-                }
-            }
-        }
-    }
+			mods {
+				industrybase {
+					source sourceSets.main
+					source sourceSets.api
+				}
+			}
+		}
+	}
 }
 
 repositories {
-    // Put repositories for dependencies here
-    // ForgeGradle automatically adds the Forge maven and Maven Central for you
-
-    // If you have mod jar dependencies in ./libs, you can declare them as a repository like so:
-    // flatDir {
-    //     dir 'libs'
-    // }
 }
 
 dependencies {
-    minecraft "net.minecraftforge:forge:${mcVersion}-${forgeVersion}"
+	minecraft "net.minecraftforge:forge:${mcVersion}-${forgeVersion}"
+}
 
-    // Real mod deobf dependency examples - these get remapped to your current mappings
-    // compileOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}:api") // Adds JEI API as a compile dependency
-    // runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}") // Adds the full JEI mod as a runtime dependency
-    // implementation fg.deobf("com.tterrag.registrate:Registrate:MC${mc_version}-${registrate_version}") // Adds registrate as a dependency
+var manifest_info = [
+		"Specification-Title"     : modName,
+		"Specification-Vendor"    : modAuthor,
+		"Specification-Version"   : modSpecVersion,
+		"Implementation-Title"    : modName,
+		"Implementation-Version"  : modVersion,
+		"Implementation-Vendor"   : modAuthor,
+		"Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+]
 
-    // Examples using mod jars from ./libs
-    // implementation fg.deobf("blank:coolmod-${mc_version}:${coolmod_version}")
-
-    // For more info...
-    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
-    // http://www.gradle.org/docs/current/userguide/dependency_management.html
+jar {
+	from sourceSets.api.output
+	manifest {
+		attributes(manifest_info)
+	}
 }
 
 task apiJar(type: Jar, dependsOn: apiClasses) {
-    classifier = 'api'
-    from sourceSets.api.output
-    manifest {
-        attributes([
-                "Specification-Title"     : modName,
-                "Specification-Vendor"    : modAuthor,
-                "Specification-Version"   : modVersion,
-                "Implementation-Title"    : modName,
-                "Implementation-Version"  : modVersion,
-                "Implementation-Vendor"   : modAuthor,
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-        ])
-    }
+	classifier = 'api'
+	from sourceSets.api.output
+	manifest {
+		attributes(manifest_info)
+	}
 }
 
 task apiSourceJar(type: Jar, dependsOn: apiClasses) {
-    classifier = 'api-source'
-    from sourceSets.api.allSource
-    manifest {
-        attributes([
-                "Specification-Title"     : modName,
-                "Specification-Vendor"    : modAuthor,
-                "Specification-Version"   : modVersion,
-                "Implementation-Title"    : modName,
-                "Implementation-Version"  : modVersion,
-                "Implementation-Vendor"   : modAuthor,
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-        ])
-    }
+	classifier = 'api-source'
+	from sourceSets.api.allSource
+	manifest {
+		attributes(manifest_info)
+	}
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-    from sourceSets.api.allSource
-    manifest {
-        attributes([
-                "Specification-Title"     : modName,
-                "Specification-Vendor"    : modAuthor,
-                "Specification-Version"   : modVersion,
-                "Implementation-Title"    : modName,
-                "Implementation-Version"  : modVersion,
-                "Implementation-Vendor"   : modAuthor,
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-        ])
-    }
+	classifier = 'sources'
+	from sourceSets.main.allSource
+	from sourceSets.api.allSource
+	manifest {
+		attributes(manifest_info)
+	}
 }
 
 artifacts {
-    archives sourcesJar
-    archives apiJar
-    archives apiSourceJar
-}
-
-// Example for how to get properties into the manifest for reading at runtime.
-jar {
-    from sourceSets.api.output
-    manifest {
-        attributes([
-                "Specification-Title"     : modName,
-                "Specification-Vendor"    : modAuthor,
-                "Specification-Version"   : modVersion,
-                "Implementation-Title"    : modName,
-                "Implementation-Version"  : modVersion,
-                "Implementation-Vendor"   : modAuthor,
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-        ])
-    }
+	archives sourcesJar
+	archives apiJar
+	archives apiSourceJar
 }
 
 // Example configuration to allow publishing using the maven-publish plugin
@@ -217,25 +169,21 @@ jar.finalizedBy('reobfJar')
 // publish.dependsOn('reobfJar')
 
 publishing {
-    repositories {
-        maven {
-            url "file://${project.projectDir}/ModRelease"
-        }
-    }
-    publications {
-        mavenJar(MavenPublication) {
-            artifactId = archivesBaseName
-            artifact jar
-            artifact sourcesJar
-        }
-        mavenApiJar(MavenPublication) {
-            artifactId = archivesBaseName + "-api"
-            artifact apiJar
-            artifact apiSourceJar
-        }
-    }
+	repositories {
+		maven {
+			url "file://${project.projectDir}/ModRelease"
+		}
+	}
+	publications {
+		mavenJar(MavenPublication) {
+			artifactId = archivesBaseName
+			artifact jar
+			artifact sourcesJar
+			artifact apiJar
+		}
+	}
 }
 
 tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+	options.encoding = 'UTF-8'
 }

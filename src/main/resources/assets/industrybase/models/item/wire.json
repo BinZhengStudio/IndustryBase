@@ -1,0 +1,45 @@
+{
+	"parent": "minecraft:block/block",
+	"textures": {
+		"core": "industrybase:block/wire_core",
+		"part": "industrybase:block/wire_part"
+	},
+	"elements": [
+		{
+			"from": [6, 6, 6],
+			"to": [10, 10, 10],
+			"faces": {
+				"north": {"uv": [0, 0, 4, 4], "texture": "#core"},
+				"east": {"uv": [0, 0, 4, 4], "texture": "#core"},
+				"south": {"uv": [0, 0, 4, 4], "texture": "#core"},
+				"west": {"uv": [0, 0, 4, 4], "texture": "#core"},
+				"up": {"uv": [0, 0, 4, 4], "texture": "#core"},
+				"down": {"uv": [0, 0, 4, 4], "texture": "#core"}
+			}
+		},
+		{
+			"from": [6, 6, 0],
+			"to": [10, 10, 6],
+			"faces": {
+				"north": {"uv": [0, 0, 4, 4], "texture": "#part"},
+				"east": {"uv": [4, 0, 10, 4], "texture": "#part"},
+				"south": {"uv": [0, 0, 4, 4], "texture": "#part"},
+				"west": {"uv": [4, 0, 10, 4], "texture": "#part"},
+				"up": {"uv": [0, 4, 4, 10], "texture": "#part"},
+				"down": {"uv": [0, 4, 4, 10], "texture": "#part"}
+			}
+		},
+		{
+			"from": [6, 6, 10],
+			"to": [10, 10, 16],
+			"faces": {
+				"north": {"uv": [0, 0, 4, 4], "texture": "#part"},
+				"east": {"uv": [4, 0, 10, 4], "texture": "#part"},
+				"south": {"uv": [0, 0, 4, 4], "texture": "#part"},
+				"west": {"uv": [4, 0, 10, 4], "texture": "#part"},
+				"up": {"uv": [0, 4, 4, 10], "texture": "#part"},
+				"down": {"uv": [0, 4, 4, 10], "texture": "#part"}
+			}
+		}
+	]
+}

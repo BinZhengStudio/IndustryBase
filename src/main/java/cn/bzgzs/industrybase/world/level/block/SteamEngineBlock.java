@@ -84,8 +84,7 @@ public class SteamEngineBlock extends BaseEntityBlock {
 
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-		builder.add(AXIS);
-		builder.add(LIT);
+		builder.add(AXIS, LIT);
 	}
 
 	@Nullable

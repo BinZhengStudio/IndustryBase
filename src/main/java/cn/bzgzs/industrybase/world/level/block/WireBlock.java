@@ -2,9 +2,11 @@ package cn.bzgzs.industrybase.world.level.block;
 
 import cn.bzgzs.industrybase.api.CapabilityList;
 import cn.bzgzs.industrybase.world.level.block.entity.WireBlockEntity;
+import com.google.common.collect.ImmutableMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -17,30 +19,59 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.Material;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 public class WireBlock extends BaseEntityBlock {
-	public static final Map<Direction, BooleanProperty> PROPERTIES;
-
-	static {
-		Map<Direction, BooleanProperty> map = new EnumMap<>(Direction.class);
-		map.put(Direction.NORTH, BlockStateProperties.NORTH);
-		map.put(Direction.EAST, BlockStateProperties.EAST);
-		map.put(Direction.SOUTH, BlockStateProperties.SOUTH);
-		map.put(Direction.WEST, BlockStateProperties.WEST);
-		map.put(Direction.UP, BlockStateProperties.UP);
-		map.put(Direction.DOWN, BlockStateProperties.DOWN);
-		PROPERTIES = Collections.unmodifiableMap(map);
-	}
+	public static final Map<Direction, BooleanProperty> PROPERTIES = new EnumMap<>(ImmutableMap.of(
+			Direction.NORTH, BlockStateProperties.NORTH,
+			Direction.EAST, BlockStateProperties.EAST,
+			Direction.SOUTH, BlockStateProperties.SOUTH,
+			Direction.WEST, BlockStateProperties.WEST,
+			Direction.UP, BlockStateProperties.UP,
+			Direction.DOWN, BlockStateProperties.DOWN
+	));
+	private static final VoxelShape CORE = Block.box(6.0D, 6.0D, 6.0D, 10.0D, 10.0D, 10.0D);
+	private static final Map<Direction, VoxelShape> SHAPES_DIRECTION = new EnumMap<>(ImmutableMap.of(
+			Direction.NORTH, Block.box(6.0D, 6.0D, 0.0D, 10.0D, 10.0D, 6.0D),
+			Direction.EAST, Block.box(10.0D, 6.0D, 6.0D, 16.0D, 10.0D, 10.0D),
+			Direction.SOUTH, Block.box(6.0D, 6.0D, 10.0D, 10.0D, 10.0D, 16.0D),
+			Direction.WEST, Block.box(0.0D, 6.0D, 6.0D, 6.0D, 10.0D, 10.0D),
+			Direction.UP, Block.box(6.0D, 10.0D, 6.0D, 10.0D, 16.0D, 10.0D),
+			Direction.DOWN, Block.box(6.0D, 0.0D, 6.0D, 10.0D, 6.0D, 10.0D)));
+	private static final Map<BlockState, VoxelShape> SHAPES = new HashMap<>();
 
 	protected WireBlock() {
-		super(Properties.of(Material.GLASS).strength(0.5F).sound(SoundType.METAL));
-		this.registerDefaultState(this.stateDefinition.any());
+		super(Properties.of(Material.GLASS).strength(0.5F).sound(SoundType.METAL).noOcclusion());
+
+		BlockState defaultState = this.stateDefinition.any();
+		for (Direction direction : Direction.values()) {
+			defaultState.setValue(PROPERTIES.get(direction), false);
+		}
+		this.registerDefaultState(defaultState);
+
+		for(BlockState blockstate : this.getStateDefinition().getPossibleStates()) {
+			SHAPES.put(blockstate, this.calculateShape(blockstate));
+		}
+	}
+
+	private VoxelShape calculateShape(BlockState state) {
+		VoxelShape shape = CORE;
+
+		for(Direction direction : Direction.values()) {
+			if (state.getValue(PROPERTIES.get(direction))) {
+				shape = Shapes.or(shape, SHAPES_DIRECTION.get(direction));
+			}
+		}
+
+		return shape;
 	}
 
 	@Nullable
@@ -54,6 +85,12 @@ public class WireBlock extends BaseEntityBlock {
 			state = state.setValue(PROPERTIES.get(direction), this.canConnect(level, direction.getOpposite(), facingPos, facingState));
 		}
 		return state;
+	}
+
+	@Override
+	@SuppressWarnings("deprecation")
+	public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+		return SHAPES.get(state);
 	}
 
 	@Override

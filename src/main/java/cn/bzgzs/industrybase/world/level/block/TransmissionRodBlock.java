@@ -27,7 +27,7 @@ public abstract class TransmissionRodBlock extends BaseEntityBlock {
 	private final int maxResistance;
 
 	public TransmissionRodBlock(Properties properties, int maxResistance) {
-		super(properties.randomTicks());
+		super(properties.noOcclusion().randomTicks());
 		this.maxResistance = maxResistance;
 		this.registerDefaultState(this.stateDefinition.any().setValue(AXIS, Direction.Axis.X));
 	}
@@ -47,7 +47,6 @@ public abstract class TransmissionRodBlock extends BaseEntityBlock {
 		}
 	}
 
-	@Nullable
 	@Override
 	public BlockState getStateForPlacement(BlockPlaceContext context) {
 		return this.defaultBlockState().setValue(AXIS, context.getClickedFace().getAxis());

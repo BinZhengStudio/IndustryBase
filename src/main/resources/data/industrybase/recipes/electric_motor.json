@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "#": {
+      "item": "minecraft:iron_ingot"
+    },
+    "X": {
+      "item": "industrybase:wire"
+    },
+    "$": {
+      "item": "industrybase:iron_transmission_rod"
+    }
+  },
+  "pattern": [
+    "X X",
+    "#$#",
+    "X X"
+  ],
+  "result": {
+    "item": "industrybase:electric_motor"
+  }
+}

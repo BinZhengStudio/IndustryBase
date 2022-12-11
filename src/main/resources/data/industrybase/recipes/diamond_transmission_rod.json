@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "group": "transmission_rod",
+  "ingredients": [
+    {
+      "item": "minecraft:diamond"
+    },
+    {
+      "item": "industrybase:iron_transmission_rod"
+    }
+  ],
+  "result": {
+    "item": "industrybase:diamond_transmission_rod"
+  }
+}

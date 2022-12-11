@@ -1,6 +1,7 @@
 {
   "values": [
     "#industrybase:wood_transmission_rod",
-    "#industrybase:metal_transmission_rod"
+    "#industrybase:metal_transmission_rod",
+    "industrybase:stone_transmission_rod"
   ]
 }

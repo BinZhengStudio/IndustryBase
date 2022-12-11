@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "#": {
+      "item": "minecraft:glass"
+    },
+    "X": {
+      "item": "minecraft:iron_ingot"
+    },
+    "$": {
+      "item": "industrybase:iron_transmission_rod"
+    }
+  },
+  "pattern": [
+    "###",
+    "X$X",
+    "XXX"
+  ],
+  "result": {
+    "item": "industrybase:steam_engine"
+  }
+}

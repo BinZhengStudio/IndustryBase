@@ -17,7 +17,7 @@ public class BlockList {
 	public static final RegistryObject<Block> ACACIA_TRANSMISSION_ROD = BLOCKS.register("acacia_transmission_rod", AcaciaTransmissionRodBlock::new);
 	public static final RegistryObject<Block> DARK_OAK_TRANSMISSION_ROD = BLOCKS.register("dark_oak_transmission_rod", DarkOakTransmissionRodBlock::new);
 	public static final RegistryObject<Block> MANGROVE_TRANSMISSION_ROD = BLOCKS.register("mangrove_transmission_rod", MangroveTransmissionRodBlock::new);
-	public static final RegistryObject<Block> STONE_TRANSMISSION_ROD = BLOCKS.register("stone_transmission_rod", StoneTransmissionRodBlock::new);
+		public static final RegistryObject<Block> STONE_TRANSMISSION_ROD = BLOCKS.register("stone_transmission_rod", StoneTransmissionRodBlock::new);
 	public static final RegistryObject<Block> IRON_TRANSMISSION_ROD = BLOCKS.register("iron_transmission_rod", IronTransmissionRodBlock::new);
 	public static final RegistryObject<Block> GOLD_TRANSMISSION_ROD = BLOCKS.register("gold_transmission_rod", GoldTransmissionRodBlock::new);
 	public static final RegistryObject<Block> DIAMOND_TRANSMISSION_ROD = BLOCKS.register("diamond_transmission_rod", DiamondTransmissionRodBlock::new);

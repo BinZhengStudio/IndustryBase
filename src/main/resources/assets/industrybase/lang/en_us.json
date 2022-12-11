@@ -1,0 +1,26 @@
+{
+  "itemGroup.industrybase": "工业基石",
+
+  "block.industrybase.steam_engine": "小型蒸汽机",
+  "block.industrybase.oak_transmission_rod": "橡木传动杆",
+  "block.industrybase.spruce_transmission_rod": "云杉传动杆",
+  "block.industrybase.birch_transmission_rod": "白桦传动杆",
+  "block.industrybase.jungle_transmission_rod": "丛林木传动杆",
+  "block.industrybase.acacia_transmission_rod": "金合欢传动杆",
+  "block.industrybase.dark_oak_transmission_rod": "深色橡木传动杆",
+  "block.industrybase.mangrove_transmission_rod": "红树传动杆",
+  "block.industrybase.stone_transmission_rod": "石传动杆",
+  "block.industrybase.iron_transmission_rod": "铁传动杆",
+  "block.industrybase.gold_transmission_rod": "嵌金传动杆",
+  "block.industrybase.diamond_transmission_rod": "嵌钻传动杆",
+  "block.industrybase.dynamo": "发电机",
+  "block.industrybase.wire": "导线方块",
+  "block.industrybase.wire_connector": "接线端子",
+  "block.industrybase.axis_connector": "轴连接器",
+  "block.industrybase.electric_motor": "电动机",
+
+  "label.transmit_panel.speed": "速度: ",
+  "label.transmit_panel.power": "功率: ",
+  "container.industrybase.steam_engine": "小型蒸汽机",
+  "label.steam_engine.water_amount": "水量: "
+}

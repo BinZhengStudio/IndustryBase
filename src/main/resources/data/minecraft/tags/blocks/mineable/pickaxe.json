@@ -3,6 +3,7 @@
   "values": [
     "industrybase:dynamo",
     "#industrybase:metal_transmission_rod",
+    "industrybase:stone_transmission_rod",
     "industrybase:steam_engine",
     "industrybase:axis_connector",
     "industrybase:wire_connector",

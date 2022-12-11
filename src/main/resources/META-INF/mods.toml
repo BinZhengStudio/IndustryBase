@@ -27,7 +27,7 @@ description='''
 [[dependencies.industrybase]] #optional
     modId="forge"
     mandatory=true
-    versionRange="[43,)"
+    versionRange="[43.1.1,)"
     ordering="NONE"
     side="BOTH"
 

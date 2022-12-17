@@ -1,7 +1,7 @@
 name: '构建与发布'
 on:
   release:
-    types: [prereleased, released] # TODO 其他的事件类型待测试完善
+    types: published
 jobs:
   release-publish:
     name: '构建与发布'

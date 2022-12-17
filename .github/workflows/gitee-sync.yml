@@ -5,7 +5,7 @@ on: [push, delete]
 jobs:
   mirror_to_gitee:
     name: '自动同步'
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
     steps:
       - name: '检出仓库'
         uses: actions/checkout@v1

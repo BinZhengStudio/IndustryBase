@@ -11,6 +11,7 @@ import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -55,7 +56,7 @@ public class TransmissionRodRenderer implements BlockEntityRenderer<Transmission
 		});
 		if (blockEntity.getBlockState().getBlock() instanceof LayeredTransmissionRodBlock block) {
 			main.render(poseStack, bufferSource.getBuffer(RenderType.entityCutout(LAYER_1)), packedLight, packedOverlay);
-			main.render(poseStack, bufferSource.getBuffer(RenderType.entityCutout(LAYER_2)), 255, packedOverlay, block.getRed(), block.getGreen(), block.getBlue(), 1.0F);
+			main.render(poseStack, bufferSource.getBuffer(RenderType.entityCutout(LAYER_2)), LightTexture.pack(15, 15), packedOverlay, block.getRed(), block.getGreen(), block.getBlue(), 1.0F);
 		} else {
 			main.render(poseStack, bufferSource.getBuffer(RenderType.entityCutout(IRON)), packedLight, packedOverlay);
 		}

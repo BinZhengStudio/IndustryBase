@@ -4,6 +4,7 @@ import cn.bzgzs.industrybase.api.IndustryBaseApi;
 import cn.bzgzs.industrybase.network.server.TransmitInitInfoPacket;
 import cn.bzgzs.industrybase.network.server.TransmitRootSyncPacket;
 import cn.bzgzs.industrybase.network.server.TransmitSpeedSyncPacket;
+import cn.bzgzs.industrybase.network.server.WaterAmountPacket;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkDirection;
@@ -18,6 +19,8 @@ public class NetworkManager {
 	private static int id = 0;
 
 	public static void register() {
+		mainThread(WaterAmountPacket.class, WaterAmountPacket::new, NetworkDirection.PLAY_TO_CLIENT);
+
 		networkThread(TransmitInitInfoPacket.class, TransmitInitInfoPacket::new, NetworkDirection.PLAY_TO_CLIENT);
 		networkThread(TransmitSpeedSyncPacket.class, TransmitSpeedSyncPacket::new, NetworkDirection.PLAY_TO_CLIENT);
 		networkThread(TransmitRootSyncPacket.class, TransmitRootSyncPacket::new, NetworkDirection.PLAY_TO_CLIENT);

@@ -3,6 +3,8 @@ package cn.bzgzs.industrybase.world.level.block.entity;
 import cn.bzgzs.industrybase.api.CapabilityList;
 import cn.bzgzs.industrybase.api.IndustryBaseApi;
 import cn.bzgzs.industrybase.api.transmit.MechanicalTransmit;
+import cn.bzgzs.industrybase.network.NetworkManager;
+import cn.bzgzs.industrybase.network.server.WaterAmountPacket;
 import cn.bzgzs.industrybase.world.inventory.SteamEngineMenu;
 import cn.bzgzs.industrybase.world.level.block.SteamEngineBlock;
 import net.minecraft.core.BlockPos;
@@ -10,6 +12,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -30,6 +33,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
+import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,6 +47,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 	private final FluidTank tank = new FluidTank(MAX_WATER, fluidStack -> fluidStack.getFluid() instanceof WaterFluid);
 	private final LazyOptional<IFluidHandler> fluidHandler = LazyOptional.of(() -> tank);
 	private final MechanicalTransmit transmit = new MechanicalTransmit(this);
+	private int waterAmount; // 仅在客户端调用
 	private final ContainerData data = new ContainerData() { // 用于向客户端发送服务端的相关数据
 		@Override
 		public int get(int index) {
@@ -86,6 +91,8 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 			if (!blockEntity.tank.isEmpty()) {
 				if (blockEntity.shrinkTick <= 0) { // 消耗水
 					blockEntity.tank.drain(1, IFluidHandler.FluidAction.EXECUTE);
+					// 发包同步
+					((ServerLevel) level).getPlayers(player -> true).forEach(player -> NetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WaterAmountPacket(pos, blockEntity.tank.getFluidAmount())));
 					blockEntity.shrinkTick = 6; // 每 6tick 减一次 waterAmount，这样水不会少的太快
 				} else {
 					--blockEntity.shrinkTick;
@@ -157,6 +164,14 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 	@Override
 	protected AbstractContainerMenu createMenu(int id, Inventory inventory) {
 		return new SteamEngineMenu(id, inventory, this, this.data);
+	}
+
+	public int getWaterAmount() {
+		return this.waterAmount;
+	}
+
+	public void setClientWaterAmount(int waterAmount) {
+		this.waterAmount = waterAmount;
 	}
 
 	@Override

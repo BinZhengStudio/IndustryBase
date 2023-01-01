@@ -121,17 +121,17 @@ public class FluidRenderer {
 
 	public void render(BlockAndTintGetter level, BlockPos pos, VertexConsumer vertexConsumer, BlockState blockState, FluidState fluidState, boolean applyBiomeColor) {
 		TextureAtlasSprite[] textureAtlasSprites = ForgeHooksClient.getFluidSprites(level, pos, fluidState); // 第一个值是静止材质，第二个是流动材质
-		int biomeColor;
+		int fluidColor;
 
 		if (applyBiomeColor) {
-			biomeColor = IClientFluidTypeExtensions.of(fluidState).getTintColor(fluidState, level, pos);
+			fluidColor = IClientFluidTypeExtensions.of(fluidState).getTintColor(fluidState, level, pos);
 		} else {
-			biomeColor = IClientFluidTypeExtensions.of(fluidState).getTintColor();
+			fluidColor = IClientFluidTypeExtensions.of(fluidState).getTintColor();
 		}
-		float red = (float)(biomeColor >> 16 & 255) / 255.0F;
-		float green = (float)(biomeColor >> 8 & 255) / 255.0F;
-		float blue = (float)(biomeColor & 255) / 255.0F;
-		float alpha = (float)(biomeColor >> 24 & 255) / 255.0F;
+		float red = (float)(fluidColor >> 16 & 255) / 255.0F;
+		float green = (float)(fluidColor >> 8 & 255) / 255.0F;
+		float blue = (float)(fluidColor & 255) / 255.0F;
+		float alpha = (float)(fluidColor >> 24 & 255) / 255.0F;
 		BlockState downBlockstate = level.getBlockState(pos.relative(Direction.DOWN));
 		FluidState downFluidstate = downBlockstate.getFluidState();
 		BlockState upBlockstate = level.getBlockState(pos.relative(Direction.UP));

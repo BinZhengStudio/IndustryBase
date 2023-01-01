@@ -1,5 +1,7 @@
 package cn.bzgzs.industrybase.world.level.block;
 
+import cn.bzgzs.industrybase.network.NetworkManager;
+import cn.bzgzs.industrybase.network.server.WaterAmountPacket;
 import cn.bzgzs.industrybase.world.level.block.entity.BlockEntityTypeList;
 import cn.bzgzs.industrybase.world.level.block.entity.SteamEngineBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -31,6 +33,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
+import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
 public class SteamEngineBlock extends BaseEntityBlock {
@@ -55,6 +58,8 @@ public class SteamEngineBlock extends BaseEntityBlock {
 					bucket.ifPresent(itemCapability -> tank.ifPresent(engineCapability -> {
 						FluidStack drained = itemCapability.drain(Math.max(0, engineCapability.getTankCapacity(0) - engineCapability.getFluidInTank(0).getAmount()), player.isCreative() ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE);
 						engineCapability.fill(drained, IFluidHandler.FluidAction.EXECUTE);
+						// 发包同步
+						((ServerLevel) level).getPlayers(playerIn -> true).forEach(playerIn -> NetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> playerIn), new WaterAmountPacket(pos, engineCapability.getFluidInTank(0).getAmount())));
 						if (stack.is(Items.WATER_BUCKET)) { // TODO 兼容性待解决
 							if (!player.isCreative()) player.setItemInHand(hand, new ItemStack(Items.BUCKET));
 						}

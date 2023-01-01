@@ -20,9 +20,9 @@ import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 
 public class FluidRenderer {
-	private final TextureAtlasSprite waterOverlay;
+	private TextureAtlasSprite waterOverlay;
 
-	public FluidRenderer() {
+	protected void setup() {
 		this.waterOverlay = ModelBakery.WATER_OVERLAY.sprite();
 	}
 
@@ -54,12 +54,13 @@ public class FluidRenderer {
 	}
 
 	private float getFluidBlockHeight(BlockAndTintGetter level, Fluid fluid, BlockPos pos, BlockState blockState, FluidState fluidState) {
-		if (fluid.isSame(fluidState.getType())) {
-			BlockState blockstate = level.getBlockState(pos.above());
-			return fluid.isSame(blockstate.getFluidState().getType()) ? 1.0F : fluidState.getOwnHeight();
-		} else {
-			return !blockState.getMaterial().isSolid() ? 0.0F : -1.0F;
-		}
+//		if (fluid.isSame(fluidState.getType())) {
+//			BlockState blockstate = level.getBlockState(pos.above());
+//			return fluid.isSame(blockstate.getFluidState().getType()) ? 1.0F : fluidState.getOwnHeight();
+//		} else {
+//			return !blockState.getMaterial().isSolid() ? 0.0F : -1.0F;
+//		}
+		return 0.88888889F;
 	}
 
 	private float getFluidBlockHeight(BlockAndTintGetter level, Fluid fluid, BlockPos pos) {
@@ -118,9 +119,15 @@ public class FluidRenderer {
 		return Math.max(k, l) | Math.max(i1, j1) << 16;
 	}
 
-	public void tesselate(BlockAndTintGetter level, BlockPos pos, VertexConsumer vertexConsumer, BlockState blockState, FluidState fluidState) {
+	public void render(BlockAndTintGetter level, BlockPos pos, VertexConsumer vertexConsumer, BlockState blockState, FluidState fluidState, boolean applyBiomeColor) {
 		TextureAtlasSprite[] textureAtlasSprites = ForgeHooksClient.getFluidSprites(level, pos, fluidState); // 第一个值是静止材质，第二个是流动材质
-		int biomeColor = IClientFluidTypeExtensions.of(fluidState).getTintColor(fluidState, level, pos);
+		int biomeColor;
+
+		if (applyBiomeColor) {
+			biomeColor = IClientFluidTypeExtensions.of(fluidState).getTintColor(fluidState, level, pos);
+		} else {
+			biomeColor = IClientFluidTypeExtensions.of(fluidState).getTintColor();
+		}
 		float red = (float)(biomeColor >> 16 & 255) / 255.0F;
 		float green = (float)(biomeColor >> 8 & 255) / 255.0F;
 		float blue = (float)(biomeColor & 255) / 255.0F;
@@ -137,14 +144,19 @@ public class FluidRenderer {
 		FluidState westFluidstate = westBlockstate.getFluidState();
 		BlockState eastBlockstate = level.getBlockState(pos.relative(Direction.EAST));
 		FluidState eastFluidstate = eastBlockstate.getFluidState();
-		boolean neighborSameFluid = !isNeighborSameFluid(fluidState, upFluidstate);
+		boolean underSameFluid = !isNeighborSameFluid(fluidState, upFluidstate);
+//		boolean shouldRenderDown = true;
 		boolean shouldRenderDown = LiquidBlockRenderer.shouldRenderFace(level, pos, fluidState, blockState, Direction.DOWN, downFluidstate)
 				&& !isFaceOccludedByNeighbor(level, pos, Direction.DOWN, 0.8888889F, downBlockstate);
+//		boolean shouldRenderNorth = true;
 		boolean shouldRenderNorth = LiquidBlockRenderer.shouldRenderFace(level, pos, fluidState, blockState, Direction.NORTH, northFluidstate);
+//		boolean shouldRenderSouth = true;
 		boolean shouldRenderSouth = LiquidBlockRenderer.shouldRenderFace(level, pos, fluidState, blockState, Direction.SOUTH, southFluidstate);
+//		boolean shouldRenderWest = true;
 		boolean shouldRenderWest = LiquidBlockRenderer.shouldRenderFace(level, pos, fluidState, blockState, Direction.WEST, westFluidstate);
+//		boolean shouldRenderEast = true;
 		boolean shouldRenderEast = LiquidBlockRenderer.shouldRenderFace(level, pos, fluidState, blockState, Direction.EAST, eastFluidstate);
-		if (neighborSameFluid || shouldRenderDown || shouldRenderEast || shouldRenderWest || shouldRenderNorth || shouldRenderSouth) {
+		if (underSameFluid || shouldRenderDown || shouldRenderEast || shouldRenderWest || shouldRenderNorth || shouldRenderSouth) {
 			float downShade = level.getShade(Direction.DOWN, true);
 			float upShade = level.getShade(Direction.UP, true);
 			float northShade = level.getShade(Direction.NORTH, true);
@@ -171,13 +183,13 @@ public class FluidRenderer {
 				southWestAverageHeight = this.calculateAverageHeight(level, fluid, fluidBlockHeight, southFluidHeight, westFluidHeight, pos.relative(Direction.SOUTH).relative(Direction.WEST));
 			}
 
-			double d1 = pos.getX() & 15; // TODO WTF ??
-			double d2 = pos.getY() & 15;
-			double d0 = pos.getZ() & 15;
+			double startX = pos.getX() & 15; // TODO WTF ??
+			double startY = pos.getY() & 15;
+			double startZ = pos.getZ() & 15;
 			float f17 = shouldRenderDown ? 0.001F : 0.0F;
 
 			// 渲染上方材质
-			if (neighborSameFluid && !isFaceOccludedByNeighbor(level, pos, Direction.UP,
+			if (underSameFluid && !isFaceOccludedByNeighbor(level, pos, Direction.UP,
 					Math.min(Math.min(northWestAverageHeight, southWestAverageHeight), Math.min(southEastAverageHeight, northEastAverageHeight)), upBlockstate)) {
 				northEastAverageHeight -= 0.001F; // TODO WTF ??
 				northWestAverageHeight -= 0.001F;
@@ -235,15 +247,15 @@ public class FluidRenderer {
 				float g = upShade * green;
 				float b = upShade * blue;
 
-				this.vertex(vertexConsumer, d1 + 0.0D, d2 + (double)northWestAverageHeight, d0 + 0.0D, r, g, b, alpha, u, v, lightColor);
-				this.vertex(vertexConsumer, d1 + 0.0D, d2 + (double)southWestAverageHeight, d0 + 1.0D, r, g, b, alpha, u1, v2, lightColor);
-				this.vertex(vertexConsumer, d1 + 1.0D, d2 + (double)southEastAverageHeight, d0 + 1.0D, r, g, b, alpha, u2, v21, lightColor);
-				this.vertex(vertexConsumer, d1 + 1.0D, d2 + (double)northEastAverageHeight, d0 + 0.0D, r, g, b, alpha, u21, v1, lightColor);
+				this.vertex(vertexConsumer, startX + 0.0D, startY + (double)northWestAverageHeight, startZ + 0.0D, r, g, b, alpha, u, v, lightColor);
+				this.vertex(vertexConsumer, startX + 0.0D, startY + (double)southWestAverageHeight, startZ + 1.0D, r, g, b, alpha, u1, v2, lightColor);
+				this.vertex(vertexConsumer, startX + 1.0D, startY + (double)southEastAverageHeight, startZ + 1.0D, r, g, b, alpha, u2, v21, lightColor);
+				this.vertex(vertexConsumer, startX + 1.0D, startY + (double)northEastAverageHeight, startZ + 0.0D, r, g, b, alpha, u21, v1, lightColor);
 				if (fluidState.shouldRenderBackwardUpFace(level, pos.above())) {
-					this.vertex(vertexConsumer, d1 + 0.0D, d2 + (double)northWestAverageHeight, d0 + 0.0D, r, g, b, alpha, u, v, lightColor);
-					this.vertex(vertexConsumer, d1 + 1.0D, d2 + (double)northEastAverageHeight, d0 + 0.0D, r, g, b, alpha, u21, v1, lightColor);
-					this.vertex(vertexConsumer, d1 + 1.0D, d2 + (double)southEastAverageHeight, d0 + 1.0D, r, g, b, alpha, u2, v21, lightColor);
-					this.vertex(vertexConsumer, d1 + 0.0D, d2 + (double)southWestAverageHeight, d0 + 1.0D, r, g, b, alpha, u1, v2, lightColor);
+					this.vertex(vertexConsumer, startX + 0.0D, startY + (double)northWestAverageHeight, startZ + 0.0D, r, g, b, alpha, u, v, lightColor);
+					this.vertex(vertexConsumer, startX + 1.0D, startY + (double)northEastAverageHeight, startZ + 0.0D, r, g, b, alpha, u21, v1, lightColor);
+					this.vertex(vertexConsumer, startX + 1.0D, startY + (double)southEastAverageHeight, startZ + 1.0D, r, g, b, alpha, u2, v21, lightColor);
+					this.vertex(vertexConsumer, startX + 0.0D, startY + (double)southWestAverageHeight, startZ + 1.0D, r, g, b, alpha, u1, v2, lightColor);
 				}
 			}
 
@@ -257,10 +269,10 @@ public class FluidRenderer {
 				float f47 = downShade * green;
 				float f48 = downShade * blue;
 
-				this.vertex(vertexConsumer, d1, d2 + (double)f17, d0 + 1.0D, f46, f47, f48, alpha, f40, f43, lightColor);
-				this.vertex(vertexConsumer, d1, d2 + (double)f17, d0, f46, f47, f48, alpha, f40, f42, lightColor);
-				this.vertex(vertexConsumer, d1 + 1.0D, d2 + (double)f17, d0, f46, f47, f48, alpha, f41, f42, lightColor);
-				this.vertex(vertexConsumer, d1 + 1.0D, d2 + (double)f17, d0 + 1.0D, f46, f47, f48, alpha, f41, f43, lightColor);
+				this.vertex(vertexConsumer, startX, startY + (double)f17, startZ + 1.0D, f46, f47, f48, alpha, f40, f43, lightColor);
+				this.vertex(vertexConsumer, startX, startY + (double)f17, startZ, f46, f47, f48, alpha, f40, f42, lightColor);
+				this.vertex(vertexConsumer, startX + 1.0D, startY + (double)f17, startZ, f46, f47, f48, alpha, f41, f42, lightColor);
+				this.vertex(vertexConsumer, startX + 1.0D, startY + (double)f17, startZ + 1.0D, f46, f47, f48, alpha, f41, f43, lightColor);
 			}
 
 			int lightColor = this.getLightColor(level, pos);
@@ -277,37 +289,37 @@ public class FluidRenderer {
 					case NORTH -> {
 						height1 = northWestAverageHeight;
 						height2 = northEastAverageHeight;
-						d3 = d1;
-						d5 = d1 + 1.0D;
-						d4 = d0 + (double) 0.001F;
-						d6 = d0 + (double) 0.001F;
+						d3 = startX;
+						d5 = startX + 1.0D;
+						d4 = startZ + (double) 0.001F;
+						d6 = startZ + (double) 0.001F;
 						shouldRenderFace = shouldRenderNorth;
 					}
 					case SOUTH -> {
 						height1 = southEastAverageHeight;
 						height2 = southWestAverageHeight;
-						d3 = d1 + 1.0D;
-						d5 = d1;
-						d4 = d0 + 1.0D - (double) 0.001F;
-						d6 = d0 + 1.0D - (double) 0.001F;
+						d3 = startX + 1.0D;
+						d5 = startX;
+						d4 = startZ + 1.0D - (double) 0.001F;
+						d6 = startZ + 1.0D - (double) 0.001F;
 						shouldRenderFace = shouldRenderSouth;
 					}
 					case WEST -> {
 						height1 = southWestAverageHeight;
 						height2 = northWestAverageHeight;
-						d3 = d1 + (double) 0.001F;
-						d5 = d1 + (double) 0.001F;
-						d4 = d0 + 1.0D;
-						d6 = d0;
+						d3 = startX + (double) 0.001F;
+						d5 = startX + (double) 0.001F;
+						d4 = startZ + 1.0D;
+						d6 = startZ;
 						shouldRenderFace = shouldRenderWest;
 					}
 					default -> {
 						height1 = northEastAverageHeight;
 						height2 = southEastAverageHeight;
-						d3 = d1 + 1.0D - (double) 0.001F;
-						d5 = d1 + 1.0D - (double) 0.001F;
-						d4 = d0;
-						d6 = d0 + 1.0D;
+						d3 = startX + 1.0D - (double) 0.001F;
+						d5 = startX + 1.0D - (double) 0.001F;
+						d4 = startZ;
+						d6 = startZ + 1.0D;
 						shouldRenderFace = shouldRenderEast;
 					}
 				}
@@ -331,15 +343,15 @@ public class FluidRenderer {
 					float g = upShade * horizonShade * green;
 					float b = upShade * horizonShade * blue;
 
-					this.vertex(vertexConsumer, d3, d2 + (double)height1, d4, r, g, b, alpha, f54, f33, lightColor);
-					this.vertex(vertexConsumer, d5, d2 + (double)height2, d6, r, g, b, alpha, f55, f34, lightColor);
-					this.vertex(vertexConsumer, d5, d2 + (double)f17, d6, r, g, b, alpha, f55, f35, lightColor);
-					this.vertex(vertexConsumer, d3, d2 + (double)f17, d4, r, g, b, alpha, f54, f35, lightColor);
+					this.vertex(vertexConsumer, d3, startY + (double)height1, d4, r, g, b, alpha, f54, f33, lightColor);
+					this.vertex(vertexConsumer, d5, startY + (double)height2, d6, r, g, b, alpha, f55, f34, lightColor);
+					this.vertex(vertexConsumer, d5, startY + (double)f17, d6, r, g, b, alpha, f55, f35, lightColor);
+					this.vertex(vertexConsumer, d3, startY + (double)f17, d4, r, g, b, alpha, f54, f35, lightColor);
 					if (flowTexture != this.waterOverlay) {
-						this.vertex(vertexConsumer, d3, d2 + (double)f17, d4, r, g, b, alpha, f54, f35, lightColor);
-						this.vertex(vertexConsumer, d5, d2 + (double)f17, d6, r, g, b, alpha, f55, f35, lightColor);
-						this.vertex(vertexConsumer, d5, d2 + (double)height2, d6, r, g, b, alpha, f55, f34, lightColor);
-						this.vertex(vertexConsumer, d3, d2 + (double)height1, d4, r, g, b, alpha, f54, f33, lightColor);
+						this.vertex(vertexConsumer, d3, startY + (double)f17, d4, r, g, b, alpha, f54, f35, lightColor);
+						this.vertex(vertexConsumer, d5, startY + (double)f17, d6, r, g, b, alpha, f55, f35, lightColor);
+						this.vertex(vertexConsumer, d5, startY + (double)height2, d6, r, g, b, alpha, f55, f34, lightColor);
+						this.vertex(vertexConsumer, d3, startY + (double)height1, d4, r, g, b, alpha, f54, f33, lightColor);
 					}
 				}
 			}

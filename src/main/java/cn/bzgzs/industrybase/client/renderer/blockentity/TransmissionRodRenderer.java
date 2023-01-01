@@ -1,6 +1,6 @@
 package cn.bzgzs.industrybase.client.renderer.blockentity;
 
-import cn.bzgzs.industrybase.api.Preference;
+import cn.bzgzs.industrybase.api.IndustryBaseApi;
 import cn.bzgzs.industrybase.api.transmit.TransmitNetwork;
 import cn.bzgzs.industrybase.world.level.block.IronTransmissionRodBlock;
 import cn.bzgzs.industrybase.world.level.block.LayeredTransmissionRodBlock;
@@ -22,10 +22,10 @@ import net.minecraft.util.Mth;
 import java.util.Optional;
 
 public class TransmissionRodRenderer implements BlockEntityRenderer<TransmissionRodBlockEntity> {
-	public static final ModelLayerLocation MAIN = new ModelLayerLocation(new ResourceLocation(Preference.MODID, "transmission_rod"), "main");
-	private static final ResourceLocation IRON = new ResourceLocation(Preference.MODID, "textures/entity/transmission_rod/iron.png");
-	private static final ResourceLocation LAYER_1 = new ResourceLocation(Preference.MODID, "textures/entity/transmission_rod/layer_1.png");
-	private static final ResourceLocation LAYER_2 = new ResourceLocation(Preference.MODID, "textures/entity/transmission_rod/layer_2.png");
+	public static final ModelLayerLocation MAIN = new ModelLayerLocation(new ResourceLocation(IndustryBaseApi.MODID, "transmission_rod"), "main");
+	private static final ResourceLocation IRON = new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/iron.png");
+	private static final ResourceLocation LAYER_1 = new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/layer_1.png");
+	private static final ResourceLocation LAYER_2 = new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/layer_2.png");
 	private final ModelPart main;
 
 	public TransmissionRodRenderer(BlockEntityRendererProvider.Context context) {

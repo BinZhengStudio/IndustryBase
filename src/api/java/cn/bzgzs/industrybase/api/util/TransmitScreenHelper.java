@@ -1,6 +1,6 @@
 package cn.bzgzs.industrybase.api.util;
 
-import cn.bzgzs.industrybase.api.Preference;
+import cn.bzgzs.industrybase.api.IndustryBaseApi;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.Font;
@@ -12,7 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 public class TransmitScreenHelper {
 	public static final int PANEL_WIDTH = 80;
 	public static final int PANEL_HEIGHT = 90;
-	private static final ResourceLocation PANEL_TEXTURE = new ResourceLocation(Preference.MODID, "textures/gui/container/transmit_panel.png");
+	private static final ResourceLocation PANEL_TEXTURE = new ResourceLocation(IndustryBaseApi.MODID, "textures/gui/container/transmit_panel.png");
 	public static final MutableComponent SPEED = Component.translatable("label.transmit_panel.speed");
 	public static final MutableComponent POWER = Component.translatable("label.transmit_panel.power");
 

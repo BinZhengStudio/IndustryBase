@@ -21,10 +21,11 @@ public class SteamEngineMenu extends AbstractContainerMenu {
 		super(MenuTypeList.STEAM_ENGINE.get(), id);
 		this.container = container;
 		this.data = data;
+		// 执行检查
 		checkContainerSize(container, 1);
 		checkContainerDataCount(data, 5);
 
-		this.addSlot(new Slot(container, 0, 70, 42) {
+		this.addSlot(new Slot(container, 0, 70, 42) { // 燃料槽
 			@Override
 			public boolean mayPlace(ItemStack stack) {
 				return SteamEngineBlockEntity.isFuel(stack) || FurnaceFuelSlot.isBucket(stack);
@@ -34,8 +35,9 @@ public class SteamEngineMenu extends AbstractContainerMenu {
 			public int getMaxStackSize(ItemStack stack) {
 				return FurnaceFuelSlot.isBucket(stack) ? 1 : super.getMaxStackSize(stack);
 			}
-		}); // 燃料槽
+		});
 
+		// 玩家物品栏添加
 		for (int i = 0; i < 3; ++i) {
 			for (int j = 0; j < 9; ++j) {
 				this.addSlot(new Slot(inventory, j + i * 9 + 9, 8 + j * 18, 84 + i * 18));

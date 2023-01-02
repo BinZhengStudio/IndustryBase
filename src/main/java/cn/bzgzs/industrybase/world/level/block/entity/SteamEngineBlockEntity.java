@@ -48,7 +48,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 	private final LazyOptional<IFluidHandler> fluidHandler = LazyOptional.of(() -> tank);
 	private final MechanicalTransmit transmit = new MechanicalTransmit(this);
 	private int waterAmount; // 仅在客户端调用
-	private final ContainerData data = new ContainerData() { // 用于向客户端发送服务端的相关数据
+	private final ContainerData data = new ContainerData() { // 用于双端同步数据
 		@Override
 		public int get(int index) {
 			return switch (index) {
@@ -62,7 +62,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 		}
 
 		@Override
-		public void set(int index, int value) { // 这个是让在服务端的Menu中也能更改BlockEntity的数据
+		public void set(int index, int value) {
 			switch (index) {
 				case 0 -> SteamEngineBlockEntity.this.transmit.setPower(value);
 				case 2 -> burnTime = value;
@@ -83,7 +83,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 	}
 
 	public static void serverTick(Level level, BlockPos pos, BlockState state, SteamEngineBlockEntity blockEntity) {
-		boolean flag = false; // 是否需要setChanged
+		boolean flag = false; // 是否有数据改变
 
 		if (blockEntity.isLit()) { // 输出能量
 			--blockEntity.burnTime; // 减少燃烧时间
@@ -145,7 +145,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 		return this.burnTime > 0;
 	}
 
-	public static boolean isFuel(ItemStack stack) {
+	public static boolean isFuel(ItemStack stack) { // 判断传入 stack 是不是燃料
 		return ForgeHooks.getBurnTime(stack, RecipeType.SMELTING) > 0;
 	}
 

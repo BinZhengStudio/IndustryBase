@@ -46,16 +46,20 @@ public class TransmissionRodRenderer implements BlockEntityRenderer<Transmission
 	public void render(TransmissionRodBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 		poseStack.pushPose();
 		poseStack.translate(0.5D, 0.5D, 0.5D);
+		// 按照轴旋转模型
 		switch (blockEntity.getBlockState().getValue(IronTransmissionRodBlock.AXIS)) {
 			case X -> poseStack.mulPose(Vector3f.ZP.rotationDegrees(90.0F));
 			case Z -> poseStack.mulPose(Vector3f.XP.rotationDegrees(-90.0F));
 		}
 		Optional.ofNullable(blockEntity.getLevel()).ifPresent(level -> {
 			TransmitNetwork.RotateContext context = TransmitNetwork.Manager.get(blockEntity.getLevel()).getRotateContext(blockEntity.getBlockPos());
+			// 根据速度设定传动杆的旋转角度
 			poseStack.mulPose(Vector3f.YP.rotationDegrees(Mth.rotLerp(partialTick, (float) context.getOldDegree(), (float) context.getDegree())));
 		});
+		// 根据传动杆类型采用不同的层数
 		if (blockEntity.getBlockState().getBlock() instanceof LayeredTransmissionRodBlock block) {
 			main.render(poseStack, bufferSource.getBuffer(RenderType.entityCutout(LAYER_1)), packedLight, packedOverlay);
+			// 发光部分渲染
 			main.render(poseStack, bufferSource.getBuffer(RenderType.entityCutout(LAYER_2)), LightTexture.pack(15, 15), packedOverlay, block.getRed(), block.getGreen(), block.getBlue(), 1.0F);
 		} else {
 			main.render(poseStack, bufferSource.getBuffer(RenderType.entityCutout(IRON)), packedLight, packedOverlay);

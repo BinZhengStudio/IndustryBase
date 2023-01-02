@@ -11,7 +11,7 @@ import net.minecraftforge.fml.common.Mod;
 @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class RendererManager {
 	@SubscribeEvent
-	public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+	public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) { // 注册方块实体的渲染器
 		event.registerBlockEntityRenderer(BlockEntityTypeList.OAK_TRANSMISSION_ROD.get(), ctx -> new TextureTransmissionRodRenderer(ctx) {
 			@Override
 			protected ResourceLocation getTexture() {

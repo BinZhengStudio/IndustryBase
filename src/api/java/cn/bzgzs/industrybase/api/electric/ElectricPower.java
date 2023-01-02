@@ -29,6 +29,10 @@ public class ElectricPower implements IElectricPower {
 		return this.lazyOptional.cast();
 	}
 
+	/**
+	 * 向电力网络注册该方块。
+	 * 需要在 {@link BlockEntity#onLoad()} 中执行一次。
+	 */
 	public void registerToNetwork() {
 		Optional.ofNullable(this.blockEntity.getLevel()).ifPresent(level -> {
 			this.network = ElectricNetwork.Manager.get(level);
@@ -40,6 +44,10 @@ public class ElectricPower implements IElectricPower {
 		});
 	}
 
+	/**
+	 * 将此方块从电力网络中移除。
+	 * 在 {@link BlockEntity#onChunkUnloaded()} 和 {@link BlockEntity#setRemoved()} 中都要执行。
+	 */
 	public void removeFromNetwork() {
 		Optional.ofNullable(this.blockEntity.getLevel()).ifPresent(level -> {
 			if (this.network != null && !level.isClientSide) {
@@ -53,6 +61,11 @@ public class ElectricPower implements IElectricPower {
 		return this.network.getMachineOutput(this.pos);
 	}
 
+	/**
+	 * 设置方块的输出功率。
+	 * @param power 要设置的输出功率
+	 * @return 原功率与新设功率的差值
+	 */
 	@Override
 	public double setOutputPower(double power) {
 		double diff = this.network.setMachineOutput(this.pos, power);
@@ -60,6 +73,10 @@ public class ElectricPower implements IElectricPower {
 		return diff;
 	}
 
+	/**
+	 * 获取方块额定输入功率。
+	 * @return 额定输入功率
+	 */
 	@Override
 	public double getInputPower() {
 		return this.network.getMachineInput(this.pos);
@@ -72,6 +89,10 @@ public class ElectricPower implements IElectricPower {
 		return diff;
 	}
 
+	/**
+	 * 获取方块实际获得的输入功率。
+	 * @return 实际输入功率
+	 */
 	@Override
 	public double getRealInput() {
 		return this.network.getRealInput(this.pos);

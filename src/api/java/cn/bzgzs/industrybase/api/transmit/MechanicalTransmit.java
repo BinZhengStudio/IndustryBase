@@ -29,6 +29,10 @@ public class MechanicalTransmit implements IMechanicalTransmit {
 		return this.lazyOptional.cast();
 	}
 
+	/**
+	 * 向传动网络注册该方块。
+	 * 需要在 {@link BlockEntity#onLoad()} 中执行一次。
+	 */
 	public void registerToNetwork() {
 		Optional.ofNullable(this.blockEntity.getLevel()).ifPresent(level -> {
 			this.network = TransmitNetwork.Manager.get(level);
@@ -40,6 +44,10 @@ public class MechanicalTransmit implements IMechanicalTransmit {
 		});
 	}
 
+	/**
+	 * 将此方块从传动网络中移除。
+	 * 在 {@link BlockEntity#onChunkUnloaded()} 和 {@link BlockEntity#setRemoved()} 中都要执行。
+	 */
 	public void removeFromNetwork() {
 		Optional.ofNullable(this.blockEntity.getLevel()).ifPresent(level -> {
 			if (this.network != null && !level.isClientSide) {
@@ -53,7 +61,13 @@ public class MechanicalTransmit implements IMechanicalTransmit {
 		return this.network.getMachinePower(this.pos);
 	}
 
+	/**
+	 * 设置方块的输出功率。
+	 * @param power 要设置的输出功率
+	 * @return 原功率与新设功率的差值
+	 */
 	@Override
+	@CanIgnoreReturnValue
 	public int setPower(int power) {
 		int diff = this.network.setMachinePower(this.pos, power);
 		if (diff != 0) this.blockEntity.setChanged();
@@ -66,6 +80,7 @@ public class MechanicalTransmit implements IMechanicalTransmit {
 	}
 
 	@Override
+	@CanIgnoreReturnValue
 	public int setResistance(int resistance) {
 		int diff = this.network.setMachineResistance(this.pos, resistance);
 		if (diff != 0) {

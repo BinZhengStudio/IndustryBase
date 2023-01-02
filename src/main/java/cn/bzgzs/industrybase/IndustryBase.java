@@ -23,21 +23,23 @@ public class IndustryBase {
 	public IndustryBase() {
 		IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
 
+		// 注册事件监听
 		BlockList.BLOCKS.register(modBus);
 		BlockEntityTypeList.BLOCK_ENTITY_TYPES.register(modBus);
 		MenuTypeList.MENU_TYPES.register(modBus);
 		ItemList.ITEMS.register(modBus);
 
+		// 添加事件监听
 		modBus.addListener(this::setup);
 		modBus.addListener(this::doClientStuff);
 		MinecraftForge.EVENT_BUS.register(this);
 	}
 
-	private void setup(final FMLCommonSetupEvent event) {
-		event.enqueueWork(NetworkManager::register);
+	private void setup(final FMLCommonSetupEvent event) { // 双端都要执行的初始化
+		event.enqueueWork(NetworkManager::register); // 网络通信注册
 	}
 
-	private void doClientStuff(final FMLClientSetupEvent event) { // 与客户端相关的代码
+	private void doClientStuff(final FMLClientSetupEvent event) { // 与客户端相关的初始化
 		event.enqueueWork(MenuScreenManager::register); // 绑定Container与Screen
 	}
 }

@@ -22,8 +22,8 @@ public class ElectricBlockEntity extends BlockEntity {
 
 	@Override
 	public void onLoad() {
-		this.electricPower.registerToNetwork();
 		super.onLoad();
+		this.electricPower.registerToNetwork();
 	}
 
 	@Override

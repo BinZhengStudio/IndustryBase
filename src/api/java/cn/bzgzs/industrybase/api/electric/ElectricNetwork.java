@@ -127,7 +127,7 @@ public class ElectricNetwork {
 			for (Direction side : Direction.values()) {
 				this.cutSide(pos, side);
 			}
-			for (BlockPos another : this.wireConn.get(pos)) {
+			for (BlockPos another : new HashSet<>(this.wireConn.get(pos))) { // 这里要复制一下集合，否则会出现 ConcurrentModificationException
 				this.cutWire(pos, another);
 			}
 			callback.run();

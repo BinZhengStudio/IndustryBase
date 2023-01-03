@@ -1,11 +1,48 @@
 package cn.bzgzs.industrybase.world.level.block.entity;
 
+import cn.bzgzs.industrybase.api.CapabilityList;
+import cn.bzgzs.industrybase.api.electric.ElectricPower;
+import cn.bzgzs.industrybase.api.electric.IWireConnectable;
+import cn.bzgzs.industrybase.world.level.block.DynamoBlock;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class WireConnectorBlockEntity extends BlockEntity {
+public class WireConnectorBlockEntity extends BlockEntity implements IWireConnectable {
+	private final ElectricPower electricPower = new ElectricPower(this);
+
 	public WireConnectorBlockEntity(BlockPos pos, BlockState state) {
 		super(BlockEntityTypeList.WIRE_CONNECTOR.get(), pos, state);
+	}
+
+	@Override
+	public void onLoad() {
+		super.onLoad();
+		this.electricPower.registerToNetwork();
+	}
+
+	@Override
+	public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+		if (side == this.getBlockState().getValue(DynamoBlock.FACING)) {
+			return cap == CapabilityList.ELECTRIC_POWER ? this.electricPower.cast() : super.getCapability(cap, side);
+		}
+		return super.getCapability(cap, side);
+	}
+
+	@Override
+	public void onChunkUnloaded() {
+		this.electricPower.removeFromNetwork();
+		super.onChunkUnloaded();
+	}
+
+	@Override
+	public void setRemoved() {
+		this.electricPower.removeFromNetwork();
+		super.setRemoved();
 	}
 }

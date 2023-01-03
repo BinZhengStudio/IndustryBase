@@ -28,6 +28,7 @@ public class WireCoilItem extends Item implements IWireCoil {
 				if (tag.contains("ConnectPos")) {
 					BlockPos fromPos = NbtUtils.readBlockPos(tag.getCompound("ConnectPos"));
 					ConnectHelper.addConnect(level, fromPos, toPos, blockEntity::setChanged);
+					tag.remove("ConnectPos");
 				} else {
 					tag.put("ConnectPos", NbtUtils.writeBlockPos(toPos));
 				}

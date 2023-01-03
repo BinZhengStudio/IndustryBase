@@ -4,7 +4,6 @@ import cn.bzgzs.industrybase.api.CapabilityList;
 import cn.bzgzs.industrybase.api.electric.ElectricPower;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
@@ -21,8 +20,8 @@ public class WireBlockEntity extends BlockEntity {
 
 	@Override
 	public void onLoad() {
-		this.electricPower.registerToNetwork();
 		super.onLoad();
+		this.electricPower.registerToNetwork();
 	}
 
 	@Override
@@ -43,17 +42,5 @@ public class WireBlockEntity extends BlockEntity {
 	public void setRemoved() {
 		this.electricPower.removeFromNetwork();
 		super.setRemoved();
-	}
-
-	@Override
-	public void load(CompoundTag tag) {
-		super.load(tag);
-		this.electricPower.readFromNBT(tag);
-	}
-
-	@Override
-	protected void saveAdditional(CompoundTag tag) {
-		super.saveAdditional(tag);
-		this.electricPower.writeToNBT(tag);
 	}
 }

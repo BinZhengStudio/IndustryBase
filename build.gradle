@@ -41,7 +41,7 @@ minecraft {
 			// "REGISTRYDUMP": For getting the contents of all registries.
 			property 'forge.logging.markers', 'REGISTRIES'
 
-			property 'forge.logging.console.level', 'debug'
+			property 'forge.logging.console.level', 'info'
 
 			property 'forge.enabledGameTestNamespaces', 'industrybase'
 
@@ -58,7 +58,7 @@ minecraft {
 
 			property 'forge.logging.markers', 'REGISTRIES'
 
-			property 'forge.logging.console.level', 'debug'
+			property 'forge.logging.console.level', 'info'
 
 			property 'forge.enabledGameTestNamespaces', 'industrybase'
 
@@ -75,7 +75,7 @@ minecraft {
 
 			property 'forge.logging.markers', 'REGISTRIES'
 
-			property 'forge.logging.console.level', 'debug'
+			property 'forge.logging.console.level', 'info'
 
 			property 'forge.enabledGameTestNamespaces', 'industrybase'
 
@@ -92,7 +92,7 @@ minecraft {
 
 			property 'forge.logging.markers', 'REGISTRIES'
 
-			property 'forge.logging.console.level', 'debug'
+			property 'forge.logging.console.level', 'info'
 
 			// Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
 			args '--mod', 'industrybase', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
@@ -108,6 +108,10 @@ minecraft {
 }
 
 repositories {
+	maven {
+		name = "forge"
+		url = "${mavenMirror}"
+	}
 }
 
 dependencies {

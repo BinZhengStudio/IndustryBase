@@ -63,7 +63,6 @@ public abstract class TransmissionRodBlock extends BaseEntityBlock {
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public RenderShape getRenderShape(BlockState state) {
 		return RenderShape.ENTITYBLOCK_ANIMATED;
 	}

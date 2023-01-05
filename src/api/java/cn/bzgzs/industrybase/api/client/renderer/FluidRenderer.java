@@ -231,9 +231,7 @@ public class FluidRenderer {
 
 				float endU = (u + u1 + u2 + u21) / 4.0F;
 				float endV = (v + v2 + v21 + v1) / 4.0F;
-				float f51 = (float)textureAtlasSprites[0].getWidth() / (textureAtlasSprites[0].getU1() - textureAtlasSprites[0].getU0());
-				float f52 = (float)textureAtlasSprites[0].getHeight() / (textureAtlasSprites[0].getV1() - textureAtlasSprites[0].getV0());
-				float delta = 4.0F / Math.max(f52, f51);
+				float delta = textureAtlasSprites[0].uvShrinkRatio();
 				u = Mth.lerp(delta, u, endU);
 				u1 = Mth.lerp(delta, u1, endU);
 				u2 = Mth.lerp(delta, u2, endU);

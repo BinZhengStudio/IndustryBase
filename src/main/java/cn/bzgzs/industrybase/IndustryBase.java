@@ -4,6 +4,7 @@ import cn.bzgzs.industrybase.api.IndustryBaseApi;
 import cn.bzgzs.industrybase.client.gui.screens.MenuScreenManager;
 import cn.bzgzs.industrybase.network.NetworkManager;
 import cn.bzgzs.industrybase.world.inventory.MenuTypeList;
+import cn.bzgzs.industrybase.world.item.CreativeModeTabList;
 import cn.bzgzs.industrybase.world.item.ItemList;
 import cn.bzgzs.industrybase.world.level.block.BlockList;
 import cn.bzgzs.industrybase.world.level.block.entity.BlockEntityTypeList;
@@ -28,6 +29,8 @@ public class IndustryBase {
 		BlockEntityTypeList.BLOCK_ENTITY_TYPES.register(modBus);
 		MenuTypeList.MENU_TYPES.register(modBus);
 		ItemList.ITEMS.register(modBus);
+
+		modBus.addListener(CreativeModeTabList::register);
 
 		// 添加事件监听
 		modBus.addListener(this::setup);

@@ -14,7 +14,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 public class WireCoilItem extends Item implements IWireCoil {
 	public WireCoilItem() {
-		super(new Properties().durability(100).tab(CreativeModeTabList.INDUSTRYBASE));
+		super(new Properties().durability(100));
 	}
 
 	@Override

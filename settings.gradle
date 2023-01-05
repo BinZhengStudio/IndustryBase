@@ -1,7 +1,7 @@
 pluginManagement {
 	repositories {
-		gradlePluginPortal()
-		maven { url = 'https://maven.minecraftforge.net/' }
+//		gradlePluginPortal()
+		maven { url = "${mavenMirror}" }
 		maven { url = 'https://maven.parchmentmc.org' }
 	}
 }

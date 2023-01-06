@@ -30,6 +30,11 @@ public abstract class TextureTransmissionRodRenderer implements BlockEntityRende
 	protected abstract ResourceLocation getTexture();
 
 	@Override
+	public int getViewDistance() {
+		return 256;
+	}
+
+	@Override
 	public void render(TransmissionRodBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 		poseStack.pushPose();
 		poseStack.translate(0.5D, 0.5D, 0.5D);

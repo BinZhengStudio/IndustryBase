@@ -20,10 +20,10 @@ public class WireCoilItem extends Item implements IWireCoil {
 	@Override
 	public InteractionResult useOn(UseOnContext context) {
 		Level level = context.getLevel();
-		if (!level.isClientSide) {
-			BlockPos toPos = context.getClickedPos();
-			BlockEntity blockEntity = level.getBlockEntity(toPos);
-			if (blockEntity instanceof IWireConnectable) {
+		BlockPos toPos = context.getClickedPos();
+		BlockEntity blockEntity = level.getBlockEntity(toPos);
+		if (blockEntity instanceof IWireConnectable) {
+			if (!level.isClientSide) {
 				CompoundTag tag = context.getItemInHand().getOrCreateTag();
 				if (tag.contains("ConnectPos")) {
 					BlockPos fromPos = NbtUtils.readBlockPos(tag.getCompound("ConnectPos"));
@@ -32,10 +32,9 @@ public class WireCoilItem extends Item implements IWireCoil {
 				} else {
 					tag.put("ConnectPos", NbtUtils.writeBlockPos(toPos));
 				}
-			} else {
-				return InteractionResult.PASS; // TODO
 			}
+			return InteractionResult.sidedSuccess(level.isClientSide);
 		}
-		return InteractionResult.sidedSuccess(level.isClientSide);
+		return InteractionResult.PASS;
 	}
 }

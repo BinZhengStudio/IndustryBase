@@ -1,11 +1,13 @@
 package cn.bzgzs.industrybase.api.electric;
 
 import cn.bzgzs.industrybase.api.CapabilityList;
+import cn.bzgzs.industrybase.api.event.ElectricNetworkEvent;
 import com.google.common.collect.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.level.LevelEvent;
@@ -21,7 +23,7 @@ public class ElectricNetwork {
 	private final SetMultimap<BlockPos, BlockPos> wireConn;
 	private final LevelAccessor level;
 	private final Queue<Runnable> tasks;
-	private final Map<BlockPos, Double> outputCollection; // TODO 需要进一步优化
+	private final Map<BlockPos, Double> outputCollection;
 	private final Map<BlockPos, Double> inputCollection;
 	private final Map<BlockPos, Double> machineOutput;
 	private final Map<BlockPos, Double> machineInput;
@@ -49,6 +51,10 @@ public class ElectricNetwork {
 		return this.components.containsKey(pos) ? this.components.get(pos).iterator().next() : pos;
 	}
 
+	public ImmutableSet<BlockPos> wireConnects(BlockPos pos) {
+		return ImmutableSet.copyOf(this.wireConn.get(pos));
+	}
+
 	public double totalOutput(BlockPos pos) {
 		BlockPos root = this.root(pos);
 		return this.outputCollection.getOrDefault(root, 0.0D);
@@ -57,6 +63,28 @@ public class ElectricNetwork {
 	public double totalInput(BlockPos pos) {
 		BlockPos root = this.root(pos);
 		return this.inputCollection.getOrDefault(root, 0.0D);
+	}
+
+	public SetMultimap<BlockPos, BlockPos> getWireConn() {
+		return HashMultimap.create(this.wireConn);
+	}
+
+	public void clientInitData(Map<BlockPos, Collection<BlockPos>> wireConn) {
+		if (this.level.isClientSide()) {
+			wireConn.forEach(this.wireConn::putAll);
+		}
+	}
+
+	public void addWireConn(Map<BlockPos, Collection<BlockPos>> data) {
+		if (this.level.isClientSide()) {
+			data.forEach(this.wireConn::putAll);
+		}
+	}
+
+	public void removeWireConn(Map<BlockPos, Collection<BlockPos>> data) {
+		if (this.level.isClientSide()) {
+			data.forEach((pos, set) -> set.forEach(blockPos -> this.wireConn.remove(pos, blockPos)));
+		}
 	}
 
 	public double getMachineOutput(BlockPos pos) {
@@ -127,8 +155,17 @@ public class ElectricNetwork {
 			for (Direction side : Direction.values()) {
 				this.cutSide(pos, side);
 			}
-			for (BlockPos another : new HashSet<>(this.wireConn.get(pos))) { // 这里要复制一下集合，否则会出现 ConcurrentModificationException
-				this.cutWire(pos, another);
+			if (!this.wireConn.get(pos).isEmpty()) {
+				SetMultimap<BlockPos, BlockPos> multimap = HashMultimap.create();
+				for (BlockPos another : new HashSet<>(this.wireConn.get(pos))) { // 这里要复制一下集合，否则会出现 ConcurrentModificationException
+					if (this.wireConn.remove(pos, another)) {
+						this.wireConn.remove(another, pos);
+						this.spilt(pos, another);
+						multimap.put(pos, another);
+						multimap.put(another, pos);
+					}
+				}
+				MinecraftForge.EVENT_BUS.post(new ElectricNetworkEvent.RemoveWireEvent(this.level, multimap.asMap()));
 			}
 			callback.run();
 		});
@@ -150,6 +187,7 @@ public class ElectricNetwork {
 		if (this.wireConn.remove(from, to)) {
 			this.wireConn.remove(to, from);
 			this.spilt(from, to);
+			MinecraftForge.EVENT_BUS.post(new ElectricNetworkEvent.RemoveWireEvent(this.level, ImmutableMultimap.of(from, to, to, from).asMap()));
 		}
 	}
 
@@ -253,7 +291,7 @@ public class ElectricNetwork {
 	}
 
 	public boolean addWire(BlockPos from, BlockPos to, Runnable callback) {
-		if (!from.equals(to) && !this.wireConn.containsEntry(from, to)) {
+		if (!from.equals(to)) {
 			return this.tasks.offer(() -> {
 				linkWire(from, to);
 				callback.run();
@@ -339,7 +377,7 @@ public class ElectricNetwork {
 		}
 	}
 
-	private void linkWire(BlockPos from, BlockPos to) {
+	private void linkWire(BlockPos from, BlockPos to) { // TODO 与 side 整合
 		BlockPos secondary = from.immutable();
 		BlockPos primary = to.immutable();
 		if (this.wireConn.put(secondary, primary)) {
@@ -397,6 +435,7 @@ public class ElectricNetwork {
 				this.inputCollection.remove(secondaryNode);
 				this.inputCollection.put(primaryNode, inputOld + inputDiff);
 			}
+			MinecraftForge.EVENT_BUS.post(new ElectricNetworkEvent.AddWireEvent(this.level, ImmutableMultimap.of(from, to, to, from).asMap()));
 		}
 	}
 

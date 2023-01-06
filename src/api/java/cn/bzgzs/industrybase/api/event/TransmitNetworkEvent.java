@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class TransmitNetworkEvent extends Event {
+public class TransmitNetworkEvent extends Event { // TODO 使用 ImmutableSet
 	private final LevelAccessor level;
 
 	public TransmitNetworkEvent(LevelAccessor level) {

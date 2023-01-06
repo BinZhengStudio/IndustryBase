@@ -79,6 +79,13 @@ public class TransmitNetwork {
 		return new HashMap<>(this.speedCollection);
 	}
 
+	public void clientInitData(Map<BlockPos, Double> speed, Map<BlockPos, BlockPos> root) {
+		if (this.level.isClientSide()) {
+			this.speedCollection.putAll(speed);
+			this.rootCollection.putAll(root);
+		}
+	}
+
 	public void updateSpeedCollection(Map<BlockPos, Double> dataToUpdate, Set<BlockPos> deleted) {
 		if (this.level.isClientSide()) {
 			this.speedCollection.putAll(dataToUpdate);

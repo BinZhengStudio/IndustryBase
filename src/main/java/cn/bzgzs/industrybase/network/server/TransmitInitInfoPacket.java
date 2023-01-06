@@ -7,7 +7,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -36,8 +35,7 @@ public class TransmitInitInfoPacket extends CustomPacket {
 	public void consumer(Supplier<NetworkEvent.Context> context) {
 		context.get().enqueueWork(() -> Optional.ofNullable(Minecraft.getInstance().level).ifPresent(level -> {
 			TransmitNetwork network = TransmitNetwork.Manager.get(level);
-			network.updateSpeedCollection(this.speedCollection, new HashSet<>());
-			network.updateRootCollection(this.rootCollection, new HashSet<>());
+			network.clientInitData(this.speedCollection, this.rootCollection);
 		}));
 		context.get().setPacketHandled(true);
 	}

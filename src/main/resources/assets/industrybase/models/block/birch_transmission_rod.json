@@ -1,5 +1,5 @@
 {
   "textures": {
-    "particle": "industrybase:entity/transmission_rod/birch"
+    "particle": "minecraft:block/birch_log"
   }
 }

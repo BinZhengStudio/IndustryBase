@@ -1,6 +1,6 @@
 {
-	"parent": "industrybase:block/transmission_rod",
+	"parent": "industrybase:item/entity",
 	"textures": {
-		"particle": "industrybase:item/gold_transmission_rod"
+		"particle": "industrybase:block/gold_transmission_rod"
 	}
 }

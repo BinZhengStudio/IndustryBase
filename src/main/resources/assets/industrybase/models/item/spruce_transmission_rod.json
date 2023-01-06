@@ -1,6 +1,6 @@
 {
-	"parent": "industrybase:block/transmission_rod",
+	"parent": "industrybase:item/entity",
 	"textures": {
-		"particle": "industrybase:entity/transmission_rod/spruce"
+		"particle": "minecraft:block/spruce_log"
 	}
 }

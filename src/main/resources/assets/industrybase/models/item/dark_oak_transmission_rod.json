@@ -1,6 +1,6 @@
 {
-	"parent": "industrybase:block/transmission_rod",
+	"parent": "industrybase:item/entity",
 	"textures": {
-		"particle": "industrybase:entity/transmission_rod/dark_oak"
+		"particle": "minecraft:block/dark_oak_log"
 	}
 }

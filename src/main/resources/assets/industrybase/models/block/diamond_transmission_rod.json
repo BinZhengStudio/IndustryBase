@@ -1,5 +1,5 @@
 {
   "textures": {
-    "particle": "industrybase:item/diamond_transmission_rod"
+    "particle": "industrybase:block/diamond_transmission_rod"
   }
 }

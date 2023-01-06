@@ -1,5 +1,5 @@
 {
   "textures": {
-    "particle": "industrybase:entity/transmission_rod/acacia"
+    "particle": "minecraft:block/acacia_log"
   }
 }

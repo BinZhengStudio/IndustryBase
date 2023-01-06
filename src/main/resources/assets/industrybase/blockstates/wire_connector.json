@@ -1,0 +1,29 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "industrybase:block/wire_connector",
+      "x": -90
+    },
+    "facing=east": {
+      "model": "industrybase:block/wire_connector",
+      "x": 90,
+      "y": -90
+    },
+    "facing=south": {
+      "model": "industrybase:block/wire_connector",
+      "x": 90
+    },
+    "facing=west": {
+      "model": "industrybase:block/wire_connector",
+      "x": 90,
+      "y": 90
+    },
+    "facing=up": {
+      "model": "industrybase:block/wire_connector",
+      "x": 180
+    },
+    "facing=down": {
+      "model": "industrybase:block/wire_connector"
+    }
+  }
+}

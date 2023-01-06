@@ -57,8 +57,8 @@ public class WireBlock extends BaseEntityBlock {
 		}
 		this.registerDefaultState(defaultState);
 
-		for(BlockState blockstate : this.getStateDefinition().getPossibleStates()) {
-			SHAPES.put(blockstate, this.calculateShape(blockstate));
+		for(BlockState state : this.getStateDefinition().getPossibleStates()) {
+			SHAPES.put(state, this.calculateShape(state));
 		}
 	}
 

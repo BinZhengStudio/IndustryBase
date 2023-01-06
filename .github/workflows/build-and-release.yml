@@ -58,8 +58,8 @@ jobs:
       - name: 复制 maven-metadata
         shell: bash
         run: |
-          mkdir -p download-page/maven-metadata/industrybase/industrybase-1.19.2/
-          cp ModRelease/cn/bzgzs/industrybase/industrybase-1.19.2/maven-metadata.xml download-page/maven-metadata/industrybase/industrybase-1.19.2/
+          mkdir -p download-page/maven-metadata/industrybase/industrybase-1.19.3/
+          cp ModRelease/cn/bzgzs/industrybase/industrybase-1.19.3/maven-metadata.xml download-page/maven-metadata/industrybase/industrybase-1.19.3/
       - name: 推送到下载页面仓库
         shell: bash
         run: |

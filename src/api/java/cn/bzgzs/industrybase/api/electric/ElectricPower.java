@@ -4,15 +4,21 @@ import cn.bzgzs.industrybase.api.energy.IElectricPower;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 public class ElectricPower implements IElectricPower {
 	private double tmpOutputPower;
 	private double tmpInputPower;
+	private final Set<BlockPos> tmpConn;
 	private final BlockEntity blockEntity;
 	private final BlockPos pos;
 	@Nullable
@@ -22,6 +28,7 @@ public class ElectricPower implements IElectricPower {
 	public ElectricPower(BlockEntity blockEntity) {
 		this.blockEntity = blockEntity;
 		this.pos = blockEntity.getBlockPos();
+		this.tmpConn = new HashSet<>();
 		this.lazyOptional = LazyOptional.of(() -> this);
 	}
 
@@ -39,7 +46,9 @@ public class ElectricPower implements IElectricPower {
 			if (!level.isClientSide) {
 				this.setOutputPower(this.tmpOutputPower);
 				this.setInputPower(this.tmpInputPower);
-				network.addOrChangeBlock(this.pos, this.blockEntity::setChanged);
+				this.network.addOrChangeBlock(this.pos, this.blockEntity::setChanged);
+				this.tmpConn.forEach(toPos -> this.network.addWire(this.pos, toPos, () -> {
+				}));
 			}
 		});
 	}
@@ -63,6 +72,7 @@ public class ElectricPower implements IElectricPower {
 
 	/**
 	 * 设置方块的输出功率。
+	 *
 	 * @param power 要设置的输出功率
 	 * @return 原功率与新设功率的差值
 	 */
@@ -75,6 +85,7 @@ public class ElectricPower implements IElectricPower {
 
 	/**
 	 * 获取方块额定输入功率。
+	 *
 	 * @return 额定输入功率
 	 */
 	@Override
@@ -91,6 +102,7 @@ public class ElectricPower implements IElectricPower {
 
 	/**
 	 * 获取方块实际获得的输入功率。
+	 *
 	 * @return 实际输入功率
 	 */
 	@Override
@@ -113,18 +125,24 @@ public class ElectricPower implements IElectricPower {
 		CompoundTag nbt = tag.getCompound("ElectricPower");
 		this.tmpOutputPower = nbt.getDouble("Output");
 		this.tmpInputPower = nbt.getDouble("Input");
+		nbt.getList("Connections", Tag.TAG_COMPOUND).forEach(entry -> this.tmpConn.add(NbtUtils.readBlockPos((CompoundTag) entry)));
 		return this;
 	}
 
 	@CanIgnoreReturnValue
 	public CompoundTag writeToNBT(CompoundTag tag) {
 		CompoundTag nbt = new CompoundTag();
+		ListTag listTag = new ListTag();
 		if (this.network != null) {
 			nbt.putDouble("Output", this.getOutputPower());
 			nbt.putDouble("Input", this.getInputPower());
+			this.network.wireConnects(this.pos).forEach(pos -> listTag.add(NbtUtils.writeBlockPos(pos)));
+			nbt.put("Connections", listTag);
 		} else {
 			nbt.putDouble("Output", this.tmpOutputPower);
 			nbt.putDouble("Input", this.tmpInputPower);
+			this.tmpConn.forEach(pos -> listTag.add(NbtUtils.writeBlockPos(pos)));
+			nbt.put("Connections", listTag);
 		}
 		tag.put("ElectricPower", nbt);
 		return tag;

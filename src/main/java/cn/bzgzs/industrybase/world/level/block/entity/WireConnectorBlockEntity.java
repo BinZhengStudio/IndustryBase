@@ -6,6 +6,7 @@ import cn.bzgzs.industrybase.api.electric.IWireConnectable;
 import cn.bzgzs.industrybase.world.level.block.DynamoBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
@@ -32,6 +33,18 @@ public class WireConnectorBlockEntity extends BlockEntity implements IWireConnec
 			return cap == CapabilityList.ELECTRIC_POWER ? this.electricPower.cast() : super.getCapability(cap, side);
 		}
 		return super.getCapability(cap, side);
+	}
+
+	@Override
+	public void load(CompoundTag tag) {
+		super.load(tag);
+		this.electricPower.readFromNBT(tag);
+	}
+
+	@Override
+	protected void saveAdditional(CompoundTag tag) {
+		super.saveAdditional(tag);
+		this.electricPower.writeToNBT(tag);
 	}
 
 	@Override

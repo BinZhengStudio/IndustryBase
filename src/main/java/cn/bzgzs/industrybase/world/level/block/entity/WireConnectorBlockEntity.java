@@ -9,12 +9,14 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.extensions.IForgeBlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class WireConnectorBlockEntity extends BlockEntity implements IWireConnectable {
+public class WireConnectorBlockEntity extends BlockEntity implements IWireConnectable, IForgeBlockEntity {
 	private final ElectricPower electricPower = new ElectricPower(this);
 
 	public WireConnectorBlockEntity(BlockPos pos, BlockState state) {
@@ -57,5 +59,10 @@ public class WireConnectorBlockEntity extends BlockEntity implements IWireConnec
 	public void setRemoved() {
 		this.electricPower.removeFromNetwork();
 		super.setRemoved();
+	}
+
+	@Override
+	public AABB getRenderBoundingBox() {
+		return INFINITE_EXTENT_AABB;
 	}
 }

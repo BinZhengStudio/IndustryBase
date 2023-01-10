@@ -16,7 +16,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class WireConnectorBlockEntity extends BlockEntity implements IWireConnectable, IForgeBlockEntity {
+public class WireConnectorBlockEntity extends BlockEntity implements IWireConnectable{
 	private final ElectricPower electricPower = new ElectricPower(this);
 
 	public WireConnectorBlockEntity(BlockPos pos, BlockState state) {

@@ -11,12 +11,11 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.extensions.IForgeBlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class WireConnectorBlockEntity extends BlockEntity implements IWireConnectable{
+public class WireConnectorBlockEntity extends BlockEntity implements IWireConnectable {
 	private final ElectricPower electricPower = new ElectricPower(this);
 
 	public WireConnectorBlockEntity(BlockPos pos, BlockState state) {
@@ -63,6 +62,9 @@ public class WireConnectorBlockEntity extends BlockEntity implements IWireConnec
 
 	@Override
 	public AABB getRenderBoundingBox() {
-		return INFINITE_EXTENT_AABB;
+//		return INFINITE_EXTENT_AABB;
+		BlockPos pos = this.getBlockPos();
+		return new AABB(pos.offset(-256, -256, -256), pos.offset(256, 256, 256));
+//		return super.getRenderBoundingBox();
 	}
 }

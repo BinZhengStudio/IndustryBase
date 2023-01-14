@@ -157,13 +157,14 @@ public class ElectricNetwork {
 			}
 			if (!this.wireConn.get(pos).isEmpty()) {
 				SetMultimap<BlockPos, BlockPos> multimap = HashMultimap.create();
-				for (BlockPos another : new HashSet<>(this.wireConn.get(pos))) { // 这里要复制一下集合，否则会出现 ConcurrentModificationException
+				for (BlockPos another : new HashSet<>(this.wireConn.get(pos))) { // 需要在迭代时修改，所以这里要复制一下集合
 					if (this.wireConn.remove(pos, another)) {
 						this.wireConn.remove(another, pos);
 						this.spilt(pos, another);
 						multimap.put(pos, another);
 						multimap.put(another, pos);
 					}
+					this.level.getChunk(another).setUnsaved(true); // 此处不能检查区块是否加载，无论连接的方块是否位于加载区块，都要强制保存
 				}
 				MinecraftForge.EVENT_BUS.post(new ElectricNetworkEvent.RemoveWireEvent(this.level, multimap.asMap()));
 			}
@@ -172,7 +173,11 @@ public class ElectricNetwork {
 	}
 
 	public void removeWire(BlockPos from, BlockPos to) {
-		this.tasks.offer(() -> this.cutWire(from, to));
+		this.tasks.offer(() -> {
+			this.cutWire(from, to);
+			this.level.getChunk(from).setUnsaved(true); // 不能检查区块是否加载
+			this.level.getChunk(to).setUnsaved(true);
+		});
 	}
 
 	private void cutSide(BlockPos node, Direction direction) {

@@ -133,7 +133,7 @@ public class ElectricPower implements IElectricPower {
 	public CompoundTag writeToNBT(CompoundTag tag) {
 		CompoundTag nbt = new CompoundTag();
 		ListTag listTag = new ListTag();
-		if (this.network != null) {
+		if (this.network != null) { // TODO 1.19.3 可能不用
 			nbt.putDouble("Output", this.getOutputPower());
 			nbt.putDouble("Input", this.getInputPower());
 			this.network.wireConnects(this.pos).forEach(pos -> listTag.add(NbtUtils.writeBlockPos(pos)));

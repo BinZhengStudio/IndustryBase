@@ -22,5 +22,7 @@
   "label.transmit_panel.speed": "速度: ",
   "label.transmit_panel.power": "功率: ",
   "container.industrybase.steam_engine": "小型蒸汽机",
-  "label.steam_engine.water_amount": "水量: "
+  "label.steam_engine.water_amount": "水量: ",
+
+  "itemTooltip.industrybase.wire_coil": "已绑定方块: (%1$s,%2$s,%3$s)"
 }

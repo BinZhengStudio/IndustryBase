@@ -105,7 +105,7 @@ public class MechanicalTransmit implements IMechanicalTransmit {
 	@CanIgnoreReturnValue
 	public CompoundTag writeToNBT(CompoundTag tag) {
 		CompoundTag nbt = new CompoundTag();
-		if (this.network != null) {
+		if (this.network != null) { // TODO 1.19.3 可能不用
 			nbt.putInt("Power", this.getPower());
 			nbt.putInt("Resistance", this.getResistance());
 		} else {

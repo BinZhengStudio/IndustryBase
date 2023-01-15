@@ -9,7 +9,6 @@ import cn.bzgzs.industrybase.world.item.ItemList;
 import cn.bzgzs.industrybase.world.level.block.BlockList;
 import cn.bzgzs.industrybase.world.level.block.entity.BlockEntityTypeList;
 import com.mojang.logging.LogUtils;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -35,7 +34,6 @@ public class IndustryBase {
 		// 添加事件监听
 		modBus.addListener(this::setup);
 		modBus.addListener(this::doClientStuff);
-		MinecraftForge.EVENT_BUS.register(this);
 	}
 
 	private void setup(final FMLCommonSetupEvent event) { // 双端都要执行的初始化

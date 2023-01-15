@@ -1,5 +1,6 @@
 package cn.bzgzs.industrybase.world.item;
 
+import cn.bzgzs.industrybase.api.IndustryBaseApi;
 import cn.bzgzs.industrybase.api.electric.ConnectHelper;
 import cn.bzgzs.industrybase.api.electric.IWireCoil;
 import cn.bzgzs.industrybase.api.electric.IWireConnectable;
@@ -41,7 +42,7 @@ public class WireCoilItem extends Item implements IWireCoil {
 						int durability = player.getAbilities().instabuild ? MAX_LENGTH : stack.getMaxDamage() - stack.getDamageValue();
 						double distSqr = fromPos.distSqr(toPos);
 						if (distSqr > durability * durability) {
-							player.sendSystemMessage(Component.translatable("message.industrybase.wire_coil", durability));
+							player.sendSystemMessage(Component.translatable("message." + IndustryBaseApi.MODID + ".wire_coil.too_long", durability));
 						} else {
 							tag.remove("ConnectPos");
 							if (ConnectHelper.addConnect(level, fromPos, toPos, blockEntity::setChanged)) {
@@ -63,7 +64,7 @@ public class WireCoilItem extends Item implements IWireCoil {
 		CompoundTag tag = stack.getTag();
 		if (tag != null && tag.contains("ConnectPos")) {
 			BlockPos bind = NbtUtils.readBlockPos(tag.getCompound("ConnectPos"));
-			components.add(Component.translatable("itemTooltip.industrybase.wire_coil", bind.getX(), bind.getY(), bind.getZ()));
+			components.add(Component.translatable("itemTooltip." + IndustryBaseApi.MODID + ".wire_coil", bind.getX(), bind.getY(), bind.getZ()));
 		}
 	}
 }

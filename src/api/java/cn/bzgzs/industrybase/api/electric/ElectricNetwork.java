@@ -299,7 +299,7 @@ public class ElectricNetwork {
 		if (!from.equals(to) && !this.wireConn.containsEntry(from, to)) {
 			return this.tasks.offer(() -> {
 				linkWire(from, to);
-				callback.run();
+				callback.run(); // 只需要一方保存即可，不影响最终加载后的连通域
 			});
 		}
 		return false;
@@ -426,9 +426,7 @@ public class ElectricNetwork {
 				BlockPos primaryNode = primaryComponent.iterator().next();
 				BlockPos secondaryNode = secondaryComponent.iterator().next();
 				Set<BlockPos> union = new LinkedHashSet<>(Sets.union(primaryComponent, secondaryComponent));
-				union.forEach(pos -> {
-					this.components.put(pos, union);
-				});
+				union.forEach(pos -> this.components.put(pos, union));
 
 				double outputDiff = this.outputCollection.getOrDefault(secondaryNode, 0.0D);
 				double outputOld = this.outputCollection.getOrDefault(primaryNode, 0.0D);

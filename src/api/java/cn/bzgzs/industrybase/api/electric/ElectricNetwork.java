@@ -296,7 +296,7 @@ public class ElectricNetwork {
 	}
 
 	public boolean addWire(BlockPos from, BlockPos to, Runnable callback) {
-		if (!from.equals(to)) {
+		if (!from.equals(to) && !this.wireConn.containsEntry(from, to)) {
 			return this.tasks.offer(() -> {
 				linkWire(from, to);
 				callback.run();

@@ -9,7 +9,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
@@ -32,9 +31,7 @@ public class SteamEngineScreen extends AbstractContainerScreen<SteamEngineMenu> 
 		this.renderBackground(poseStack);
 		super.render(poseStack, mouseX, mouseY, partialTicks);
 		// 渲染水量的文字
-		MutableComponent waterAmount = Component.translatable("label.steam_engine.water_amount");
-		this.font.draw(poseStack, waterAmount, this.leftPos + 8, this.topPos + 39, 0x006ee4);
-		this.font.draw(poseStack, Integer.toString(this.menu.getData().get(4)), this.leftPos + 9 + this.font.width(waterAmount), this.topPos + 39, 0x006ee4);
+		this.font.draw(poseStack, Component.translatable("label.steam_engine.water_amount", this.menu.getData().get(4)), this.leftPos + 8, this.topPos + 39, 0x006ee4);
 		// 渲染信息面板的内容
 		TransmitScreenHelper.renderTransmitFont(this.font, poseStack, this.menu.getData().get(1), this.menu.getData().get(0), this.leftPos, this.topPos, this.imageWidth);
 		this.renderTooltip(poseStack, mouseX, mouseY);

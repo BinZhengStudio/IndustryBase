@@ -19,8 +19,12 @@
   "block.industrybase.axis_connector": "轴连接器",
   "block.industrybase.electric_motor": "电动机",
 
-  "label.transmit_panel.speed": "速度: ",
-  "label.transmit_panel.power": "功率: ",
+  "label.transmit_panel.speed": "速度: %1$s",
+  "label.transmit_panel.power": "功率: %1$s",
   "container.industrybase.steam_engine": "小型蒸汽机",
-  "label.steam_engine.water_amount": "水量: "
+  "label.steam_engine.water_amount": "水量: %1$s",
+
+  "itemTooltip.industrybase.wire_coil": "已绑定方块: (%1$s,%2$s,%3$s)",
+
+  "message.industrybase.wire_coil": "距离过长，该卷导线剩余%1$s米。"
 }

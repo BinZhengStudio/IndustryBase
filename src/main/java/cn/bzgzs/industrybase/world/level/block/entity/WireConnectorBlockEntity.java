@@ -65,6 +65,5 @@ public class WireConnectorBlockEntity extends BlockEntity implements IWireConnec
 //		return INFINITE_EXTENT_AABB;
 		BlockPos pos = this.getBlockPos();
 		return new AABB(pos.offset(-256, -256, -256), pos.offset(256, 256, 256));
-//		return super.getRenderBoundingBox();
 	}
 }

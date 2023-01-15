@@ -8,6 +8,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -19,8 +20,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class WireCoilItem extends Item implements IWireCoil {
+	public static final int MAX_LENGTH = 256; // 最大导线长度
 	public WireCoilItem() {
-		super(new Properties().durability(100));
+		super(new Properties().durability(MAX_LENGTH));
 	}
 
 	@Override
@@ -33,8 +35,20 @@ public class WireCoilItem extends Item implements IWireCoil {
 				CompoundTag tag = context.getItemInHand().getOrCreateTag();
 				if (tag.contains("ConnectPos")) {
 					BlockPos fromPos = NbtUtils.readBlockPos(tag.getCompound("ConnectPos"));
-					ConnectHelper.addConnect(level, fromPos, toPos, blockEntity::setChanged);
-					tag.remove("ConnectPos");
+					Player player = context.getPlayer();
+					if (player != null) {
+						ItemStack stack = context.getItemInHand();
+						int durability = player.getAbilities().instabuild ? MAX_LENGTH : stack.getMaxDamage() - stack.getDamageValue();
+						double distSqr = fromPos.distSqr(toPos);
+						if (distSqr > durability * durability) {
+							player.sendSystemMessage(Component.translatable("message.industrybase.wire_coil", durability));
+						} else {
+							tag.remove("ConnectPos");
+							if (ConnectHelper.addConnect(level, fromPos, toPos, blockEntity::setChanged)) {
+								stack.hurtAndBreak((int) Math.sqrt(distSqr), player, user -> user.broadcastBreakEvent(player.getUsedItemHand()));
+							}
+						}
+					}
 				} else {
 					tag.put("ConnectPos", NbtUtils.writeBlockPos(toPos));
 				}

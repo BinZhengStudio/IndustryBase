@@ -1,30 +1,37 @@
 {
-  "itemGroup.industrybase": "工业基石",
+  "itemGroup.industrybase": "IndustryBase",
 
-  "block.industrybase.steam_engine": "小型蒸汽机",
-  "block.industrybase.oak_transmission_rod": "橡木传动杆",
-  "block.industrybase.spruce_transmission_rod": "云杉传动杆",
-  "block.industrybase.birch_transmission_rod": "白桦传动杆",
-  "block.industrybase.jungle_transmission_rod": "丛林木传动杆",
-  "block.industrybase.acacia_transmission_rod": "金合欢传动杆",
-  "block.industrybase.dark_oak_transmission_rod": "深色橡木传动杆",
-  "block.industrybase.mangrove_transmission_rod": "红树传动杆",
-  "block.industrybase.stone_transmission_rod": "石传动杆",
-  "block.industrybase.iron_transmission_rod": "铁传动杆",
-  "block.industrybase.gold_transmission_rod": "嵌金传动杆",
-  "block.industrybase.diamond_transmission_rod": "嵌钻传动杆",
-  "block.industrybase.dynamo": "发电机",
-  "block.industrybase.wire": "导线方块",
-  "block.industrybase.wire_connector": "接线端子",
-  "block.industrybase.axis_connector": "轴连接器",
-  "block.industrybase.electric_motor": "电动机",
+  "item.industrybase.wire_coil": "Wire Coil",
 
-  "label.transmit_panel.speed": "速度: %1$s",
-  "label.transmit_panel.power": "功率: %1$s",
-  "container.industrybase.steam_engine": "小型蒸汽机",
-  "label.steam_engine.water_amount": "水量: %1$s",
+  "block.industrybase.steam_engine": "Mini Steam Engine",
+  "block.industrybase.oak_transmission_rod": "Oak Transmission Rod",
+  "block.industrybase.spruce_transmission_rod": "Spruce Transmission Rod",
+  "block.industrybase.birch_transmission_rod": "Birch Transmission Rod",
+  "block.industrybase.jungle_transmission_rod": "Jungle Transmission",
+  "block.industrybase.acacia_transmission_rod": "Acacia Transmission Rod",
+  "block.industrybase.dark_oak_transmission_rod": "Dark Oak  Transmission Rod",
+  "block.industrybase.mangrove_transmission_rod": "Mangrove Transmission Rod",
+  "block.industrybase.stone_transmission_rod": "Stone Transmission Rod",
+  "block.industrybase.iron_transmission_rod": "Iron Transmission Rod",
+  "block.industrybase.gold_transmission_rod": "Embedded Gold Transmission Rod",
+  "block.industrybase.diamond_transmission_rod": "Embedded Diamond Transmission Rod",
+  "block.industrybase.dynamo": "Dynamo",
+  "block.industrybase.wire": "Wire Block",
+  "block.industrybase.wire_connector": "Wire Connector",
+  "block.industrybase.axis_connector": "Axis Connector",
+  "block.industrybase.electric_motor": "Electric Motor",
 
-  "itemTooltip.industrybase.wire_coil": "已绑定方块: (%1$s,%2$s,%3$s)",
+  "container.industrybase.steam_engine": "Mini Steam Engine",
 
-  "message.industrybase.wire_coil.too_long": "距离过长，该卷导线剩余%1$s米。"
+  "label.transmit_panel.speed": "Speed: %1$s",
+  "label.transmit_panel.power": "Power: %1$s",
+  "label.steam_engine.water_amount": "Water Amount: %1$s",
+
+  "itemTooltip.industrybase.wire_coil": "Bind Block: (%1$s,%2$s,%3$s)",
+
+  "message.industrybase.wire_coil.too_long": "距离过长，该卷导线剩余%1$s米。",
+
+  "commands.industrybase.wire.success": "Successfully connected a wire between (%1$s,%2$s,%3$s) and (%4$s,%5$s,%6$s)",
+  "commands.industrybase.wire.failed.not_connectable": "Not both ends of the link are connectable blocks",
+  "commands.industrybase.wire.failed.connect_failed": "Connection failed, the connection may already exist, or the input block coordinates are the same"
 }

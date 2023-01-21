@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+    "#": {
+      "item": "minecraft:copper_ingot"
+    },
+    "$": {
+      "item": "industrybase:wire"
+    }
+  },
+  "pattern": [
+    "#",
+    "$"
+  ],
+  "result": {
+    "item": "industrybase:wire_connector",
+    "count": 2
+  }
+}

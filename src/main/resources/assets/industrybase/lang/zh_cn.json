@@ -1,6 +1,8 @@
 {
   "itemGroup.industrybase": "工业基石",
 
+  "item.industrybase.wire_coil": "导线卷",
+
   "block.industrybase.steam_engine": "小型蒸汽机",
   "block.industrybase.oak_transmission_rod": "橡木传动杆",
   "block.industrybase.spruce_transmission_rod": "云杉传动杆",

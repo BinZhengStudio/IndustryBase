@@ -1,11 +1,18 @@
 package cn.bzgzs.industrybase.world.level.block;
 
+import cn.bzgzs.industrybase.api.electric.ElectricNetwork;
+import cn.bzgzs.industrybase.api.electric.IWireConnectable;
+import cn.bzgzs.industrybase.world.item.ItemList;
 import cn.bzgzs.industrybase.world.level.block.entity.WireConnectorBlockEntity;
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.Containers;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
@@ -41,6 +48,25 @@ public class WireConnectorBlock extends BaseEntityBlock {
 
 		for(BlockState state : this.getStateDefinition().getPossibleStates()) {
 			SHAPES.put(state, Shapes.or(CORE, SHAPES_DIRECTION.get(state.getValue(FACING))));
+		}
+	}
+
+	@Override
+	@SuppressWarnings("deprecation")
+	public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+		if (!state.is(newState.getBlock())) {
+			BlockEntity blockEntity = level.getBlockEntity(pos);
+			if (blockEntity instanceof IWireConnectable) {
+				if (level instanceof ServerLevel) {
+					ElectricNetwork network = ElectricNetwork.Manager.get(level);
+					network.wireConnects(pos).forEach(blockPos -> {
+						ItemStack coil = new ItemStack(ItemList.WIRE_COIL.get());
+						coil.setDamageValue(coil.getMaxDamage() - (int) Math.sqrt(pos.distSqr(blockPos))); // 设置耐久
+						Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), coil);
+					});
+				}
+			}
+			super.onRemove(state, level, pos, newState, isMoving);
 		}
 	}
 

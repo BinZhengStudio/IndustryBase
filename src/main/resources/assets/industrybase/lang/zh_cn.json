@@ -29,7 +29,7 @@
 
   "itemTooltip.industrybase.wire_coil": "已绑定方块: (%1$s,%2$s,%3$s)",
 
-  "message.industrybase.wire_coil.too_long": "距离过长，该卷导线剩余%1$s米。",
+  "message.industrybase.wire_coil.too_long": "距离过长，该卷导线剩余%1$s米",
 
   "commands.industrybase.wire.success": "成功在(%1$s,%2$s,%3$s)与(%4$s,%5$s,%6$s)之间连接导线",
   "commands.industrybase.wire.failed.not_connectable": "连接的两端并不都是可连接方块",

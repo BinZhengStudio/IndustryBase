@@ -34,7 +34,8 @@ public class WireCoilItem extends Item implements IWireCoil {
 		CompoundTag tag = stack.getTag();
 		if (tag != null && tag.contains("ConnectPos")) {
 			BlockPos bind = NbtUtils.readBlockPos(tag.getCompound("ConnectPos"));
-			components.add(Component.translatable("itemTooltip." + IndustryBaseApi.MODID + ".wire_coil", bind.getX(), bind.getY(), bind.getZ()));
+			components.add(Component.translatable("itemTooltip." + IndustryBaseApi.MODID + ".wire_coil.1", bind.getX(), bind.getY(), bind.getZ()));
 		}
+		components.add(Component.translatable("itemTooltip." + IndustryBaseApi.MODID + ".wire_coil.2", stack.getMaxDamage() - stack.getDamageValue()));
 	}
 }

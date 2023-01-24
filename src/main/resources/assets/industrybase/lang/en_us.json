@@ -27,7 +27,8 @@
   "label.transmit_panel.power": "Power: %1$s",
   "label.steam_engine.water_amount": "Water Amount: %1$s",
 
-  "itemTooltip.industrybase.wire_coil": "Bind Block: (%1$s,%2$s,%3$s)",
+  "itemTooltip.industrybase.wire_coil.1": "Bind Block: (%1$s,%2$s,%3$s)",
+  "itemTooltip.industrybase.wire_coil.2": "This coil of wire is %1$s meter(s) left",
 
   "message.industrybase.wire_coil.too_long": "Distance is out of length, this coil of wire is %1$s meter(s) left",
 

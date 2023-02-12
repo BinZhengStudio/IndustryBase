@@ -1,5 +1,7 @@
 package cn.bzgzs.industrybase.world.level.block;
 
+import cn.bzgzs.industrybase.api.util.ElectricHelper;
+import cn.bzgzs.industrybase.api.util.TransmitHelper;
 import cn.bzgzs.industrybase.world.level.block.entity.BlockEntityTypeList;
 import cn.bzgzs.industrybase.world.level.block.entity.ElectricMotorBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -31,6 +33,14 @@ public class ElectricMotorBlock extends BaseEntityBlock {
 	public ElectricMotorBlock() {
 		super(Properties.copy(Blocks.IRON_BLOCK).noOcclusion());
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
+	}
+
+	@Override
+	@SuppressWarnings("deprecation")
+	public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+		TransmitHelper.updateOnRemove(level, state, newState, pos, FACING);
+		ElectricHelper.updateOnRemove(level, state, newState, pos, FACING);
+		super.onRemove(state, level, pos, newState, isMoving);
 	}
 
 	@Override

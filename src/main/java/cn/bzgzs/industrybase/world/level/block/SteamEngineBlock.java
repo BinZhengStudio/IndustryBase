@@ -1,5 +1,6 @@
 package cn.bzgzs.industrybase.world.level.block;
 
+import cn.bzgzs.industrybase.api.util.TransmitHelper;
 import cn.bzgzs.industrybase.network.NetworkManager;
 import cn.bzgzs.industrybase.network.server.WaterAmountPacket;
 import cn.bzgzs.industrybase.world.level.block.entity.BlockEntityTypeList;
@@ -85,6 +86,7 @@ public class SteamEngineBlock extends BaseEntityBlock {
 			}
 			super.onRemove(state, level, pos, newState, isMoving);
 		}
+		TransmitHelper.updateOnRemove(level, state, newState, pos, AXIS);
 	}
 
 	@Override

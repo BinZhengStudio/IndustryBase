@@ -2,6 +2,7 @@ package cn.bzgzs.industrybase.world.level.block;
 
 import cn.bzgzs.industrybase.api.electric.ElectricNetwork;
 import cn.bzgzs.industrybase.api.electric.IWireConnectable;
+import cn.bzgzs.industrybase.api.util.ElectricHelper;
 import cn.bzgzs.industrybase.world.item.ItemList;
 import cn.bzgzs.industrybase.world.level.block.entity.WireConnectorBlockEntity;
 import com.google.common.collect.ImmutableMap;
@@ -68,6 +69,7 @@ public class WireConnectorBlock extends BaseEntityBlock {
 			}
 			super.onRemove(state, level, pos, newState, isMoving);
 		}
+		ElectricHelper.updateOnRemove(level, state, newState, pos, FACING);
 	}
 
 	@Nullable

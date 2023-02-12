@@ -1,12 +1,14 @@
 package cn.bzgzs.industrybase.world.level.block;
 
 import cn.bzgzs.industrybase.api.transmit.TransmitNetwork;
+import cn.bzgzs.industrybase.api.util.TransmitHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
@@ -30,6 +32,13 @@ public abstract class TransmissionRodBlock extends BaseEntityBlock {
 		super(properties.noOcclusion().randomTicks());
 		this.maxResistance = maxResistance;
 		this.registerDefaultState(this.stateDefinition.any().setValue(AXIS, Direction.Axis.X));
+	}
+
+	@Override
+	@SuppressWarnings("deprecation")
+	public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+		TransmitHelper.updateOnRemove(level, state, newState, pos, AXIS);
+		super.onRemove(state, level, pos, newState, isMoving);
 	}
 
 	@Nullable

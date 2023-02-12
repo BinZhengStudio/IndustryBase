@@ -3,7 +3,7 @@ package cn.bzgzs.industrybase.world.level.block.entity;
 import cn.bzgzs.industrybase.api.CapabilityList;
 import cn.bzgzs.industrybase.api.electric.ElectricPower;
 import cn.bzgzs.industrybase.api.transmit.MechanicalTransmit;
-import cn.bzgzs.industrybase.api.util.EnergyHelper;
+import cn.bzgzs.industrybase.api.util.TransmitHelper;
 import cn.bzgzs.industrybase.world.level.block.ElectricMotorBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -35,7 +35,7 @@ public class ElectricMotorBlockEntity extends BlockEntity {
 	}
 
 	public static void serverTick(Level level, BlockPos pos, BlockState state, ElectricMotorBlockEntity blockEntity) {
-		int maxPower = EnergyHelper.electricToTransmit(blockEntity.electricPower.getRealInput());
+		int maxPower = TransmitHelper.fromElectric(blockEntity.electricPower.getRealInput());
 		int power = blockEntity.transmit.getPower();
 		if (power < maxPower) {
 			blockEntity.transmit.setPower(power + 1);

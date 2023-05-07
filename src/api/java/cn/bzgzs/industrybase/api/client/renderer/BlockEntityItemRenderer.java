@@ -4,10 +4,10 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -29,15 +29,15 @@ public abstract class BlockEntityItemRenderer extends BlockEntityWithoutLevelRen
 	}
 
 	public abstract void beforeRender(ItemStack stack, BlockItem item, BaseEntityBlock block, BlockState state,
-									  ItemTransforms.TransformType transformType, PoseStack poseStack,
+									  ItemDisplayContext transformType, PoseStack poseStack,
 									  MultiBufferSource bufferSource, int packedLight, int packedOverlay);
 
 	public abstract void afterRender(ItemStack stack, BlockItem item, BaseEntityBlock block, BlockState state,
-									  ItemTransforms.TransformType transformType, PoseStack poseStack,
+									  ItemDisplayContext transformType, PoseStack poseStack,
 									  MultiBufferSource bufferSource, int packedLight, int packedOverlay);
 
 	@Override
-	public void renderByItem(ItemStack stack, ItemTransforms.TransformType transformType, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+	public void renderByItem(ItemStack stack, ItemDisplayContext transformType, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 		BlockEntity blockEntity;
 		if (stack.getItem() instanceof BlockItem item) {
 			if (item.getBlock() instanceof BaseEntityBlock block) {

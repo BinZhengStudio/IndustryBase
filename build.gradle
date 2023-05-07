@@ -108,10 +108,10 @@ minecraft {
 }
 
 repositories {
-	maven {
-		name = "forge"
-		url = "${mavenMirror}"
-	}
+//	maven {
+//		name = "forge"
+//		url = "${mavenMirror}"
+//	}
 }
 
 dependencies {

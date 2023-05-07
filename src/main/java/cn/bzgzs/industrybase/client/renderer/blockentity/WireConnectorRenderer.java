@@ -55,7 +55,7 @@ public class WireConnectorRenderer implements BlockEntityRenderer<WireConnectorB
 		float horizonDistance = Mth.sqrt(totalX * totalX + totalZ * totalZ);
 		boolean vertical = square == 0;
 		// 在添加顶点时，相同宽度会被添加两次，因此需要除以 2
-		float size = Mth.fastInvSqrt(square) * width / 2.0F;
+		float size = Mth.invSqrt(square) * width / 2.0F;
 		float widthY = width / 2.0F;
 		float widthX = vertical ? width / 2 : totalZ * size; // 在导线竖直下垂时，size = 0，导线不渲染，因此需要分类讨论
 		float widthZ = vertical ? width / 2 : totalX * size;

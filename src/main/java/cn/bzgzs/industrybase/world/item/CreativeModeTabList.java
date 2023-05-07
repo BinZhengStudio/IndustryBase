@@ -10,7 +10,7 @@ public class CreativeModeTabList { // 创造模式物品栏
 	public static void register(CreativeModeTabEvent.Register event) {
 		event.registerCreativeModeTab(new ResourceLocation(IndustryBaseApi.MODID, "industrybase"), (builder) -> {
 			builder.icon(() -> new ItemStack(ItemList.ELECTRIC_MOTOR.get())).title(Component.translatable("itemGroup.industrybase"))
-					.displayItems((set, output, flag) -> {
+					.displayItems((set, output) -> {
 						output.accept(ItemList.WIRE_COIL.get());
 						output.accept(ItemList.DYNAMO.get());
 						output.accept(ItemList.OAK_TRANSMISSION_ROD.get());

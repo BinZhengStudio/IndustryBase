@@ -11,7 +11,7 @@ displayName="Industry Base"
 displayURL="https://github.com/BinZhengStudio/IndustryBase/" #optional
 logoFile="industrybase.png" #optional
 credits="Make Minecraft great again!" #optional
-authors="BinZhengStudio vvvbbbcz FengMing suifeng7663" #optional
+authors="BinZhengStudio vvvbbbcz FengMing suifeng333" #optional
 # Display Test controls the display for your mod in the server connection screen
 # MATCH_VERSION means that your mod will cause a red X if the versions on client and server differ. This is the default behaviour and should be what you choose if you have server and client elements to your mod.
 # IGNORE_SERVER_VERSION means that your mod will not cause a red X if it's present on the server but not on the client. This is what you should use if you're a server only mod.
@@ -27,13 +27,13 @@ description='''
 [[dependencies.industrybase]] #optional
     modId="forge"
     mandatory=true
-    versionRange="[44,)"
+    versionRange="[45.0.1,)"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.industrybase]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.19.3]"
+    versionRange="[1.19.4]"
     ordering="NONE"
     side="BOTH"

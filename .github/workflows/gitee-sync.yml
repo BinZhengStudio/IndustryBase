@@ -1,4 +1,4 @@
-name: '同步到 Gitee'
+name: 'Sync'
 
 on: [push, delete]
 
@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: '检出仓库'
         uses: actions/checkout@v1
-      - name: '强制同步到 Gitee'
+      - name: '同步到 Gitee'
         uses: pixta-dev/repository-mirroring-action@v1
         with:
           target_repo_url:

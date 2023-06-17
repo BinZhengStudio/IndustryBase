@@ -26,10 +26,9 @@ public class IndustryBase {
 		// 注册事件监听
 		BlockList.BLOCKS.register(modBus);
 		BlockEntityTypeList.BLOCK_ENTITY_TYPES.register(modBus);
+		CreativeModeTabList.CREATIVE_MODE_TABS.register(modBus);
 		MenuTypeList.MENU_TYPES.register(modBus);
 		ItemList.ITEMS.register(modBus);
-
-		modBus.addListener(CreativeModeTabList::register);
 
 		// 添加事件监听
 		modBus.addListener(this::setup);

@@ -18,7 +18,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.material.Material;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -49,7 +48,7 @@ public class WireBlock extends BaseEntityBlock {
 	private static final Map<BlockState, VoxelShape> SHAPES = new HashMap<>();
 
 	protected WireBlock() {
-		super(Properties.of(Material.GLASS).strength(0.5F).sound(SoundType.METAL).noOcclusion());
+		super(Properties.of().strength(0.5F).sound(SoundType.METAL).noOcclusion());
 
 		BlockState defaultState = this.stateDefinition.any();
 		for (Direction direction : Direction.values()) {

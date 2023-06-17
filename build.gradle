@@ -1,15 +1,20 @@
 plugins {
 	id 'eclipse'
+	id 'idea'
 	id 'maven-publish'
-	id 'net.minecraftforge.gradle' version '5.1.+'
+	id 'net.minecraftforge.gradle' version '[6.0,6.2)'
 	id 'org.parchmentmc.librarian.forgegradle' version '1.+'
 }
 
-version = modVersion
-group = modGroup
-archivesBaseName = "${modId}-${mcVersion}"
+version = mod_version
+group = mod_group_id
+base {
+	archivesName = "${mod_id}-${minecraft_version}"
+}
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
 
 sourceSets {
 	api {
@@ -24,9 +29,13 @@ sourceSets {
 	}
 }
 
-println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
 minecraft {
-	mappings channel: 'parchment', version: "${parchmentVersion}-${mcVersion}"
+	mappings channel: mapping_channel, version: "${mapping_version}-${minecraft_version}"
+
+	// This property allows configuring Gradle's ProcessResources task(s) to run on IDE output locations before launching the game.
+	// It is REQUIRED to be set to true for this template to function.
+	// See https://docs.gradle.org/current/dsl/org.gradle.language.jvm.tasks.ProcessResources.html
+	copyIdeResources = true
 
 	// accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
 
@@ -43,10 +52,10 @@ minecraft {
 
 			property 'forge.logging.console.level', 'info'
 
-			property 'forge.enabledGameTestNamespaces', 'industrybase'
+			property 'forge.enabledGameTestNamespaces', mod_id
 
 			mods {
-				industrybase {
+				"${mod_id}" {
 					source sourceSets.main
 					source sourceSets.api
 				}
@@ -60,10 +69,10 @@ minecraft {
 
 			property 'forge.logging.console.level', 'info'
 
-			property 'forge.enabledGameTestNamespaces', 'industrybase'
+			property 'forge.enabledGameTestNamespaces', mod_id
 
 			mods {
-				industrybase {
+				"${mod_id}" {
 					source sourceSets.main
 					source sourceSets.api
 				}
@@ -77,10 +86,10 @@ minecraft {
 
 			property 'forge.logging.console.level', 'info'
 
-			property 'forge.enabledGameTestNamespaces', 'industrybase'
+			property 'forge.enabledGameTestNamespaces', mod_id
 
 			mods {
-				industrybase {
+				"${mod_id}" {
 					source sourceSets.main
 					source sourceSets.api
 				}
@@ -94,11 +103,11 @@ minecraft {
 
 			property 'forge.logging.console.level', 'info'
 
-			// Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
-			args '--mod', 'industrybase', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+			// Specify the mod_id for data generation, where to output the resulting resource, and where to look for existing resources.
+			args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
 
 			mods {
-				industrybase {
+				"${mod_id}" {
 					source sourceSets.main
 					source sourceSets.api
 				}
@@ -110,21 +119,42 @@ minecraft {
 repositories {
 //	maven {
 //		name = "forge"
-//		url = "${mavenMirror}"
+//		url = "${maven_mirror}"
 //	}
 }
 
 dependencies {
-	minecraft "net.minecraftforge:forge:${mcVersion}-${forgeVersion}"
+	minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+}
+
+// This block of code expands all declared replace properties in the specified resource targets.
+// A missing property will result in an error. Properties are expanded using ${} Groovy notation.
+// When "copyIdeResources" is enabled, this will also run before the game launches in IDE environments.
+// See https://docs.gradle.org/current/dsl/org.gradle.language.jvm.tasks.ProcessResources.html
+def resourceTargets = ['META-INF/mods.toml', 'pack.mcmeta']
+def replaceProperties = [
+		minecraft_version: minecraft_version, minecraft_version_range: minecraft_version_range,
+		forge_version: forge_version, forge_version_range: forge_version_range,
+		loader_version_range: loader_version_range,
+		mod_id: mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
+		mod_authors: mod_authors, mod_description: mod_description
+]
+processResources {
+	inputs.properties replaceProperties
+	replaceProperties.put 'project', project
+
+	filesMatching(resourceTargets) {
+		expand replaceProperties
+	}
 }
 
 var manifest_info = [
-		"Specification-Title"     : modName,
-		"Specification-Vendor"    : modAuthor,
-		"Specification-Version"   : modSpecVersion,
-		"Implementation-Title"    : modName,
-		"Implementation-Version"  : modVersion,
-		"Implementation-Vendor"   : modAuthor,
+		"Specification-Title"     : mod_id,
+		"Specification-Vendor"    : mod_authors,
+		"Specification-Version"   : "1",
+		"Implementation-Title"    : project.name,
+		"Implementation-Version"  : project.jar.archiveVersion,
+		"Implementation-Vendor"   : mod_authors,
 		"Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
 ]
 
@@ -135,24 +165,18 @@ jar {
 	}
 }
 
-task apiJar(type: Jar, dependsOn: apiClasses) {
-	classifier = 'api'
+tasks.register('apiJar', Jar) {
+	dependsOn apiClasses
+	archiveClassifier = 'api'
 	from sourceSets.api.output
 	manifest {
 		attributes(manifest_info)
 	}
 }
 
-task apiSourceJar(type: Jar, dependsOn: apiClasses) {
-	classifier = 'api-source'
-	from sourceSets.api.allSource
-	manifest {
-		attributes(manifest_info)
-	}
-}
-
-task sourcesJar(type: Jar, dependsOn: classes) {
-	classifier = 'sources'
+tasks.register('sourcesJar', Jar) {
+	dependsOn classes
+	archiveClassifier = 'sources'
 	from sourceSets.main.allSource
 	from sourceSets.api.allSource
 	manifest {
@@ -163,7 +187,6 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 artifacts {
 	archives sourcesJar
 	archives apiJar
-	archives apiSourceJar
 }
 
 // Example configuration to allow publishing using the maven-publish plugin
@@ -179,7 +202,7 @@ publishing {
 		}
 	}
 	publications {
-		mavenJar(MavenPublication) {
+		mavenJava(MavenPublication) {
 			artifactId = archivesBaseName
 			artifact jar
 			artifact sourcesJar

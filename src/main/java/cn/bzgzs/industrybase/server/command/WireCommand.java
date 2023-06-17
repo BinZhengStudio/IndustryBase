@@ -31,7 +31,7 @@ public class WireCommand {
 									BlockEntity blockEntity = level.getBlockEntity(from);
 									if (blockEntity instanceof IWireConnectable && level.getBlockEntity(to) instanceof IWireConnectable) {
 										if (ConnectHelper.addConnect(level, from, to, blockEntity::setChanged)) {
-											source.sendSuccess(Component.translatable("commands." + IndustryBaseApi.MODID + ".wire.success", from.getX(), from.getY(), from.getZ(), to.getX(), to.getY(), to.getZ()), true);
+											source.sendSuccess(() -> Component.translatable("commands." + IndustryBaseApi.MODID + ".wire.success", from.getX(), from.getY(), from.getZ(), to.getX(), to.getY(), to.getZ()), true);
 										} else {
 											throw ERROR_CONNECT_FAILED.create();
 										}

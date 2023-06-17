@@ -14,22 +14,18 @@ public class TransmitHelper {
 
 	/**
 	 * 本方法应在 {@link BlockBehaviour#onRemove} 中调用。
-	 * @param level level
-	 * @param state old state
-	 * @param newState new state
-	 * @param pos BlockPos
+	 *
+	 * @param level      level
+	 * @param state      old state
+	 * @param newState   new state
+	 * @param pos        BlockPos
 	 * @param properties 需要比较的 Property
 	 */
 	@SuppressWarnings("deprecation")
 	public static void updateOnRemove(LevelAccessor level, BlockState state, BlockState newState, BlockPos pos, Property<?>... properties) {
-		if (state.is(newState.getBlock())) { // 确保是同种方块
-			for (Property<?> property : properties) { // 若新方块与旧方块相关的 state 有不相等的情况，则更新能量网络
-				if (state.getValue(property) != newState.getValue(property)) {
-					TransmitNetwork.Manager.get(level).addOrChangeBlock(pos, () -> {
-					});
-					return;
-				}
-			}
+		if (state.is(newState.getBlock())) { // 确保是同种方块，防止重复更新
+			TransmitNetwork.Manager.get(level).addOrChangeBlock(pos, () -> {
+			});
 		}
 	}
 }

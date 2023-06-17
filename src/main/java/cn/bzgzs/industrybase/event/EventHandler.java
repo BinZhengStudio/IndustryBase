@@ -19,10 +19,10 @@ public class EventHandler {
 	public static void sendInitialInfoToPlayer(PlayerEvent.PlayerLoggedInEvent event) {
 		if (event.getEntity() instanceof ServerPlayer player) {
 			// 向新进入的玩家发送传动网络的相关数据
-			TransmitNetwork transmitNetwork = TransmitNetwork.Manager.get(player.level);
+			TransmitNetwork transmitNetwork = TransmitNetwork.Manager.get(player.level());
 			NetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new TransmitInitInfoPacket(transmitNetwork.getSpeedCollection(), transmitNetwork.getRootCollection()));
 
-			ElectricNetwork electricNetwork = ElectricNetwork.Manager.get(player.level);
+			ElectricNetwork electricNetwork = ElectricNetwork.Manager.get(player.level());
 			NetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new ElectricInitInfoPacket(electricNetwork.getWireConn().asMap()));
 		}
 	}

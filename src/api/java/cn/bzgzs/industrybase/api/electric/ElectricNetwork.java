@@ -155,6 +155,7 @@ public class ElectricNetwork {
 			for (Direction side : Direction.values()) {
 				this.cutSide(pos, side);
 			}
+			this.FEMachines.removeAll(pos); // 移除相应的 FE 机器
 			if (!this.wireConn.get(pos).isEmpty()) {
 				SetMultimap<BlockPos, BlockPos> multimap = HashMultimap.create();
 				for (BlockPos another : new HashSet<>(this.wireConn.get(pos))) { // 需要在迭代时修改，所以这里要复制一下集合

@@ -1,6 +1,7 @@
 package cn.bzgzs.industrybase.world.level.block;
 
 import cn.bzgzs.industrybase.api.CapabilityList;
+import cn.bzgzs.industrybase.api.electric.ElectricNetwork;
 import cn.bzgzs.industrybase.world.level.block.entity.WireBlockEntity;
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.core.BlockPos;
@@ -71,6 +72,18 @@ public class WireBlock extends BaseEntityBlock {
 		}
 
 		return shape;
+	}
+
+	@SuppressWarnings("deprecation")
+	@Override
+	public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
+		super.neighborChanged(state, level, pos, block, fromPos, isMoving);
+		if (!level.isClientSide()) {
+			BlockEntity blockEntity = level.getBlockEntity(pos);
+			if (blockEntity != null) {
+				ElectricNetwork.Manager.get(level).addOrChangeBlock(pos, blockEntity::setChanged);
+			}
+		}
 	}
 
 	@Nullable

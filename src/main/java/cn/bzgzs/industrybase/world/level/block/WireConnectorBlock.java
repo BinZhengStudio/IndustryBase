@@ -14,6 +14,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
@@ -47,7 +49,7 @@ public class WireConnectorBlock extends BaseEntityBlock {
 		super(Properties.copy(BlockList.WIRE.get()));
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.DOWN));
 
-		for(BlockState state : this.getStateDefinition().getPossibleStates()) {
+		for (BlockState state : this.getStateDefinition().getPossibleStates()) {
 			SHAPES.put(state, Shapes.or(CORE, SHAPES_DIRECTION.get(state.getValue(FACING))));
 		}
 	}
@@ -70,6 +72,28 @@ public class WireConnectorBlock extends BaseEntityBlock {
 			super.onRemove(state, level, pos, newState, isMoving);
 		}
 		ElectricHelper.updateOnRemove(level, state, newState, pos, FACING);
+	}
+
+//	@Override
+//	public void onNeighborChange(BlockState state, LevelReader level, BlockPos pos, BlockPos neighbor) {
+//		if (!level.isClientSide()) {
+//			BlockEntity tileEntity = level.getBlockEntity(pos);
+//			if (tileEntity instanceof FEDemoWireTileEntity) {
+//				ElectricNetwork.Manager.get(level).enableBlock(pos, tileEntity::markDirty);
+//			}
+//		}
+//	}
+
+	@SuppressWarnings("deprecation")
+	@Override
+	public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
+		super.neighborChanged(state, level, pos, block, fromPos, isMoving);
+		if (!level.isClientSide()) {
+			BlockEntity blockEntity = level.getBlockEntity(pos);
+			if (blockEntity != null) {
+				ElectricNetwork.Manager.get(level).addOrChangeBlock(pos, blockEntity::setChanged);
+			}
+		}
 	}
 
 	@Nullable

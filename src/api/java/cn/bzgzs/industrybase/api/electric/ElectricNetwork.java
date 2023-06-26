@@ -6,6 +6,7 @@ import com.google.common.collect.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
@@ -281,14 +282,14 @@ public class ElectricNetwork {
 			for (Direction side : Direction.values()) {
 				if (this.hasElectricalCapability(pos, side)) {
 					if (this.hasElectricalCapability(pos.relative(side), side.getOpposite())) {
-						this.FEMachines.remove(pos, side);
+						this.FEMachines.remove(pos.immutable(), side);
 						this.linkSide(pos, side);
 					} else if (this.hasFECapability(pos.relative(side), side.getOpposite())) {
 						this.FEMachines.put(pos.immutable(), side);
 						this.cutSide(pos, side);
 					}
 				} else {
-					this.FEMachines.remove(pos, side);
+					this.FEMachines.remove(pos.immutable(), side);
 					this.cutSide(pos, side);
 				}
 			}

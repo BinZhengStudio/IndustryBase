@@ -49,7 +49,7 @@ public class ElectricMotorBlockEntity extends BlockEntity {
 		if (side == this.getBlockState().getValue(ElectricMotorBlock.FACING)) {
 			return cap == CapabilityList.MECHANICAL_TRANSMIT ? this.transmit.cast() : super.getCapability(cap, side);
 		} else if (side == this.getBlockState().getValue(ElectricMotorBlock.FACING).getOpposite()) {
-			return cap == CapabilityList.ELECTRIC_POWER ? this.electricPower.cast() : super.getCapability(cap, side);
+			return this.electricPower.cast(cap, super.getCapability(cap, side));
 		}
 		return super.getCapability(cap, side);
 	}

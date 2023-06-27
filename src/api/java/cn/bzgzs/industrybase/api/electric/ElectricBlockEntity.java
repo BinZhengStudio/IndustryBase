@@ -1,6 +1,5 @@
 package cn.bzgzs.industrybase.api.electric;
 
-import cn.bzgzs.industrybase.api.CapabilityList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -28,10 +27,7 @@ public class ElectricBlockEntity extends BlockEntity {
 
 	@Override
 	public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-		if (cap == CapabilityList.ELECTRIC_POWER) {
-			return this.electricPower.cast();
-		}
-		return super.getCapability(cap, side);
+		return this.electricPower.cast(cap, super.getCapability(cap, side));
 	}
 
 	@Override

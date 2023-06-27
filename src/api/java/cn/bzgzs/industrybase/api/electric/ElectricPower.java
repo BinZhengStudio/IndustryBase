@@ -1,5 +1,6 @@
 package cn.bzgzs.industrybase.api.electric;
 
+import cn.bzgzs.industrybase.api.CapabilityList;
 import cn.bzgzs.industrybase.api.energy.IElectricPower;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import net.minecraft.core.BlockPos;
@@ -8,7 +9,9 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
@@ -23,17 +26,25 @@ public class ElectricPower implements IElectricPower {
 	private final BlockPos pos;
 	@Nullable
 	private ElectricNetwork network;
-	private final LazyOptional<IElectricPower> lazyOptional;
+	private final LazyOptional<IElectricPower> EPOptional;
+	private final LazyOptional<IEnergyStorage> FEOptional;
 
 	public ElectricPower(BlockEntity blockEntity) {
 		this.blockEntity = blockEntity;
 		this.pos = blockEntity.getBlockPos();
 		this.tmpConn = new HashSet<>();
-		this.lazyOptional = LazyOptional.of(() -> this);
+		this.EPOptional = LazyOptional.of(() -> this);
+		this.FEOptional = LazyOptional.of(ForgeEnergy::new);
 	}
 
-	public <X> LazyOptional<X> cast() {
-		return this.lazyOptional.cast();
+	public <X> LazyOptional<X> cast(Capability<X> cap, LazyOptional<X> defaultCap) {
+		if (cap == CapabilityList.ELECTRIC_POWER) {
+			return this.EPOptional.cast();
+		} else if (cap == CapabilityList.MECHANICAL_TRANSMIT) {
+			return this.FEOptional.cast();
+		} else {
+			return defaultCap;
+		}
 	}
 
 	/**
@@ -146,5 +157,37 @@ public class ElectricPower implements IElectricPower {
 		}
 		tag.put("ElectricPower", nbt);
 		return tag;
+	}
+
+	private class ForgeEnergy implements IEnergyStorage {
+		@Override
+		public int receiveEnergy(int maxReceive, boolean simulate) {
+			return (int) Math.floor(ElectricPower.this.network.totalInput(ElectricPower.this.blockEntity.getBlockPos()));
+		}
+
+		@Override
+		public int extractEnergy(int maxExtract, boolean simulate) {
+			return 0;
+		}
+
+		@Override
+		public int getEnergyStored() {
+			return (int) Math.floor(ElectricPower.this.network.totalOutput(ElectricPower.this.blockEntity.getBlockPos()));
+		}
+
+		@Override
+		public int getMaxEnergyStored() {
+			return Integer.MAX_VALUE;
+		}
+
+		@Override
+		public boolean canExtract() {
+			return false;
+		}
+
+		@Override
+		public boolean canReceive() {
+			return true;
+		}
 	}
 }

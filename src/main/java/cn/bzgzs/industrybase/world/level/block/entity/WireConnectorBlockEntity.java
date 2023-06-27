@@ -1,6 +1,5 @@
 package cn.bzgzs.industrybase.world.level.block.entity;
 
-import cn.bzgzs.industrybase.api.CapabilityList;
 import cn.bzgzs.industrybase.api.electric.ElectricPower;
 import cn.bzgzs.industrybase.api.electric.IWireConnectable;
 import cn.bzgzs.industrybase.world.level.block.DynamoBlock;
@@ -31,7 +30,7 @@ public class WireConnectorBlockEntity extends BlockEntity implements IWireConnec
 	@Override
 	public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
 		if (side == this.getBlockState().getValue(DynamoBlock.FACING)) {
-			return cap == CapabilityList.ELECTRIC_POWER ? this.electricPower.cast() : super.getCapability(cap, side);
+			return this.electricPower.cast(cap, super.getCapability(cap, side));
 		}
 		return super.getCapability(cap, side);
 	}

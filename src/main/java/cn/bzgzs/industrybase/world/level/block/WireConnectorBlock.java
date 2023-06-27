@@ -14,8 +14,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
@@ -73,16 +71,6 @@ public class WireConnectorBlock extends BaseEntityBlock {
 		}
 		ElectricHelper.updateOnRemove(level, state, newState, pos, FACING);
 	}
-
-//	@Override
-//	public void onNeighborChange(BlockState state, LevelReader level, BlockPos pos, BlockPos neighbor) {
-//		if (!level.isClientSide()) {
-//			BlockEntity tileEntity = level.getBlockEntity(pos);
-//			if (tileEntity instanceof FEDemoWireTileEntity) {
-//				ElectricNetwork.Manager.get(level).enableBlock(pos, tileEntity::markDirty);
-//			}
-//		}
-//	}
 
 	@SuppressWarnings("deprecation")
 	@Override

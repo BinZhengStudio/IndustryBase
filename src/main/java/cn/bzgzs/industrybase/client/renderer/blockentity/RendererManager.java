@@ -1,6 +1,7 @@
 package cn.bzgzs.industrybase.client.renderer.blockentity;
 
 import cn.bzgzs.industrybase.api.IndustryBaseApi;
+import cn.bzgzs.industrybase.api.client.renderer.blockentity.WireConnectableRenderer;
 import cn.bzgzs.industrybase.world.level.block.entity.BlockEntityTypeList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
@@ -64,7 +65,7 @@ public class RendererManager {
 		event.registerBlockEntityRenderer(BlockEntityTypeList.GOLD_TRANSMISSION_ROD.get(), TransmissionRodRenderer::new);
 		event.registerBlockEntityRenderer(BlockEntityTypeList.DIAMOND_TRANSMISSION_ROD.get(), TransmissionRodRenderer::new);
 		event.registerBlockEntityRenderer(BlockEntityTypeList.STEAM_ENGINE.get(), SteamEngineRenderer::new);
-		event.registerBlockEntityRenderer(BlockEntityTypeList.WIRE_CONNECTOR.get(), WireConnectorRenderer::new);
+		event.registerBlockEntityRenderer(BlockEntityTypeList.WIRE_CONNECTOR.get(), WireConnectableRenderer::new);
 	}
 
 	@SubscribeEvent

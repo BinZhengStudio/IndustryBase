@@ -1,7 +1,7 @@
-package cn.bzgzs.industrybase.network.server;
+package cn.bzgzs.industrybase.api.network.server;
 
+import cn.bzgzs.industrybase.api.network.CustomPacket;
 import cn.bzgzs.industrybase.api.transmit.TransmitNetwork;
-import cn.bzgzs.industrybase.network.CustomPacket;
 import com.google.common.collect.Sets;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;

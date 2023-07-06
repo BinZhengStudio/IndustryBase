@@ -1,6 +1,6 @@
 package cn.bzgzs.industrybase.network.server;
 
-import cn.bzgzs.industrybase.network.CustomPacket;
+import cn.bzgzs.industrybase.api.network.CustomPacket;
 import cn.bzgzs.industrybase.world.level.block.entity.SteamEngineBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;

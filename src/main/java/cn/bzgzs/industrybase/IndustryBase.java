@@ -1,6 +1,7 @@
 package cn.bzgzs.industrybase;
 
 import cn.bzgzs.industrybase.api.IndustryBaseApi;
+import cn.bzgzs.industrybase.api.network.ApiNetworkManager;
 import cn.bzgzs.industrybase.client.gui.screens.MenuScreenManager;
 import cn.bzgzs.industrybase.network.NetworkManager;
 import cn.bzgzs.industrybase.world.inventory.MenuTypeList;
@@ -36,6 +37,7 @@ public class IndustryBase {
 	}
 
 	private void setup(final FMLCommonSetupEvent event) { // 双端都要执行的初始化
+		event.enqueueWork(ApiNetworkManager::register); // 网络通信注册
 		event.enqueueWork(NetworkManager::register); // 网络通信注册
 	}
 

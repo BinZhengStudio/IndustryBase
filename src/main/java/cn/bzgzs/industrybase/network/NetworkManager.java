@@ -1,7 +1,8 @@
 package cn.bzgzs.industrybase.network;
 
 import cn.bzgzs.industrybase.api.IndustryBaseApi;
-import cn.bzgzs.industrybase.network.server.*;
+import cn.bzgzs.industrybase.api.network.CustomPacket;
+import cn.bzgzs.industrybase.network.server.WaterAmountPacket;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkDirection;
@@ -17,13 +18,6 @@ public class NetworkManager {
 
 	public static void register() {
 		mainThread(WaterAmountPacket.class, WaterAmountPacket::new, NetworkDirection.PLAY_TO_CLIENT);
-
-		networkThread(TransmitInitInfoPacket.class, TransmitInitInfoPacket::new, NetworkDirection.PLAY_TO_CLIENT);
-		networkThread(TransmitSpeedSyncPacket.class, TransmitSpeedSyncPacket::new, NetworkDirection.PLAY_TO_CLIENT);
-		networkThread(TransmitRootSyncPacket.class, TransmitRootSyncPacket::new, NetworkDirection.PLAY_TO_CLIENT);
-		networkThread(ElectricInitInfoPacket.class, ElectricInitInfoPacket::new, NetworkDirection.PLAY_TO_CLIENT);
-		networkThread(ElectricWireConnAddPacket.class, ElectricWireConnAddPacket::new, NetworkDirection.PLAY_TO_CLIENT);
-		networkThread(ElectricWireConnRemovePacket.class, ElectricWireConnRemovePacket::new, NetworkDirection.PLAY_TO_CLIENT);
 	}
 
 	private static <M extends CustomPacket> void mainThread(Class<M> packet, Function<FriendlyByteBuf, M> decoder, NetworkDirection direction) {

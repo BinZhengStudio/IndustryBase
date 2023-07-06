@@ -2,6 +2,8 @@ package cn.bzgzs.industrybase.api.electric;
 
 import cn.bzgzs.industrybase.api.CapabilityList;
 import cn.bzgzs.industrybase.api.energy.IElectricPower;
+import cn.bzgzs.industrybase.api.network.ApiNetworkManager;
+import cn.bzgzs.industrybase.api.network.client.UnsubscribeWireConnPacket;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -12,8 +14,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.IEnergyStorage;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -51,7 +53,7 @@ public class ElectricPower implements IElectricPower {
 	 * 向电力网络注册该方块。
 	 * 需要在 {@link BlockEntity#onLoad()} 中执行一次。
 	 */
-	public void registerToNetwork() {
+	public void register() {
 		Optional.ofNullable(this.blockEntity.getLevel()).ifPresent(level -> {
 			this.network = ElectricNetwork.Manager.get(level);
 			if (!level.isClientSide) {
@@ -66,14 +68,24 @@ public class ElectricPower implements IElectricPower {
 
 	/**
 	 * 将此方块从电力网络中移除。
-	 * 在 {@link BlockEntity#onChunkUnloaded()} 和 {@link BlockEntity#setRemoved()} 中都要执行。
+	 * 在 {@link BlockEntity#setRemoved()} 中执行。
 	 */
-	public void removeFromNetwork() {
+	public void remove() {
 		Optional.ofNullable(this.blockEntity.getLevel()).ifPresent(level -> {
-			if (this.network != null && !level.isClientSide) {
-				this.network.removeBlock(this.pos, this.blockEntity::setChanged);
+			if (this.network != null) {
+				if (level.isClientSide) {
+					ApiNetworkManager.INSTANCE.sendToServer(new UnsubscribeWireConnPacket(this.pos));
+					ElectricNetwork.Manager.get(level).removeClientWires(this.pos);
+				} else {
+					this.network.removeBlock(this.pos, this.blockEntity::setChanged);
+				}
 			}
 		});
+	}
+
+	@Nullable
+	public ElectricNetwork getNetwork() {
+		return this.network;
 	}
 
 	@Override

@@ -1,4 +1,4 @@
-package cn.bzgzs.industrybase.network;
+package cn.bzgzs.industrybase.api.network;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;

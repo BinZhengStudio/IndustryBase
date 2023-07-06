@@ -22,7 +22,7 @@ public class ElectricBlockEntity extends BlockEntity {
 	@Override
 	public void onLoad() {
 		super.onLoad();
-		this.electricPower.registerToNetwork();
+		this.electricPower.register();
 	}
 
 	@Override
@@ -31,14 +31,8 @@ public class ElectricBlockEntity extends BlockEntity {
 	}
 
 	@Override
-	public void onChunkUnloaded() {
-		this.electricPower.removeFromNetwork();
-		super.onChunkUnloaded();
-	}
-
-	@Override
 	public void setRemoved() {
-		this.electricPower.removeFromNetwork();
+		this.electricPower.remove();
 		super.setRemoved();
 	}
 

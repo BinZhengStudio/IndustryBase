@@ -30,7 +30,7 @@ public class ElectricMotorBlockEntity extends BlockEntity {
 		super.onLoad();
 		this.transmit.registerToNetwork();
 		this.transmit.setResistance(RESISTANCE);
-		this.electricPower.registerToNetwork();
+		this.electricPower.register();
 		this.electricPower.setInputPower(5.0D);
 	}
 
@@ -55,16 +55,9 @@ public class ElectricMotorBlockEntity extends BlockEntity {
 	}
 
 	@Override
-	public void onChunkUnloaded() {
-		this.transmit.removeFromNetwork();
-		this.electricPower.removeFromNetwork();
-		super.onChunkUnloaded();
-	}
-
-	@Override
 	public void setRemoved() {
 		this.transmit.removeFromNetwork();
-		this.electricPower.removeFromNetwork();
+		this.electricPower.remove();
 		super.setRemoved();
 	}
 

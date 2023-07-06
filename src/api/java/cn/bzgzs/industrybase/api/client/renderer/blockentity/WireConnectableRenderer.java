@@ -1,7 +1,8 @@
-package cn.bzgzs.industrybase.client.renderer.blockentity;
+package cn.bzgzs.industrybase.api.client.renderer.blockentity;
 
-import cn.bzgzs.industrybase.api.electric.ElectricNetwork;
-import cn.bzgzs.industrybase.world.level.block.entity.WireConnectorBlockEntity;
+import cn.bzgzs.industrybase.api.electric.IWireConnectable;
+import cn.bzgzs.industrybase.api.network.ApiNetworkManager;
+import cn.bzgzs.industrybase.api.network.client.SubscribeWireConnPacket;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.LightTexture;
@@ -13,17 +14,16 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
-import java.util.Optional;
-
-public class WireConnectorRenderer implements BlockEntityRenderer<WireConnectorBlockEntity> {
-	public WireConnectorRenderer(BlockEntityRendererProvider.Context context) {
+public class WireConnectableRenderer<T extends BlockEntity> implements BlockEntityRenderer<T> {
+	public WireConnectableRenderer(BlockEntityRendererProvider.Context context) {
 	}
 
 	@Override
-	public boolean shouldRenderOffScreen(WireConnectorBlockEntity blockEntity) {
+	public boolean shouldRenderOffScreen(T blockEntity) {
 		return true;
 	}
 
@@ -33,14 +33,17 @@ public class WireConnectorRenderer implements BlockEntityRenderer<WireConnectorB
 	}
 
 	@Override
-	public void render(WireConnectorBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-		Optional.ofNullable(blockEntity.getLevel()).ifPresent(level -> {
-			ElectricNetwork network = ElectricNetwork.Manager.get(level);
-			network.wireConnects(blockEntity.getBlockPos()).forEach(pos -> this.renderWire(blockEntity, blockEntity.getBlockPos(), pos, partialTick, poseStack, bufferSource, packedLight, packedOverlay));
-		});
+	public void render(T blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+		if (blockEntity instanceof IWireConnectable connectable) {
+			if (!connectable.isSubscribed()) {
+				ApiNetworkManager.INSTANCE.sendToServer(new SubscribeWireConnPacket(blockEntity.getBlockPos()));
+				connectable.setSubscribed();
+			}
+			connectable.getWires().forEach(pos -> this.renderWire(blockEntity, blockEntity.getBlockPos(), pos, poseStack, bufferSource));
+		}
 	}
 
-	private void renderWire(WireConnectorBlockEntity blockEntity, BlockPos from, BlockPos to, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int pPackedLight, int pPackedOverlay) {
+	private void renderWire(T blockEntity, BlockPos from, BlockPos to, PoseStack poseStack, MultiBufferSource bufferSource) {
 		poseStack.pushPose();
 		poseStack.translate(0.5D, 0.5D, 0.5D);
 		Vec3 start = Vec3.atCenterOf(from);

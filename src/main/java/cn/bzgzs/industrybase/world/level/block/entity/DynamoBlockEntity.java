@@ -31,7 +31,7 @@ public class DynamoBlockEntity extends BlockEntity {
 		super.onLoad();
 		this.transmit.registerToNetwork();
 		this.transmit.setResistance(RESISTANCE);
-		this.electricPower.registerToNetwork();
+		this.electricPower.register();
 	}
 
 	public static void serverTick(Level level, BlockPos pos, BlockState state, DynamoBlockEntity blockEntity) {
@@ -53,16 +53,9 @@ public class DynamoBlockEntity extends BlockEntity {
 	}
 
 	@Override
-	public void onChunkUnloaded() {
-		this.transmit.removeFromNetwork();
-		this.electricPower.removeFromNetwork();
-		super.onChunkUnloaded();
-	}
-
-	@Override
 	public void setRemoved() {
 		this.transmit.removeFromNetwork();
-		this.electricPower.removeFromNetwork();
+		this.electricPower.remove();
 		super.setRemoved();
 	}
 

@@ -1,19 +1,21 @@
 package cn.bzgzs.industrybase.api.electric;
 
 import cn.bzgzs.industrybase.api.CapabilityList;
-import cn.bzgzs.industrybase.api.event.ElectricNetworkEvent;
+import cn.bzgzs.industrybase.api.network.ApiNetworkManager;
+import cn.bzgzs.industrybase.api.network.server.RemoveWiresPacket;
+import cn.bzgzs.industrybase.api.network.server.WireConnChangedPacket;
 import com.google.common.collect.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.network.PacketDistributor;
 
 import java.util.*;
 
@@ -29,6 +31,7 @@ public class ElectricNetwork {
 	private final Map<BlockPos, Double> machineOutput;
 	private final Map<BlockPos, Double> machineInput;
 	private final SetMultimap<BlockPos, Direction> FEMachines;
+	private final SetMultimap<BlockPos, ServerPlayer> subscribedWire;
 
 	public ElectricNetwork(LevelAccessor level) {
 		this.random = new Random();
@@ -42,6 +45,7 @@ public class ElectricNetwork {
 		this.machineOutput = new HashMap<>();
 		this.machineInput = new HashMap<>();
 		this.FEMachines = Multimaps.newSetMultimap(new HashMap<>(), () -> EnumSet.noneOf(Direction.class));
+		this.subscribedWire = HashMultimap.create();
 	}
 
 	public int size(BlockPos pos) {
@@ -66,25 +70,41 @@ public class ElectricNetwork {
 		return this.inputCollection.getOrDefault(root, 0.0D);
 	}
 
-	public SetMultimap<BlockPos, BlockPos> getWireConn() {
-		return HashMultimap.create(this.wireConn);
+	public Set<BlockPos> getWireConn(BlockPos pos) {
+		return this.wireConn.get(pos);
 	}
 
-	public void clientInitData(Map<BlockPos, Collection<BlockPos>> wireConn) {
+	public Set<BlockPos> subscribeWire(BlockPos pos, ServerPlayer player) {
+		this.subscribedWire.put(pos, player);
+		return this.wireConn.get(pos);
+	}
+
+	public void unsubscribeWire(BlockPos pos, ServerPlayer player) {
+		this.subscribedWire.remove(pos, player);
+	}
+
+	public void addClientWireConn(BlockPos pos, Collection<BlockPos> data) {
 		if (this.level.isClientSide()) {
-			wireConn.forEach(this.wireConn::putAll);
+			this.wireConn.putAll(pos, data);
 		}
 	}
 
-	public void addWireConn(Map<BlockPos, Collection<BlockPos>> data) {
+	public void addClientWireConn(BlockPos from, BlockPos to) {
 		if (this.level.isClientSide()) {
-			data.forEach(this.wireConn::putAll);
+			this.wireConn.put(from, to);
 		}
 	}
 
-	public void removeWireConn(Map<BlockPos, Collection<BlockPos>> data) {
+	public void removeClientWire(BlockPos from, BlockPos to) {
 		if (this.level.isClientSide()) {
-			data.forEach((pos, set) -> set.forEach(blockPos -> this.wireConn.remove(pos, blockPos)));
+			this.wireConn.remove(from, to);
+		}
+	}
+
+	public void removeClientWires(BlockPos from) {
+		if (this.level.isClientSide()) {
+			this.wireConn.get(from).forEach(to -> this.wireConn.remove(to, from));
+			this.wireConn.removeAll(from);
 		}
 	}
 
@@ -168,7 +188,8 @@ public class ElectricNetwork {
 					}
 					this.level.getChunk(another).setUnsaved(true); // 此处不能检查区块是否加载，无论连接的方块是否位于加载区块，都要强制保存
 				}
-				MinecraftForge.EVENT_BUS.post(new ElectricNetworkEvent.RemoveWireEvent(this.level, multimap.asMap()));
+				this.subscribedWire.get(pos).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new RemoveWiresPacket(pos)));
+				this.subscribedWire.removeAll(pos);
 			}
 			callback.run();
 		});
@@ -194,7 +215,8 @@ public class ElectricNetwork {
 		if (this.wireConn.remove(from, to)) {
 			this.wireConn.remove(to, from);
 			this.spilt(from, to);
-			MinecraftForge.EVENT_BUS.post(new ElectricNetworkEvent.RemoveWireEvent(this.level, ImmutableMultimap.of(from, to, to, from).asMap()));
+			this.subscribedWire.get(from).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnChangedPacket(from, to, true)));
+			this.subscribedWire.get(to).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnChangedPacket(to, from, true)));
 		}
 	}
 
@@ -330,57 +352,7 @@ public class ElectricNetwork {
 		if (this.sideConn.put(secondary, direction)) {
 			BlockPos primary = secondary.relative(direction);
 			this.sideConn.put(primary, direction.getOpposite());
-			Set<BlockPos> primaryComponent = this.components.get(primary);
-			Set<BlockPos> secondaryComponent = this.components.get(secondary);
-
-			double primaryOutput = this.machineOutput.getOrDefault(primary, 0.0D);
-			double secondaryOutput = this.machineOutput.getOrDefault(secondary, 0.0D);
-			double primaryInput = this.machineInput.getOrDefault(primary, 0.0D);
-			double secondaryInput = this.machineInput.getOrDefault(secondary, 0.0D);
-
-			if (primaryComponent == null && secondaryComponent == null) {
-				Set<BlockPos> union = new LinkedHashSet<>();
-				this.components.put(secondary, union);
-				this.components.put(primary, union);
-				union.add(secondary);
-				union.add(primary);
-
-				this.outputCollection.put(secondary, primaryOutput + secondaryOutput);
-				this.inputCollection.put(secondary, primaryInput + secondaryInput);
-			} else if (primaryComponent == null) {
-				BlockPos secondaryNode = secondaryComponent.iterator().next();
-				this.components.put(primary, secondaryComponent);
-				secondaryComponent.add(primary);
-
-				double outputOld = this.outputCollection.getOrDefault(secondaryNode, 0.0D);
-				this.outputCollection.put(secondaryNode, outputOld + primaryOutput);
-				double inputOld = this.inputCollection.getOrDefault(secondaryNode, 0.0D);
-				this.inputCollection.put(secondaryNode, inputOld + primaryInput);
-			} else if (secondaryComponent == null) {
-				BlockPos primaryNode = primaryComponent.iterator().next();
-				this.components.put(secondary, primaryComponent);
-				primaryComponent.add(secondary);
-
-				double outputOld = this.outputCollection.getOrDefault(primaryNode, 0.0D);
-				this.outputCollection.put(primaryNode, outputOld + secondaryOutput);
-				double inputOld = this.inputCollection.getOrDefault(primaryNode, 0.0D);
-				this.inputCollection.put(primaryNode, inputOld + secondaryInput);
-			} else if (primaryComponent != secondaryComponent) {
-				BlockPos primaryNode = primaryComponent.iterator().next();
-				BlockPos secondaryNode = secondaryComponent.iterator().next();
-				Set<BlockPos> union = new LinkedHashSet<>(Sets.union(primaryComponent, secondaryComponent));
-				union.forEach(pos -> this.components.put(pos, union));
-
-				double outputDiff = this.outputCollection.getOrDefault(secondaryNode, 0.0D);
-				double outputOld = this.outputCollection.getOrDefault(primaryNode, 0.0D);
-				this.outputCollection.put(primaryNode, outputOld + outputDiff);
-				this.outputCollection.remove(secondaryNode);
-
-				double inputDiff = this.inputCollection.getOrDefault(secondaryNode, 0.0D);
-				double inputOld = this.inputCollection.getOrDefault(primaryNode, 0.0D);
-				this.inputCollection.put(primaryNode, inputOld + inputDiff);
-				this.inputCollection.remove(secondaryNode);
-			}
+			this.link(primary, secondary);
 		}
 	}
 
@@ -389,58 +361,63 @@ public class ElectricNetwork {
 		BlockPos primary = to.immutable();
 		if (this.wireConn.put(secondary, primary)) {
 			this.wireConn.put(primary, secondary);
-			Set<BlockPos> primaryComponent = this.components.get(primary);
-			Set<BlockPos> secondaryComponent = this.components.get(secondary);
+			this.link(primary, secondary);
+			this.subscribedWire.get(from).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnChangedPacket(from, to, false)));
+			this.subscribedWire.get(to).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnChangedPacket(to, from, false)));
+		}
+	}
 
-			double primaryOutput = this.machineOutput.getOrDefault(primary, 0.0D);
-			double secondaryOutput = this.machineOutput.getOrDefault(secondary, 0.0D);
-			double primaryInput = this.machineInput.getOrDefault(primary, 0.0D);
-			double secondaryInput = this.machineInput.getOrDefault(secondary, 0.0D);
+	private void link(BlockPos primary, BlockPos secondary) {
+		Set<BlockPos> primaryComponent = this.components.get(primary);
+		Set<BlockPos> secondaryComponent = this.components.get(secondary);
 
-			if (primaryComponent == null && secondaryComponent == null) {
-				Set<BlockPos> union = new LinkedHashSet<>();
-				this.components.put(secondary, union);
-				this.components.put(primary, union);
-				union.add(secondary);
-				union.add(primary);
+		double primaryOutput = this.machineOutput.getOrDefault(primary, 0.0D);
+		double secondaryOutput = this.machineOutput.getOrDefault(secondary, 0.0D);
+		double primaryInput = this.machineInput.getOrDefault(primary, 0.0D);
+		double secondaryInput = this.machineInput.getOrDefault(secondary, 0.0D);
 
-				this.outputCollection.put(secondary, primaryOutput + secondaryOutput);
-				this.inputCollection.put(secondary, primaryInput + secondaryInput);
-			} else if (primaryComponent == null) {
-				BlockPos secondaryNode = secondaryComponent.iterator().next();
-				this.components.put(primary, secondaryComponent);
-				secondaryComponent.add(primary);
+		if (primaryComponent == null && secondaryComponent == null) {
+			Set<BlockPos> union = new LinkedHashSet<>();
+			this.components.put(secondary, union);
+			this.components.put(primary, union);
+			union.add(secondary);
+			union.add(primary);
 
-				double outputOld = this.outputCollection.getOrDefault(secondaryNode, 0.0D);
-				this.outputCollection.put(secondaryNode, outputOld + primaryOutput);
-				double inputOld = this.inputCollection.getOrDefault(secondaryNode, 0.0D);
-				this.inputCollection.put(secondaryNode, inputOld + primaryInput);
-			} else if (secondaryComponent == null) {
-				BlockPos primaryNode = primaryComponent.iterator().next();
-				this.components.put(secondary, primaryComponent);
-				primaryComponent.add(secondary);
+			this.outputCollection.put(secondary, primaryOutput + secondaryOutput);
+			this.inputCollection.put(secondary, primaryInput + secondaryInput);
+		} else if (primaryComponent == null) {
+			BlockPos secondaryNode = secondaryComponent.iterator().next();
+			this.components.put(primary, secondaryComponent);
+			secondaryComponent.add(primary);
 
-				double outputOld = this.outputCollection.getOrDefault(primaryNode, 0.0D);
-				this.outputCollection.put(primaryNode, outputOld + secondaryOutput);
-				double inputOld = this.inputCollection.getOrDefault(primaryNode, 0.0D);
-				this.inputCollection.put(primaryNode, inputOld + secondaryInput);
-			} else if (primaryComponent != secondaryComponent) {
-				BlockPos primaryNode = primaryComponent.iterator().next();
-				BlockPos secondaryNode = secondaryComponent.iterator().next();
-				Set<BlockPos> union = new LinkedHashSet<>(Sets.union(primaryComponent, secondaryComponent));
-				union.forEach(pos -> this.components.put(pos, union));
+			double outputOld = this.outputCollection.getOrDefault(secondaryNode, 0.0D);
+			this.outputCollection.put(secondaryNode, outputOld + primaryOutput);
+			double inputOld = this.inputCollection.getOrDefault(secondaryNode, 0.0D);
+			this.inputCollection.put(secondaryNode, inputOld + primaryInput);
+		} else if (secondaryComponent == null) {
+			BlockPos primaryNode = primaryComponent.iterator().next();
+			this.components.put(secondary, primaryComponent);
+			primaryComponent.add(secondary);
 
-				double outputDiff = this.outputCollection.getOrDefault(secondaryNode, 0.0D);
-				double outputOld = this.outputCollection.getOrDefault(primaryNode, 0.0D);
-				this.outputCollection.remove(secondaryNode);
-				this.outputCollection.put(primaryNode, outputOld + outputDiff);
+			double outputOld = this.outputCollection.getOrDefault(primaryNode, 0.0D);
+			this.outputCollection.put(primaryNode, outputOld + secondaryOutput);
+			double inputOld = this.inputCollection.getOrDefault(primaryNode, 0.0D);
+			this.inputCollection.put(primaryNode, inputOld + secondaryInput);
+		} else if (primaryComponent != secondaryComponent) {
+			BlockPos primaryNode = primaryComponent.iterator().next();
+			BlockPos secondaryNode = secondaryComponent.iterator().next();
+			Set<BlockPos> union = new LinkedHashSet<>(Sets.union(primaryComponent, secondaryComponent));
+			union.forEach(pos -> this.components.put(pos, union));
 
-				double inputDiff = this.inputCollection.getOrDefault(secondaryNode, 0.0D);
-				double inputOld = this.inputCollection.getOrDefault(primaryNode, 0.0D);
-				this.inputCollection.remove(secondaryNode);
-				this.inputCollection.put(primaryNode, inputOld + inputDiff);
-			}
-			MinecraftForge.EVENT_BUS.post(new ElectricNetworkEvent.AddWireEvent(this.level, ImmutableMultimap.of(from, to, to, from).asMap()));
+			double outputDiff = this.outputCollection.getOrDefault(secondaryNode, 0.0D);
+			double outputOld = this.outputCollection.getOrDefault(primaryNode, 0.0D);
+			this.outputCollection.put(primaryNode, outputOld + outputDiff);
+			this.outputCollection.remove(secondaryNode);
+
+			double inputDiff = this.inputCollection.getOrDefault(secondaryNode, 0.0D);
+			double inputOld = this.inputCollection.getOrDefault(primaryNode, 0.0D);
+			this.inputCollection.put(primaryNode, inputOld + inputDiff);
+			this.inputCollection.remove(secondaryNode);
 		}
 	}
 

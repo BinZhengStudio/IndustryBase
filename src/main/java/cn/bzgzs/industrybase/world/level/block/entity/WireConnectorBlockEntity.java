@@ -14,8 +14,12 @@ import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class WireConnectorBlockEntity extends BlockEntity implements IWireConnectable {
 	private final ElectricPower electricPower = new ElectricPower(this);
+	private boolean subscribed;
 
 	public WireConnectorBlockEntity(BlockPos pos, BlockState state) {
 		super(BlockEntityTypeList.WIRE_CONNECTOR.get(), pos, state);
@@ -24,7 +28,7 @@ public class WireConnectorBlockEntity extends BlockEntity implements IWireConnec
 	@Override
 	public void onLoad() {
 		super.onLoad();
-		this.electricPower.registerToNetwork();
+		this.electricPower.register();
 	}
 
 	@Override
@@ -48,14 +52,8 @@ public class WireConnectorBlockEntity extends BlockEntity implements IWireConnec
 	}
 
 	@Override
-	public void onChunkUnloaded() {
-		this.electricPower.removeFromNetwork();
-		super.onChunkUnloaded();
-	}
-
-	@Override
 	public void setRemoved() {
-		this.electricPower.removeFromNetwork();
+		this.electricPower.remove();
 		super.setRemoved();
 	}
 
@@ -64,5 +62,23 @@ public class WireConnectorBlockEntity extends BlockEntity implements IWireConnec
 //		return INFINITE_EXTENT_AABB;
 		BlockPos pos = this.getBlockPos();
 		return new AABB(pos.offset(-256, -256, -256), pos.offset(256, 256, 256));
+	}
+
+	@Override
+	public boolean isSubscribed() {
+		return this.subscribed;
+	}
+
+	@Override
+	public void setSubscribed() {
+		this.subscribed = true;
+	}
+
+	@Override
+	public Set<BlockPos> getWires() {
+		if (this.electricPower.getNetwork() != null) {
+			return this.electricPower.getNetwork().getWireConn(this.worldPosition);
+		}
+		return new HashSet<>();
 	}
 }

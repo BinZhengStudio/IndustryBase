@@ -28,12 +28,15 @@ public class SubscribeWireConnPacket extends CustomPacket {
 		buf.writeBlockPos(this.target);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void consumer(Supplier<NetworkEvent.Context> context) {
 		context.get().enqueueWork(() -> Optional.ofNullable(context.get().getSender()).ifPresent(player -> {
-			ElectricNetwork network = ElectricNetwork.Manager.get(player.level());
-			ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
-					new ReturnWireConnPacket(this.target, network.subscribeWire(this.target, player)));
+			if (player.level().isAreaLoaded(this.target, 0)) {
+				ElectricNetwork network = ElectricNetwork.Manager.get(player.level());
+				ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
+						new ReturnWireConnPacket(this.target, network.subscribeWire(this.target, player)));
+			}
 		}));
 		context.get().setPacketHandled(true);
 	}

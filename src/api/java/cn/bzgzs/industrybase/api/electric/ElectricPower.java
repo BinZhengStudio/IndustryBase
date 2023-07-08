@@ -12,6 +12,7 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.IEnergyStorage;
 
@@ -42,7 +43,7 @@ public class ElectricPower implements IElectricPower {
 	public <X> LazyOptional<X> cast(Capability<X> cap, LazyOptional<X> defaultCap) {
 		if (cap == CapabilityList.ELECTRIC_POWER) {
 			return this.EPOptional.cast();
-		} else if (cap == CapabilityList.MECHANICAL_TRANSMIT) {
+		} else if (cap == ForgeCapabilities.ENERGY) {
 			return this.FEOptional.cast();
 		} else {
 			return defaultCap;
@@ -75,7 +76,7 @@ public class ElectricPower implements IElectricPower {
 			if (this.network != null) {
 				if (level.isClientSide) {
 					ApiNetworkManager.INSTANCE.sendToServer(new UnsubscribeWireConnPacket(this.pos));
-					ElectricNetwork.Manager.get(level).removeClientWires(this.pos);
+					this.network.removeClientWires(this.pos);
 				} else {
 					this.network.removeBlock(this.pos, this.blockEntity::setChanged);
 				}
@@ -184,7 +185,7 @@ public class ElectricPower implements IElectricPower {
 
 		@Override
 		public int getEnergyStored() {
-			return (int) Math.floor(ElectricPower.this.network.totalOutput(ElectricPower.this.blockEntity.getBlockPos()));
+			return (int) Math.min(Integer.MAX_VALUE, Math.floor(ElectricPower.this.network.totalOutput(ElectricPower.this.blockEntity.getBlockPos())));
 		}
 
 		@Override

@@ -1,4 +1,4 @@
-package cn.bzgzs.industrybase.world.level.block;
+package cn.bzgzs.industrybase.api.transmit;
 
 import net.minecraft.world.level.block.state.BlockBehaviour;
 

@@ -1,4 +1,4 @@
-package cn.bzgzs.industrybase.world.level.block;
+package cn.bzgzs.industrybase.api.transmit;
 
 public abstract class LayeredTransmissionRodBlock extends TransmissionRodBlock {
 	private final int red;

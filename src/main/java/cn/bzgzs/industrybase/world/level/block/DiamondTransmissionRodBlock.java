@@ -1,5 +1,6 @@
 package cn.bzgzs.industrybase.world.level.block;
 
+import cn.bzgzs.industrybase.api.transmit.LayeredTransmissionRodBlock;
 import cn.bzgzs.industrybase.world.level.block.entity.DiamondTransmissionRodBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Blocks;

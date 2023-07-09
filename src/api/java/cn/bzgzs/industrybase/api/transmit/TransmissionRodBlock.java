@@ -1,6 +1,5 @@
-package cn.bzgzs.industrybase.world.level.block;
+package cn.bzgzs.industrybase.api.transmit;
 
-import cn.bzgzs.industrybase.api.transmit.TransmitNetwork;
 import cn.bzgzs.industrybase.api.util.TransmitHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

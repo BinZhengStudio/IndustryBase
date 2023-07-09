@@ -10,18 +10,18 @@ import net.minecraftforge.network.NetworkEvent;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public class WireConnChangedPacket extends CustomPacket {
+public class WireConnSyncPacket extends CustomPacket {
 	private final BlockPos from;
 	private final BlockPos to;
 	private final boolean isRemove;
 
-	public WireConnChangedPacket(BlockPos from, BlockPos to, boolean isRemove) {
+	public WireConnSyncPacket(BlockPos from, BlockPos to, boolean isRemove) {
 		this.from = from;
 		this.to = to;
 		this.isRemove = isRemove;
 	}
 
-	public WireConnChangedPacket(FriendlyByteBuf buf) {
+	public WireConnSyncPacket(FriendlyByteBuf buf) {
 		this.from = buf.readBlockPos();
 		this.to = buf.readBlockPos();
 		this.isRemove = buf.readBoolean();
@@ -41,7 +41,7 @@ public class WireConnChangedPacket extends CustomPacket {
 			if (this.isRemove) {
 				network.removeClientWire(this.from, this.to);
 			} else {
-				network.addClientWireConn(this.from, this.to);
+				network.addClientWire(this.from, this.to);
 			}
 		}));
 		context.get().setPacketHandled(true);

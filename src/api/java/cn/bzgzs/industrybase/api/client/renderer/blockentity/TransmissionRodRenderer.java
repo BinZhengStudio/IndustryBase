@@ -1,10 +1,12 @@
-package cn.bzgzs.industrybase.client.renderer.blockentity;
+package cn.bzgzs.industrybase.api.client.renderer.blockentity;
 
 import cn.bzgzs.industrybase.api.IndustryBaseApi;
+import cn.bzgzs.industrybase.api.network.ApiNetworkManager;
+import cn.bzgzs.industrybase.api.network.client.SubscribeSpeedPacket;
+import cn.bzgzs.industrybase.api.transmit.LayeredTransmissionRodBlock;
+import cn.bzgzs.industrybase.api.transmit.TransmissionRodBlock;
+import cn.bzgzs.industrybase.api.transmit.TransmissionRodBlockEntity;
 import cn.bzgzs.industrybase.api.transmit.TransmitNetwork;
-import cn.bzgzs.industrybase.world.level.block.IronTransmissionRodBlock;
-import cn.bzgzs.industrybase.world.level.block.LayeredTransmissionRodBlock;
-import cn.bzgzs.industrybase.world.level.block.entity.TransmissionRodBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.model.geom.ModelLayerLocation;
@@ -18,12 +20,10 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-
-import java.util.Optional;
+import net.minecraft.world.level.Level;
 
 public class TransmissionRodRenderer implements BlockEntityRenderer<TransmissionRodBlockEntity> {
 	public static final ModelLayerLocation MAIN = new ModelLayerLocation(new ResourceLocation(IndustryBaseApi.MODID, "transmission_rod"), "main");
-	private static final ResourceLocation IRON = new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/iron.png");
 	private static final ResourceLocation LAYER_1 = new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/layer_1.png");
 	private static final ResourceLocation LAYER_2 = new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/layer_2.png");
 	private final ModelPart main;
@@ -49,26 +49,36 @@ public class TransmissionRodRenderer implements BlockEntityRenderer<Transmission
 
 	@Override
 	public void render(TransmissionRodBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+		subscribeSpeed(blockEntity);
 		poseStack.pushPose();
 		poseStack.translate(0.5D, 0.5D, 0.5D);
-		// 按照轴旋转模型
-		switch (blockEntity.getBlockState().getValue(IronTransmissionRodBlock.AXIS)) {
-			case X -> poseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
-			case Z -> poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
-		}
-		Optional.ofNullable(blockEntity.getLevel()).ifPresent(level -> {
-			TransmitNetwork.RotateContext context = TransmitNetwork.Manager.get(blockEntity.getLevel()).getRotateContext(blockEntity.getBlockPos());
-			// 根据速度设定传动杆的旋转角度
-			poseStack.mulPose(Axis.YP.rotationDegrees(Mth.rotLerp(partialTick, (float) context.getOldDegree(), (float) context.getDegree())));
-		});
-		// 根据传动杆类型采用不同的层数
+		rodRotate(blockEntity, partialTick, poseStack); // 设置传动杆旋转
 		if (blockEntity.getBlockState().getBlock() instanceof LayeredTransmissionRodBlock block) {
 			main.render(poseStack, bufferSource.getBuffer(RenderType.entityCutout(LAYER_1)), packedLight, packedOverlay);
 			// 发光部分渲染
 			main.render(poseStack, bufferSource.getBuffer(RenderType.entityCutout(LAYER_2)), LightTexture.pack(15, 15), packedOverlay, block.getRed(), block.getGreen(), block.getBlue(), 1.0F);
-		} else {
-			main.render(poseStack, bufferSource.getBuffer(RenderType.entityCutout(IRON)), packedLight, packedOverlay);
 		}
 		poseStack.popPose();
+	}
+
+	public static void subscribeSpeed(TransmissionRodBlockEntity blockEntity) {
+		if (blockEntity.hasLevel() && !blockEntity.isSubscribed()) {
+			ApiNetworkManager.INSTANCE.sendToServer(new SubscribeSpeedPacket(blockEntity.getBlockPos()));
+			blockEntity.setSubscribed();
+		}
+	}
+
+	public static void rodRotate(TransmissionRodBlockEntity blockEntity, float partialTick, PoseStack poseStack) {
+		// 按照轴旋转模型
+		switch (blockEntity.getBlockState().getValue(TransmissionRodBlock.AXIS)) {
+			case X -> poseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
+			case Z -> poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
+		}
+		Level level = blockEntity.getLevel();
+		if (level != null) {
+			TransmitNetwork.RotateContext context = blockEntity.getRotate();
+			// 根据速度设定传动杆的旋转角度
+			poseStack.mulPose(Axis.YP.rotationDegrees(Mth.rotLerp(partialTick, context.getOldDegree(), context.getDegree())));
+		}
 	}
 }

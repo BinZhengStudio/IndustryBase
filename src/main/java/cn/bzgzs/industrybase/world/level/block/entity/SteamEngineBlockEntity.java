@@ -152,7 +152,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 	@Override
 	public void onLoad() {
 		super.onLoad();
-		this.transmit.registerToNetwork();
+		this.transmit.register();
 		this.transmit.setResistance(10);
 	}
 
@@ -209,14 +209,8 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 	}
 
 	@Override
-	public void onChunkUnloaded() {
-		this.transmit.removeFromNetwork();
-		super.onChunkUnloaded();
-	}
-
-	@Override
 	public void setRemoved() {
-		this.transmit.removeFromNetwork();
+		this.transmit.remove();
 		super.setRemoved();
 	}
 

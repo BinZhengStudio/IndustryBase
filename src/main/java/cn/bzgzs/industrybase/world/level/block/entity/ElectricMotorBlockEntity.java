@@ -28,7 +28,7 @@ public class ElectricMotorBlockEntity extends BlockEntity {
 	@Override
 	public void onLoad() {
 		super.onLoad();
-		this.transmit.registerToNetwork();
+		this.transmit.register();
 		this.transmit.setResistance(RESISTANCE);
 		this.electricPower.register();
 		this.electricPower.setInputPower(5.0D);
@@ -56,7 +56,7 @@ public class ElectricMotorBlockEntity extends BlockEntity {
 
 	@Override
 	public void setRemoved() {
-		this.transmit.removeFromNetwork();
+		this.transmit.remove();
 		this.electricPower.remove();
 		super.setRemoved();
 	}

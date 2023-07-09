@@ -1,7 +1,9 @@
 package cn.bzgzs.industrybase.api.network;
 
 import cn.bzgzs.industrybase.api.IndustryBaseApi;
+import cn.bzgzs.industrybase.api.network.client.SubscribeSpeedPacket;
 import cn.bzgzs.industrybase.api.network.client.SubscribeWireConnPacket;
+import cn.bzgzs.industrybase.api.network.client.UnsubscribeSpeedPacket;
 import cn.bzgzs.industrybase.api.network.client.UnsubscribeWireConnPacket;
 import cn.bzgzs.industrybase.api.network.server.*;
 import net.minecraft.network.FriendlyByteBuf;
@@ -18,13 +20,16 @@ public class ApiNetworkManager {
 	private static int id = 0;
 
 	public static void register() {
-		networkThread(TransmitInitInfoPacket.class, TransmitInitInfoPacket::new, NetworkDirection.PLAY_TO_CLIENT);
-		networkThread(TransmitSpeedSyncPacket.class, TransmitSpeedSyncPacket::new, NetworkDirection.PLAY_TO_CLIENT);
-		networkThread(TransmitRootSyncPacket.class, TransmitRootSyncPacket::new, NetworkDirection.PLAY_TO_CLIENT);
-		networkThread(WireConnChangedPacket.class, WireConnChangedPacket::new, NetworkDirection.PLAY_TO_CLIENT);
+		networkThread(ReturnSpeedPacket.class, ReturnSpeedPacket::new, NetworkDirection.PLAY_TO_CLIENT);
+		networkThread(SpeedSyncPacket.class, SpeedSyncPacket::new, NetworkDirection.PLAY_TO_CLIENT);
+		networkThread(RootSyncPacket.class, RootSyncPacket::new, NetworkDirection.PLAY_TO_CLIENT);
+		networkThread(RootsSyncPacket.class, RootsSyncPacket::new, NetworkDirection.PLAY_TO_CLIENT);
+		networkThread(WireConnSyncPacket.class, WireConnSyncPacket::new, NetworkDirection.PLAY_TO_CLIENT);
 		networkThread(RemoveWiresPacket.class, RemoveWiresPacket::new, NetworkDirection.PLAY_TO_CLIENT);
 		networkThread(ReturnWireConnPacket.class, ReturnWireConnPacket::new, NetworkDirection.PLAY_TO_CLIENT);
 
+		networkThread(SubscribeSpeedPacket.class, SubscribeSpeedPacket::new, NetworkDirection.PLAY_TO_SERVER);
+		networkThread(UnsubscribeSpeedPacket.class, UnsubscribeSpeedPacket::new, NetworkDirection.PLAY_TO_SERVER);
 		networkThread(SubscribeWireConnPacket.class, SubscribeWireConnPacket::new, NetworkDirection.PLAY_TO_SERVER);
 		networkThread(UnsubscribeWireConnPacket.class, UnsubscribeWireConnPacket::new, NetworkDirection.PLAY_TO_SERVER);
 	}

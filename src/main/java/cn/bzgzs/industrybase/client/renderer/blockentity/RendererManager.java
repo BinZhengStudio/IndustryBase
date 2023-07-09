@@ -1,6 +1,8 @@
 package cn.bzgzs.industrybase.client.renderer.blockentity;
 
 import cn.bzgzs.industrybase.api.IndustryBaseApi;
+import cn.bzgzs.industrybase.api.client.renderer.blockentity.TextureTransmissionRodRenderer;
+import cn.bzgzs.industrybase.api.client.renderer.blockentity.TransmissionRodRenderer;
 import cn.bzgzs.industrybase.api.client.renderer.blockentity.WireConnectableRenderer;
 import cn.bzgzs.industrybase.world.level.block.entity.BlockEntityTypeList;
 import net.minecraft.resources.ResourceLocation;
@@ -61,7 +63,12 @@ public class RendererManager {
 				return new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/stone.png");
 			}
 		});
-		event.registerBlockEntityRenderer(BlockEntityTypeList.IRON_TRANSMISSION_ROD.get(), TransmissionRodRenderer::new);
+		event.registerBlockEntityRenderer(BlockEntityTypeList.IRON_TRANSMISSION_ROD.get(), ctx -> new TextureTransmissionRodRenderer(ctx) {
+			@Override
+			protected ResourceLocation getTexture() {
+				return new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/iron.png");
+			}
+		});
 		event.registerBlockEntityRenderer(BlockEntityTypeList.GOLD_TRANSMISSION_ROD.get(), TransmissionRodRenderer::new);
 		event.registerBlockEntityRenderer(BlockEntityTypeList.DIAMOND_TRANSMISSION_ROD.get(), TransmissionRodRenderer::new);
 		event.registerBlockEntityRenderer(BlockEntityTypeList.STEAM_ENGINE.get(), SteamEngineRenderer::new);

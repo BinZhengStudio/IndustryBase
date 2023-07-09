@@ -34,7 +34,7 @@ public class ReturnWireConnPacket extends CustomPacket {
 
 	@Override
 	public void consumer(Supplier<NetworkEvent.Context> context) {
-		context.get().enqueueWork(() -> Optional.ofNullable(Minecraft.getInstance().level).ifPresent(level -> ElectricNetwork.Manager.get(level).addClientWireConn(this.target, this.wireConn)));
+		context.get().enqueueWork(() -> Optional.ofNullable(Minecraft.getInstance().level).ifPresent(level -> ElectricNetwork.Manager.get(level).addClientWire(this.target, this.wireConn)));
 		context.get().setPacketHandled(true);
 	}
 

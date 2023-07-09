@@ -35,7 +35,7 @@ public class WireConnectableRenderer<T extends BlockEntity> implements BlockEnti
 	@Override
 	public void render(T blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 		if (blockEntity instanceof IWireConnectable connectable) {
-			if (!connectable.isSubscribed()) {
+			if (blockEntity.hasLevel() && !connectable.isSubscribed()) {
 				ApiNetworkManager.INSTANCE.sendToServer(new SubscribeWireConnPacket(blockEntity.getBlockPos()));
 				connectable.setSubscribed();
 			}

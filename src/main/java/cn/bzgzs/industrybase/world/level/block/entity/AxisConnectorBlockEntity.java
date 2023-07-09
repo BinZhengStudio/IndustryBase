@@ -21,7 +21,7 @@ public class AxisConnectorBlockEntity extends BlockEntity {
 	@Override
 	public void onLoad() {
 		super.onLoad();
-		this.transmit.registerToNetwork();
+		this.transmit.register();
 	}
 
 	@Override
@@ -30,14 +30,8 @@ public class AxisConnectorBlockEntity extends BlockEntity {
 	}
 
 	@Override
-	public void onChunkUnloaded() {
-		this.transmit.removeFromNetwork();
-		super.onChunkUnloaded();
-	}
-
-	@Override
 	public void setRemoved() {
-		this.transmit.removeFromNetwork();
+		this.transmit.remove();
 		super.setRemoved();
 	}
 }

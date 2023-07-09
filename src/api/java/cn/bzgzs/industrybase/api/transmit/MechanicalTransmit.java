@@ -1,13 +1,15 @@
 package cn.bzgzs.industrybase.api.transmit;
 
 import cn.bzgzs.industrybase.api.energy.IMechanicalTransmit;
+import cn.bzgzs.industrybase.api.network.ApiNetworkManager;
+import cn.bzgzs.industrybase.api.network.client.UnsubscribeSpeedPacket;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class MechanicalTransmit implements IMechanicalTransmit {
@@ -33,7 +35,7 @@ public class MechanicalTransmit implements IMechanicalTransmit {
 	 * 向传动网络注册该方块。
 	 * 需要在 {@link BlockEntity#onLoad()} 中执行一次。
 	 */
-	public void registerToNetwork() {
+	public void register() {
 		Optional.ofNullable(this.blockEntity.getLevel()).ifPresent(level -> {
 			this.network = TransmitNetwork.Manager.get(level);
 			if (!level.isClientSide) {
@@ -46,14 +48,25 @@ public class MechanicalTransmit implements IMechanicalTransmit {
 
 	/**
 	 * 将此方块从传动网络中移除。
-	 * 在 {@link BlockEntity#onChunkUnloaded()} 和 {@link BlockEntity#setRemoved()} 中都要执行。
+	 * 在 {@link BlockEntity#setRemoved()} 中执行。
 	 */
-	public void removeFromNetwork() {
+	public void remove() {
 		Optional.ofNullable(this.blockEntity.getLevel()).ifPresent(level -> {
-			if (this.network != null && !level.isClientSide) {
+			if (this.network != null) {
+				if (level.isClientSide) {
+					ApiNetworkManager.INSTANCE.sendToServer(new UnsubscribeSpeedPacket(this.pos));
+					this.network.removeClientSubscribe(this.pos);
+				} else {
+					this.network.removeBlock(this.pos, this.blockEntity::setChanged);
+				}
 				network.removeBlock(this.pos, this.blockEntity::setChanged);
 			}
 		});
+	}
+
+	@Nullable
+	public TransmitNetwork getNetwork() {
+		return this.network;
 	}
 
 	@Override

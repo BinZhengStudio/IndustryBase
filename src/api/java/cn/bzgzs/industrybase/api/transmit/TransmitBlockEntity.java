@@ -22,7 +22,7 @@ public class TransmitBlockEntity extends BlockEntity {
 
 	@Override
 	public void onLoad() {
-		this.transmit.registerToNetwork();
+		this.transmit.register();
 		super.onLoad();
 	}
 
@@ -35,14 +35,8 @@ public class TransmitBlockEntity extends BlockEntity {
 	}
 
 	@Override
-	public void onChunkUnloaded() {
-		this.transmit.removeFromNetwork();
-		super.onChunkUnloaded();
-	}
-
-	@Override
 	public void setRemoved() {
-		this.transmit.removeFromNetwork();
+		this.transmit.remove();
 		super.setRemoved();
 	}
 

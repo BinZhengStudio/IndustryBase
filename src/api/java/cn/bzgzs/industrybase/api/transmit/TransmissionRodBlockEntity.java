@@ -1,8 +1,6 @@
-package cn.bzgzs.industrybase.world.level.block.entity;
+package cn.bzgzs.industrybase.api.transmit;
 
 import cn.bzgzs.industrybase.api.CapabilityList;
-import cn.bzgzs.industrybase.api.transmit.MechanicalTransmit;
-import cn.bzgzs.industrybase.world.level.block.IronTransmissionRodBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -13,8 +11,9 @@ import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class TransmissionRodBlockEntity extends BlockEntity {
+public class TransmissionRodBlockEntity extends BlockEntity {
 	private final MechanicalTransmit transmit = new MechanicalTransmit(this);
+	private boolean subscribed = false;
 
 	public TransmissionRodBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
@@ -23,26 +22,35 @@ public abstract class TransmissionRodBlockEntity extends BlockEntity {
 	@Override
 	public void onLoad() {
 		super.onLoad();
-		this.transmit.registerToNetwork();
+		this.transmit.register();
 	}
 
 	@Override
 	public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-		if (side != null && side.getAxis() == this.getBlockState().getValue(IronTransmissionRodBlock.AXIS)) {
+		if (side != null && side.getAxis() == this.getBlockState().getValue(TransmissionRodBlock.AXIS)) {
 			return cap == CapabilityList.MECHANICAL_TRANSMIT ? this.transmit.cast() : super.getCapability(cap, side);
 		}
 		return super.getCapability(cap, side);
 	}
 
 	@Override
-	public void onChunkUnloaded() {
-		this.transmit.removeFromNetwork();
-		super.onChunkUnloaded();
+	public void setRemoved() {
+		this.transmit.remove();
+		super.setRemoved();
 	}
 
-	@Override
-	public void setRemoved() {
-		this.transmit.removeFromNetwork();
-		super.setRemoved();
+	public boolean isSubscribed() {
+		return this.subscribed;
+	}
+
+	public void setSubscribed() {
+		this.subscribed = true;
+	}
+
+	public TransmitNetwork.RotateContext getRotate() {
+		if (this.transmit.getNetwork() != null) {
+			return this.transmit.getNetwork().getRotateContext(this.worldPosition);
+		}
+		return TransmitNetwork.RotateContext.NULL;
 	}
 }

@@ -3,7 +3,7 @@ package cn.bzgzs.industrybase.api.electric;
 import cn.bzgzs.industrybase.api.CapabilityList;
 import cn.bzgzs.industrybase.api.network.ApiNetworkManager;
 import cn.bzgzs.industrybase.api.network.server.RemoveWiresPacket;
-import cn.bzgzs.industrybase.api.network.server.WireConnChangedPacket;
+import cn.bzgzs.industrybase.api.network.server.WireConnSyncPacket;
 import com.google.common.collect.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -83,15 +83,15 @@ public class ElectricNetwork {
 		this.subscribedWire.remove(pos, player);
 	}
 
-	public void addClientWireConn(BlockPos pos, Collection<BlockPos> data) {
+	public void addClientWire(BlockPos from, BlockPos to) {
 		if (this.level.isClientSide()) {
-			this.wireConn.putAll(pos, data);
+			this.wireConn.put(from, to);
 		}
 	}
 
-	public void addClientWireConn(BlockPos from, BlockPos to) {
+	public void addClientWire(BlockPos pos, Collection<BlockPos> data) {
 		if (this.level.isClientSide()) {
-			this.wireConn.put(from, to);
+			this.wireConn.putAll(pos, data);
 		}
 	}
 
@@ -215,8 +215,8 @@ public class ElectricNetwork {
 		if (this.wireConn.remove(from, to)) {
 			this.wireConn.remove(to, from);
 			this.spilt(from, to);
-			this.subscribedWire.get(from).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnChangedPacket(from, to, true)));
-			this.subscribedWire.get(to).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnChangedPacket(to, from, true)));
+			this.subscribedWire.get(from).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnSyncPacket(from, to, true)));
+			this.subscribedWire.get(to).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnSyncPacket(to, from, true)));
 		}
 	}
 
@@ -309,6 +309,9 @@ public class ElectricNetwork {
 					} else if (this.hasFECapability(pos.relative(side), side.getOpposite())) {
 						this.FEMachines.put(pos.immutable(), side);
 						this.cutSide(pos, side);
+					} else {
+						this.FEMachines.remove(pos.immutable(), side);
+						this.cutSide(pos, side);
 					}
 				} else {
 					this.FEMachines.remove(pos.immutable(), side);
@@ -362,8 +365,8 @@ public class ElectricNetwork {
 		if (this.wireConn.put(secondary, primary)) {
 			this.wireConn.put(primary, secondary);
 			this.link(primary, secondary);
-			this.subscribedWire.get(from).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnChangedPacket(from, to, false)));
-			this.subscribedWire.get(to).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnChangedPacket(to, from, false)));
+			this.subscribedWire.get(from).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnSyncPacket(from, to, false)));
+			this.subscribedWire.get(to).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnSyncPacket(to, from, false)));
 		}
 	}
 

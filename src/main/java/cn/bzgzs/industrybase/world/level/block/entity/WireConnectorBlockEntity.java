@@ -19,7 +19,7 @@ import java.util.Set;
 
 public class WireConnectorBlockEntity extends BlockEntity implements IWireConnectable {
 	private final ElectricPower electricPower = new ElectricPower(this);
-	private boolean subscribed;
+	private boolean subscribed = false;
 
 	public WireConnectorBlockEntity(BlockPos pos, BlockState state) {
 		super(BlockEntityTypeList.WIRE_CONNECTOR.get(), pos, state);

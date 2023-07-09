@@ -29,7 +29,7 @@ public class DynamoBlockEntity extends BlockEntity {
 	@Override
 	public void onLoad() {
 		super.onLoad();
-		this.transmit.registerToNetwork();
+		this.transmit.register();
 		this.transmit.setResistance(RESISTANCE);
 		this.electricPower.register();
 	}
@@ -54,7 +54,7 @@ public class DynamoBlockEntity extends BlockEntity {
 
 	@Override
 	public void setRemoved() {
-		this.transmit.removeFromNetwork();
+		this.transmit.remove();
 		this.electricPower.remove();
 		super.setRemoved();
 	}

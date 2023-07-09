@@ -1,5 +1,6 @@
 package cn.bzgzs.industrybase.world.level.block;
 
+import cn.bzgzs.industrybase.api.transmit.WoodTransmissionRod;
 import cn.bzgzs.industrybase.world.level.block.entity.DarkOakTransmissionRodBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Blocks;

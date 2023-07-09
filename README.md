@@ -1,4 +1,4 @@
-![Icon](/readme/logo.svg)
+![Logo](/readme/logo.svg)
 
 # IndustryBase
 

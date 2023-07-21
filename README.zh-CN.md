@@ -7,7 +7,7 @@
 
 [English (en-US)](/README.md) | **简体中文 (zh-CN)**
 
-## 模组介绍
+## 介绍
 
 定位是一个 Minecraft 工业模组，虽然目前只有简单的元素，但是却画着很大的饼。~~（真的很大）~~
 
@@ -19,7 +19,7 @@
 
 未来将作为《三体工业》的前置 Mod。
 
-## 游戏截图
+## 截图
 
 ![Screenshots-1](/readme/screenshots-1.png)
 

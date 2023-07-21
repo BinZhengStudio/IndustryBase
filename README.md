@@ -7,19 +7,19 @@
 
 **English (en-US)** | [简体中文 (zh-CN)](/README.zh-CN.md)
 
-## Mod Introduction
+## Introductions
 
 This mod is a Minecraft industrial mod, but currently has only simple elements.
 
 And actually we are promising the moon. ~~(really)~~
 
-The mod provides a set of APIs, an energy system and a kinetic energy system for auxiliary mod to access.
+We provides a set of APIs, an energy system and a kinetic energy system for auxiliary mod to access.
 
 Both of the systems are as close to reality as possible, having the settings such as power and rotate speed.
 
 With the systems, this mod will bring you a really fantastic experience of the beauty of the industry, as close to reality as possible too.
 
-In the future, it will be used as a pre-mod for Threebody Industry (future project).
+In the future, it will be used as a pre-mod for Threebody Industry (our future project).
 
 ## Screenshots
 

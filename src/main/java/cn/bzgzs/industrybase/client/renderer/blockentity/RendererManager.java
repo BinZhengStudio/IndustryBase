@@ -69,6 +69,24 @@ public class RendererManager {
 				return new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/iron.png");
 			}
 		});
+		event.registerBlockEntityRenderer(BlockEntityTypeList.CHERRY_TRANSMISSION_ROD.get(), ctx -> new TextureTransmissionRodRenderer(ctx) {
+			@Override
+			protected ResourceLocation getTexture() {
+				return new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/cherry.png");
+			}
+		});
+		event.registerBlockEntityRenderer(BlockEntityTypeList.CRIMSON_TRANSMISSION_ROD.get(), ctx -> new TextureTransmissionRodRenderer(ctx) {
+			@Override
+			protected ResourceLocation getTexture() {
+				return new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/crimson.png");
+			}
+		});
+		event.registerBlockEntityRenderer(BlockEntityTypeList.WARPED_TRANSMISSION_ROD.get(), ctx -> new TextureTransmissionRodRenderer(ctx) {
+			@Override
+			protected ResourceLocation getTexture() {
+				return new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/warped.png");
+			}
+		});
 		event.registerBlockEntityRenderer(BlockEntityTypeList.GOLD_TRANSMISSION_ROD.get(), TransmissionRodRenderer::new);
 		event.registerBlockEntityRenderer(BlockEntityTypeList.DIAMOND_TRANSMISSION_ROD.get(), TransmissionRodRenderer::new);
 		event.registerBlockEntityRenderer(BlockEntityTypeList.STEAM_ENGINE.get(), SteamEngineRenderer::new);

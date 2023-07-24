@@ -30,5 +30,8 @@ public class ItemList {
 	public static final RegistryObject<BlockItem> WIRE = ITEMS.register("wire", () -> new BlockEntityItem(BlockList.WIRE.get(), new Item.Properties()));
 	public static final RegistryObject<BlockItem> WIRE_CONNECTOR = ITEMS.register("wire_connector", () -> new BlockEntityItem(BlockList.WIRE_CONNECTOR.get(), new Item.Properties()));
 	public static final RegistryObject<BlockItem> ELECTRIC_MOTOR = ITEMS.register("electric_motor", () -> new BlockEntityItem(BlockList.ELECTRIC_MOTOR.get(), new Item.Properties()));
+	public static final RegistryObject<BlockItem> CHERRY_TRANSMISSION_ROD = ITEMS.register("cherry_transmission_rod", () -> new BlockEntityItem(BlockList.CHERRY_TRANSMISSION_ROD.get(), new Item.Properties()));
+	public static final RegistryObject<BlockItem> CRIMSON_TRANSMISSION_ROD = ITEMS.register("crimson_transmission_rod", () -> new BlockEntityItem(BlockList.CRIMSON_TRANSMISSION_ROD.get(), new Item.Properties()));
+	public static final RegistryObject<BlockItem> WARPED_TRANSMISSION_ROD = ITEMS.register("warped_transmission_rod", () -> new BlockEntityItem(BlockList.WARPED_TRANSMISSION_ROD.get(), new Item.Properties()));
 
 }

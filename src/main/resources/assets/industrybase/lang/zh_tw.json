@@ -1,0 +1,41 @@
+{
+  "itemGroup.industrybase": "工業基石",
+
+  "item.industrybase.wire_coil": "導線卷",
+
+  "block.industrybase.steam_engine": "小型蒸汽機",
+  "block.industrybase.oak_transmission_rod": "橡木傳動杆",
+  "block.industrybase.spruce_transmission_rod": "雲杉傳動杆",
+  "block.industrybase.birch_transmission_rod": "白桦傳動杆",
+  "block.industrybase.jungle_transmission_rod": "叢林木傳動杆",
+  "block.industrybase.acacia_transmission_rod": "金合歡傳動杆",
+  "block.industrybase.dark_oak_transmission_rod": "深色橡木傳動杆",
+  "block.industrybase.mangrove_transmission_rod": "紅樹傳動杆",
+  "block.industrybase.cherry_transmission_rod": "櫻花木傳動杆",
+  "block.industrybase.crimson_transmission_rod": "緋紅木傳動杆",
+  "block.industrybase.warped_transmission_rod": "诡异木传动杆",
+  "block.industrybase.stone_transmission_rod": "石傳動杆",
+  "block.industrybase.iron_transmission_rod": "鐵傳動杆",
+  "block.industrybase.gold_transmission_rod": "嵌金傳動杆",
+  "block.industrybase.diamond_transmission_rod": "嵌金剛石傳動杆",
+  "block.industrybase.dynamo": "發電機",
+  "block.industrybase.wire": "導線方塊",
+  "block.industrybase.wire_connector": "接線端子",
+  "block.industrybase.axis_connector": "軸連器",
+  "block.industrybase.electric_motor": "電機",
+
+  "container.industrybase.steam_engine": "小型蒸汽機",
+
+  "label.transmit_panel.speed": "速度: %1$s",
+  "label.transmit_panel.power": "功率: %1$s",
+  "label.steam_engine.water_amount": "水量: %1$s",
+
+  "itemTooltip.industrybase.wire_coil.1": "已綁定方塊: (%1$s,%2$s,%3$s)",
+  "itemTooltip.industrybase.wire_coil.2": "該卷導線剩余%1$s米",
+
+  "message.industrybase.wire_coil.too_long": "距離過長，該卷導線剩余%1$s米",
+
+  "commands.industrybase.wire.success": "成功在(%1$s,%2$s,%3$s)與(%4$s,%5$s,%6$s)之間連接導線",
+  "commands.industrybase.wire.failed.not_connectable": "連接的兩端並不都是可連接方塊",
+  "commands.industrybase.wire.failed.connect_failed": "连接失败，可能连接已存在，或输入的方块坐标相同"
+}

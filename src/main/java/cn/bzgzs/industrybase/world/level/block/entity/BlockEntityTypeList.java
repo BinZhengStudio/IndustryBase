@@ -16,6 +16,9 @@ public class BlockEntityTypeList {
 
 	public static final RegistryObject<BlockEntityType<DynamoBlockEntity>> DYNAMO = register("dynamo", DynamoBlockEntity::new, BlockList.DYNAMO);
 	public static final RegistryObject<BlockEntityType<OakTransmissionRodBlockEntity>> OAK_TRANSMISSION_ROD = transmissionRod("oak", OakTransmissionRodBlockEntity::new, BlockList.OAK_TRANSMISSION_ROD);
+	public static final RegistryObject<BlockEntityType<CherryTransmissionRodBlockEntity>> CHERRY_TRANSMISSION_ROD = transmissionRod("cherry_transmission_rod", CherryTransmissionRodBlockEntity::new, BlockList.CHERRY_TRANSMISSION_ROD);
+	public static final RegistryObject<BlockEntityType<CrimsonTransmissionRodBlockEntity>> CRIMSON_TRANSMISSION_ROD = transmissionRod("crimson_transmission_rod", CrimsonTransmissionRodBlockEntity::new, BlockList.CRIMSON_TRANSMISSION_ROD);
+	public static final RegistryObject<BlockEntityType<WarpedTransmissionRodBlockEntity>> WARPED_TRANSMISSION_ROD = transmissionRod("warped_transmission_rod", WarpedTransmissionRodBlockEntity::new, BlockList.WARPED_TRANSMISSION_ROD);
 	public static final RegistryObject<BlockEntityType<SpruceTransmissionRodBlockEntity>> SPRUCE_TRANSMISSION_ROD = transmissionRod("spruce", SpruceTransmissionRodBlockEntity::new, BlockList.SPRUCE_TRANSMISSION_ROD);
 	public static final RegistryObject<BlockEntityType<BirchTransmissionRodBlockEntity>> BIRCH_TRANSMISSION_ROD = transmissionRod("birch", BirchTransmissionRodBlockEntity::new, BlockList.BIRCH_TRANSMISSION_ROD);
 	public static final RegistryObject<BlockEntityType<JungleTransmissionRodBlockEntity>> JUNGLE_TRANSMISSION_ROD = transmissionRod("jungle", JungleTransmissionRodBlockEntity::new, BlockList.JUNGLE_TRANSMISSION_ROD);

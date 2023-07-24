@@ -1,0 +1,6 @@
+{
+	"parent": "industrybase:item/entity",
+	"textures": {
+		"particle": "minecraft:block/crimson_stem"
+	}
+}

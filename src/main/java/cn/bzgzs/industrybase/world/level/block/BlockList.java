@@ -1,6 +1,7 @@
 package cn.bzgzs.industrybase.world.level.block;
 
 import cn.bzgzs.industrybase.api.IndustryBaseApi;
+import cn.bzgzs.industrybase.world.level.block.entity.WarpedTransmissionRodBlockEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -26,5 +27,8 @@ public class BlockList {
 	public static final RegistryObject<Block> WIRE = BLOCKS.register("wire", WireBlock::new);
 	public static final RegistryObject<Block> WIRE_CONNECTOR = BLOCKS.register("wire_connector", WireConnectorBlock::new);
 	public static final RegistryObject<Block> ELECTRIC_MOTOR = BLOCKS.register("electric_motor", ElectricMotorBlock::new);
+	public static final RegistryObject<Block> CHERRY_TRANSMISSION_ROD = BLOCKS.register("cherry_transmission_rod", CherryTransmissionRodBlock::new);
+	public static final RegistryObject<Block> CRIMSON_TRANSMISSION_ROD = BLOCKS.register("crimson_transmission_rod", CrimsonTransmissionRodBlock::new);
+	public static final RegistryObject<Block> WARPED_TRANSMISSION_ROD = BLOCKS.register("warped_transmission_rod", WarpedTransmissionRodBlock::new);
 
 }

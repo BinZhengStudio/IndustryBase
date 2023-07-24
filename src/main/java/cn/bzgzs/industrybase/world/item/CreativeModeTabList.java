@@ -22,6 +22,10 @@ public class CreativeModeTabList { // 创造模式物品栏
 				output.accept(ItemList.ACACIA_TRANSMISSION_ROD.get());
 				output.accept(ItemList.DARK_OAK_TRANSMISSION_ROD.get());
 				output.accept(ItemList.MANGROVE_TRANSMISSION_ROD.get());
+				output.accept(ItemList.CHERRY_TRANSMISSION_ROD.get());
+				output.accept(ItemList.CRIMSON_TRANSMISSION_ROD.get());
+				output.accept(ItemList.WARPED_TRANSMISSION_ROD.get());
+				output.accept(ItemList.CRIMSON_TRANSMISSION_ROD.get());
 				output.accept(ItemList.STONE_TRANSMISSION_ROD.get());
 				output.accept(ItemList.IRON_TRANSMISSION_ROD.get());
 				output.accept(ItemList.GOLD_TRANSMISSION_ROD.get());

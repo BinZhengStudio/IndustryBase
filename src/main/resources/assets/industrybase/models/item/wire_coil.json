@@ -1,4 +1,5 @@
 {
+	"credit": "Made with Blockbench",
 	"texture_size": [128, 128],
 	"textures": {
 		"particle": "industrybase:item/wire_coil"
@@ -436,8 +437,8 @@
 	"display": {
 		"thirdperson_righthand": {
 			"rotation": [39, 0, 0],
-			"translation": [0, 0.5, -3.25],
-			"scale": [0.5, 0.5, 0.5]
+			"translation": [0, 0.5, -0.75],
+			"scale": [0.3, 0.3, 0.3]
 		},
 		"thirdperson_lefthand": {
 			"rotation": [39, 0, 0],
@@ -453,7 +454,8 @@
 			"scale": [0.5, 0.5, 0.5]
 		},
 		"ground": {
-			"translation": [0, 1.25, 0]
+			"translation": [0, -2.5, 0],
+			"scale": [0.3, 0.54, 0.3]
 		},
 		"gui": {
 			"rotation": [31, 0, 0]

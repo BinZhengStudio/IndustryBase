@@ -77,7 +77,7 @@ public class ElectricNetwork {
 	}
 
 	private double totalInput(BlockPos root) {
-		return this.totalInput.getOrDefault(this.root(root), 0.0D);
+		return this.totalInput.getOrDefault(root, 0.0D);
 	}
 
 	public Set<BlockPos> getWireConn(BlockPos pos) {
@@ -121,18 +121,18 @@ public class ElectricNetwork {
 	public double getMachineOutput(BlockPos pos) {
 		return this.machineOutput.getOrDefault(pos, 0.0D);
 	}
-
+	
 	public double setMachineOutput(BlockPos pos, double power) {
 		double diff;
 		if (power > 0) {
-			diff = power - this.machineOutput.getOrDefault(pos, 0.0D);
+			diff = power - this.getMachineOutput(pos);
 			this.machineOutput.put(pos, power);
 		} else {
-			diff = -this.machineOutput.getOrDefault(pos, 0.0D);
+			diff = -this.getMachineOutput(pos);
 			this.machineOutput.remove(pos);
 		}
 		BlockPos root = this.root(pos);
-		double output = this.totalOutput.getOrDefault(root, 0.0D) + diff;
+		double output = this.totalOutput(root) + diff;
 		if (output > 0) {
 			this.totalOutput.put(root, output);
 		} else {
@@ -148,14 +148,14 @@ public class ElectricNetwork {
 	public double setMachineInput(BlockPos pos, double power) {
 		double diff;
 		if (power > 0) {
-			diff = power - this.machineInput.getOrDefault(pos, 0.0D);
+			diff = power - this.getMachineInput(pos);
 			this.machineInput.put(pos, power);
 		} else {
-			diff = -this.machineInput.getOrDefault(pos, 0.0D);
+			diff = -this.getMachineInput(pos);
 			this.machineInput.remove(pos);
 		}
 		BlockPos root = this.root(pos);
-		double input = this.totalInput.getOrDefault(root, 0.0D) + diff;
+		double input = this.totalInput(root) + diff;
 		if (input > 0) {
 			this.totalInput.put(root, input);
 		} else {
@@ -167,11 +167,11 @@ public class ElectricNetwork {
 	public double getRealInput(BlockPos pos) {
 		BlockPos root = this.root(pos);
 		double totalOutput = this.totalOutput(root) + this.FEInput.count(root);
-		double totalInput = this.totalInput.getOrDefault(root, 0.0D);
-		double machineInput = this.machineInput.getOrDefault(pos, 0.0D);
+		double totalInput = this.totalInput(root);
+		double machineInput = this.getMachineInput(pos);
 		if (totalInput > 0.0D) {
 			if (totalOutput >= totalInput) {
-				return this.machineInput.getOrDefault(pos, 0.0D);
+				return this.getMachineInput(pos);
 			} else {
 				return machineInput * totalOutput / totalInput;
 			}
@@ -284,10 +284,10 @@ public class ElectricNetwork {
 		if (secondaryComponent.size() <= 1) {
 			this.components.remove(secondaryNode);
 
-			double outputDiff = this.machineOutput.getOrDefault(secondaryNode, 0.0D);
-			double inputDiff = this.machineInput.getOrDefault(secondaryNode, 0.0D);
-			double primaryOutput = this.totalOutput.getOrDefault(primaryNode, 0.0D) - outputDiff;
-			double primaryInput = this.totalInput.getOrDefault(primaryNode, 0.0D) - inputDiff;
+			double outputDiff = this.getMachineOutput(secondaryNode);
+			double inputDiff = this.getMachineInput(secondaryNode);
+			double primaryOutput = this.totalOutput(primaryNode) - outputDiff;
+			double primaryInput = this.totalInput(primaryNode) - inputDiff;
 			if (primaryOutput >= 0) {
 				this.totalOutput.put(primaryNode, primaryOutput);
 			} else {
@@ -304,12 +304,12 @@ public class ElectricNetwork {
 			for (BlockPos pos : secondaryComponent) {
 				this.components.put(pos, secondaryComponent);
 
-				outputDiff += this.machineOutput.getOrDefault(pos, 0.0D);
-				inputDiff += this.machineInput.getOrDefault(pos, 0.0D);
+				outputDiff += this.getMachineOutput(pos);
+				inputDiff += this.getMachineInput(pos);
 
 			}
-			double primaryOutput = this.totalOutput.getOrDefault(primaryNode, 0.0D) - outputDiff;
-			double primaryInput = this.totalInput.getOrDefault(primaryNode, 0.0D) - inputDiff;
+			double primaryOutput = this.totalOutput(primaryNode) - outputDiff;
+			double primaryInput = this.totalInput(primaryNode) - inputDiff;
 			if (primaryOutput >= 0) {
 				this.totalOutput.put(primaryNode, primaryOutput);
 			} else {
@@ -326,8 +326,8 @@ public class ElectricNetwork {
 		if (primaryComponent.size() <= 1) {
 			this.components.remove(primaryNode);
 
-			if (this.totalOutput.getOrDefault(primaryNode, 0.0D) <= 0) this.totalOutput.remove(primaryNode);
-			if (this.totalInput.getOrDefault(primaryNode, 0.0D) <= 0) this.totalInput.remove(primaryNode);
+			if (this.totalOutput(primaryNode) <= 0) this.totalOutput.remove(primaryNode);
+			if (this.totalInput(primaryNode) <= 0) this.totalInput.remove(primaryNode);
 		}
 		// 分配 FE 能量
 		int primarySize = this.size(primaryNode), secondarySize = this.size(secondaryNode);
@@ -411,10 +411,10 @@ public class ElectricNetwork {
 		Set<BlockPos> primaryComponent = this.components.get(primary);
 		Set<BlockPos> secondaryComponent = this.components.get(secondary);
 
-		double primaryOutput = this.machineOutput.getOrDefault(primary, 0.0D);
-		double secondaryOutput = this.machineOutput.getOrDefault(secondary, 0.0D);
-		double primaryInput = this.machineInput.getOrDefault(primary, 0.0D);
-		double secondaryInput = this.machineInput.getOrDefault(secondary, 0.0D);
+		double primaryOutput = this.getMachineOutput(primary);
+		double secondaryOutput = this.getMachineOutput(secondary);
+		double primaryInput = this.getMachineInput(primary);
+		double secondaryInput = this.getMachineInput(secondary);
 
 		if (primaryComponent == null && secondaryComponent == null) {
 			Set<BlockPos> union = new LinkedHashSet<>();
@@ -431,9 +431,9 @@ public class ElectricNetwork {
 			this.components.put(primary, secondaryComponent);
 			secondaryComponent.add(primary);
 
-			double outputOld = this.totalOutput.getOrDefault(secondaryNode, 0.0D);
+			double outputOld = this.totalOutput(secondaryNode);
 			this.totalOutput.put(secondaryNode, outputOld + primaryOutput);
-			double inputOld = this.totalInput.getOrDefault(secondaryNode, 0.0D);
+			double inputOld = this.totalInput(secondaryNode);
 			this.totalInput.put(secondaryNode, inputOld + primaryInput);
 			this.mergeFE(secondaryNode, primary);
 		} else if (secondaryComponent == null) {
@@ -441,9 +441,9 @@ public class ElectricNetwork {
 			this.components.put(secondary, primaryComponent);
 			primaryComponent.add(secondary);
 
-			double outputOld = this.totalOutput.getOrDefault(primaryNode, 0.0D);
+			double outputOld = this.totalOutput(primaryNode);
 			this.totalOutput.put(primaryNode, outputOld + secondaryOutput);
-			double inputOld = this.totalInput.getOrDefault(primaryNode, 0.0D);
+			double inputOld = this.totalInput(primaryNode);
 			this.totalInput.put(primaryNode, inputOld + secondaryInput);
 			this.mergeFE(primaryNode, secondary);
 		} else if (primaryComponent != secondaryComponent) {
@@ -452,13 +452,13 @@ public class ElectricNetwork {
 			Set<BlockPos> union = new LinkedHashSet<>(Sets.union(primaryComponent, secondaryComponent));
 			union.forEach(pos -> this.components.put(pos, union));
 
-			double outputDiff = this.totalOutput.getOrDefault(secondaryNode, 0.0D);
-			double outputOld = this.totalOutput.getOrDefault(primaryNode, 0.0D);
+			double outputDiff = this.totalOutput(secondaryNode);
+			double outputOld = this.totalOutput(primaryNode);
 			this.totalOutput.put(primaryNode, outputOld + outputDiff);
 			this.totalOutput.remove(secondaryNode);
 
-			double inputDiff = this.totalInput.getOrDefault(secondaryNode, 0.0D);
-			double inputOld = this.totalInput.getOrDefault(primaryNode, 0.0D);
+			double inputDiff = this.totalInput(secondaryNode);
+			double inputOld = this.totalInput(primaryNode);
 			this.totalInput.put(primaryNode, inputOld + inputDiff);
 			this.totalInput.remove(secondaryNode);
 			this.mergeFE(primaryNode, secondaryNode);
@@ -489,8 +489,8 @@ public class ElectricNetwork {
 				BlockPos root = this.root(pos);
 				// 将剩余 EP 转换为 FE
 				if (updated.add(root)) { // 已转换过的能量网络则跳过
-					double power = this.totalOutput.getOrDefault(root, 0.0D);
-					double energy = power - this.totalInput.getOrDefault(root, 0.0D);
+					double power = this.totalOutput(root);
+					double energy = power - this.totalInput(root);
 					if (energy > 0.0D) {
 						forgeEnergy.add(root, (int) Math.floor(energy));
 					}

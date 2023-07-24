@@ -29,14 +29,4 @@ public interface IElectricPower {
 	double setInputPower(double power);
 
 	double getRealInput();
-
-	/**
-	 * @return 能否输出
-	 */
-	boolean canExtract();
-
-	/**
-	 * @return 能否输入
-	 */
-	boolean canReceive();
 }

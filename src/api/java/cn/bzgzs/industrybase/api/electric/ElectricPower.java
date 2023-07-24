@@ -134,16 +134,6 @@ public class ElectricPower implements IElectricPower {
 		return this.network.getRealInput(this.pos);
 	}
 
-	@Override
-	public boolean canExtract() {
-		return this.getOutputPower() > 0.0D;
-	}
-
-	@Override
-	public boolean canReceive() {
-		return this.getInputPower() > 0.0D;
-	}
-
 	@CanIgnoreReturnValue
 	public ElectricPower readFromNBT(CompoundTag tag) {
 		CompoundTag nbt = tag.getCompound("ElectricPower");

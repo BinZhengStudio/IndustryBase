@@ -173,34 +173,37 @@ public class ElectricPower implements IElectricPower {
 	}
 
 	private class ForgeEnergy implements IEnergyStorage {
+		private final ElectricNetwork network = ElectricPower.this.network;
+		private final BlockPos pos = ElectricPower.this.pos;
+
 		@Override
 		public int receiveEnergy(int maxReceive, boolean simulate) {
-			return (int) Math.floor(ElectricPower.this.network.totalInput(ElectricPower.this.blockEntity.getBlockPos()));
+			return this.network.receiveFEEnergy(this.pos, maxReceive, simulate);
 		}
 
 		@Override
 		public int extractEnergy(int maxExtract, boolean simulate) {
-			return 0;
+			return this.network.extractFEEnergy(this.pos, maxExtract, simulate);
 		}
 
 		@Override
 		public int getEnergyStored() {
-			return (int) Math.min(Integer.MAX_VALUE, Math.floor(ElectricPower.this.network.totalOutput(ElectricPower.this.blockEntity.getBlockPos())));
+			return this.network.getFEEnergy(this.pos);
 		}
 
 		@Override
 		public int getMaxEnergyStored() {
-			return Integer.MAX_VALUE;
+			return this.network.getMaxFEStored(this.pos);
 		}
 
 		@Override
 		public boolean canExtract() {
-			return false;
+			return this.network.getFEEnergy(this.pos) > 0;
 		}
 
 		@Override
 		public boolean canReceive() {
-			return true;
+			return this.network.getFEEnergy(this.pos) < this.getMaxEnergyStored();
 		}
 	}
 }

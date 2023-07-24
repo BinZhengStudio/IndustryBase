@@ -31,7 +31,7 @@ public class ElectricMotorBlockEntity extends BlockEntity {
 		this.transmit.register();
 		this.transmit.setResistance(RESISTANCE);
 		this.electricPower.register();
-		this.electricPower.setInputPower(5.0D);
+		this.electricPower.setInputPower(2.0D);
 	}
 
 	public static void serverTick(Level level, BlockPos pos, BlockState state, ElectricMotorBlockEntity blockEntity) {

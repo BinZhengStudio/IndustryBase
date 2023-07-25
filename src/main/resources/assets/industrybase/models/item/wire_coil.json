@@ -1,5 +1,4 @@
 {
-	"credit": "Made with Blockbench",
 	"texture_size": [128, 128],
 	"textures": {
 		"particle": "industrybase:item/wire_coil"
@@ -454,8 +453,8 @@
 			"scale": [0.5, 0.5, 0.5]
 		},
 		"ground": {
-			"translation": [0, -2.5, 0],
-			"scale": [0.3, 0.54, 0.3]
+			"translation": [0, 1, 0],
+			"scale": [0.45, 0.45, 0.45]
 		},
 		"gui": {
 			"rotation": [31, 0, 0]

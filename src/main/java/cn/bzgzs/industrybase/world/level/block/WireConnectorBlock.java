@@ -33,14 +33,14 @@ import java.util.Map;
 
 public class WireConnectorBlock extends BaseEntityBlock {
 	public static final DirectionProperty FACING = BlockStateProperties.FACING;
-	private static final VoxelShape CORE = Block.box(5.0D, 5.0D, 5.0D, 11.0D, 11.0D, 11.0D);
+	private static final VoxelShape CORE = Block.box(4.0D, 4.0D, 4.0D, 12.0D, 12.0D, 12.0D);
 	private static final Map<Direction, VoxelShape> SHAPES_DIRECTION = new EnumMap<>(ImmutableMap.of(
-			Direction.NORTH, Block.box(6.0D, 6.0D, 0.0D, 10.0D, 10.0D, 5.0D),
-			Direction.EAST, Block.box(11.0D, 6.0D, 6.0D, 16.0D, 10.0D, 10.0D),
-			Direction.SOUTH, Block.box(6.0D, 6.0D, 11.0D, 10.0D, 10.0D, 16.0D),
-			Direction.WEST, Block.box(0.0D, 6.0D, 6.0D, 5.0D, 10.0D, 10.0D),
-			Direction.UP, Block.box(6.0D, 11.0D, 6.0D, 10.0D, 16.0D, 10.0D),
-			Direction.DOWN, Block.box(6.0D, 0.0D, 6.0D, 10.0D, 5.0D, 10.0D)));
+			Direction.NORTH, Block.box(4.0D, 4.0D, 0.0D, 12.0D, 12.0D, 4.0D),
+			Direction.EAST, Block.box(12.0D, 4.0D, 4.0D, 16.0D, 12.0D, 12.0D),
+			Direction.SOUTH, Block.box(4.0D, 4.0D, 12.0D, 12.0D, 12.0D, 16.0D),
+			Direction.WEST, Block.box(0.0D, 4.0D, 4.0D, 4.0D, 12.0D, 12.0D),
+			Direction.UP, Block.box(4.0D, 12.0D, 4.0D, 12.0D, 16.0D, 12.0D),
+			Direction.DOWN, Block.box(4.0D, 0.0D, 4.0D, 12.0D, 4.0D, 12.0D)));
 	private static final Map<BlockState, VoxelShape> SHAPES = new HashMap<>();
 
 	protected WireConnectorBlock() {

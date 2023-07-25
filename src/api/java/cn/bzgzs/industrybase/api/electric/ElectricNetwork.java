@@ -21,19 +21,19 @@ import java.util.*;
 
 public class ElectricNetwork {
 	private final Random random;
-	private final Map<BlockPos, Set<BlockPos>> components;
+	private final HashMap<BlockPos, Set<BlockPos>> components;
 	private final SetMultimap<BlockPos, Direction> sideConn;
-	private final SetMultimap<BlockPos, BlockPos> wireConn;
+	private final HashMultimap<BlockPos, BlockPos> wireConn;
 	private final LevelAccessor level;
-	private final Queue<Runnable> tasks;
-	private final Map<BlockPos, Double> totalOutput;
-	private final Map<BlockPos, Double> totalInput;
+	private final ArrayDeque<Runnable> tasks;
+	private final HashMap<BlockPos, Double> totalOutput;
+	private final HashMap<BlockPos, Double> totalInput;
 	private final HashMultiset<BlockPos> FEEnergy;
 	private final HashMultiset<BlockPos> FEInput;
-	private final Map<BlockPos, Double> machineOutput;
-	private final Map<BlockPos, Double> machineInput;
+	private final HashMap<BlockPos, Double> machineOutput;
+	private final HashMap<BlockPos, Double> machineInput;
 	private final SetMultimap<BlockPos, Direction> FEMachines;
-	private final SetMultimap<BlockPos, ServerPlayer> subscribedWire;
+	private final HashMultimap<BlockPos, ServerPlayer> subscribedWire;
 
 	public ElectricNetwork(LevelAccessor level) {
 		this.random = new Random();
@@ -41,7 +41,7 @@ public class ElectricNetwork {
 		this.sideConn = Multimaps.newSetMultimap(new HashMap<>(), () -> EnumSet.noneOf(Direction.class));
 		this.wireConn = HashMultimap.create();
 		this.level = level;
-		this.tasks = Queues.newArrayDeque();
+		this.tasks = new ArrayDeque<>();
 		this.totalOutput = new HashMap<>();
 		this.totalInput = new HashMap<>();
 		this.FEEnergy = HashMultiset.create();
@@ -210,14 +210,12 @@ public class ElectricNetwork {
 			}
 			this.FEMachines.removeAll(pos); // 移除相应的 FE 机器
 			if (!this.wireConn.get(pos).isEmpty()) {
-				SetMultimap<BlockPos, BlockPos> multimap = HashMultimap.create();
-				for (BlockPos another : new HashSet<>(this.wireConn.get(pos))) { // 需要在迭代时修改，所以这里要复制一下集合
-					if (this.wireConn.remove(pos, another)) {
-						this.wireConn.remove(another, pos);
-						this.spilt(pos, another);
-						multimap.put(pos, another);
-						multimap.put(another, pos);
-					}
+				Iterator<BlockPos> iterator = this.wireConn.get(pos).iterator();
+				while (iterator.hasNext()) {
+					BlockPos another = iterator.next();
+					iterator.remove();
+					this.wireConn.remove(another, pos);
+					this.spilt(pos, another);
 					this.level.getChunk(another).setUnsaved(true); // 此处不能检查区块是否加载，无论连接的方块是否位于加载区块，都要强制保存
 				}
 				this.subscribedWire.get(pos).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new RemoveWiresPacket(pos)));

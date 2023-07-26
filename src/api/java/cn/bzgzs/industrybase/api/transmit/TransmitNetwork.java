@@ -21,7 +21,7 @@ import net.minecraftforge.network.PacketDistributor;
 import java.util.*;
 
 public class TransmitNetwork {
-	private final HashMap<BlockPos, Set<BlockPos>> components;
+	private final HashMap<BlockPos, LinkedHashSet<BlockPos>> components;
 	private final SetMultimap<BlockPos, Direction> connections;
 	private final LevelAccessor level;
 	private final ArrayDeque<Runnable> tasks;
@@ -54,7 +54,11 @@ public class TransmitNetwork {
 	}
 
 	public BlockPos root(BlockPos pos) {
-		return this.level.isClientSide() ? this.rootCollection.getOrDefault(pos, pos) : this.components.getOrDefault(pos, ImmutableSet.of(pos.immutable())).iterator().next();
+		if (this.level.isClientSide()) {
+			return this.rootCollection.getOrDefault(pos, pos);
+		} else {
+			return this.components.containsKey(pos) ? this.components.get(pos).iterator().next() : pos;
+		}
 	}
 
 	public int totalPower(BlockPos pos) {
@@ -233,10 +237,10 @@ public class TransmitNetwork {
 				return; // 如果两个 iterator 存在重复方块（连通域没有断开），则直接退出
 			}
 
-			Set<BlockPos> primaryComponent = this.components.get(node);
-			Set<BlockPos> secondaryComponent;
+			LinkedHashSet<BlockPos> primaryComponent = this.components.get(node);
+			LinkedHashSet<BlockPos> secondaryComponent;
 			BlockPos primaryNode = primaryComponent.iterator().next();
-			Set<BlockPos> searched = nodeIterator.getSearched();
+			LinkedHashSet<BlockPos> searched = nodeIterator.getSearched();
 
 			if (searched.contains(primaryNode)) {
 				secondaryComponent = new LinkedHashSet<>(Sets.difference(primaryComponent, searched));
@@ -322,8 +326,8 @@ public class TransmitNetwork {
 		if (this.connections.put(secondary, direction)) {
 			BlockPos primary = secondary.relative(direction);
 			this.connections.put(primary, direction.getOpposite());
-			Set<BlockPos> primaryComponent = this.components.get(primary);
-			Set<BlockPos> secondaryComponent = this.components.get(secondary);
+			LinkedHashSet<BlockPos> primaryComponent = this.components.get(primary);
+			LinkedHashSet<BlockPos> secondaryComponent = this.components.get(secondary);
 
 			int primaryPower = this.machinePower.count(primary);
 			int secondaryPower = this.machinePower.count(secondary);
@@ -331,7 +335,7 @@ public class TransmitNetwork {
 			int secondaryResistance = this.machineResistance.count(secondary);
 
 			if (primaryComponent == null && secondaryComponent == null) {
-				Set<BlockPos> union = new LinkedHashSet<>();
+				LinkedHashSet<BlockPos> union = new LinkedHashSet<>();
 				this.components.put(secondary, union);
 				this.components.put(primary, union);
 				union.add(secondary);
@@ -419,8 +423,8 @@ public class TransmitNetwork {
 	}
 
 	public class BFSIterator implements Iterator<BlockPos> {
-		private final Set<BlockPos> searched = new LinkedHashSet<>();
-		private final Queue<BlockPos> queue = new ArrayDeque<>();
+		private final LinkedHashSet<BlockPos> searched = new LinkedHashSet<>();
+		private final ArrayDeque<BlockPos> queue = new ArrayDeque<>();
 
 		public BFSIterator(BlockPos node) {
 			node = node.immutable();
@@ -445,7 +449,7 @@ public class TransmitNetwork {
 			return node;
 		}
 
-		public Set<BlockPos> getSearched() {
+		public LinkedHashSet<BlockPos> getSearched() {
 			return this.searched;
 		}
 	}

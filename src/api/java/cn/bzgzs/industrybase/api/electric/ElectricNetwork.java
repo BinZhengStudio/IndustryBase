@@ -21,7 +21,7 @@ import java.util.*;
 
 public class ElectricNetwork {
 	private final Random random;
-	private final HashMap<BlockPos, Set<BlockPos>> components;
+	private final HashMap<BlockPos, LinkedHashSet<BlockPos>> components;
 	private final SetMultimap<BlockPos, Direction> sideConn;
 	private final HashMultimap<BlockPos, BlockPos> wireConn;
 	private final LevelAccessor level;
@@ -265,10 +265,10 @@ public class ElectricNetwork {
 			return;
 		}
 
-		Set<BlockPos> primaryComponent = this.components.get(node);
-		Set<BlockPos> secondaryComponent;
+		LinkedHashSet<BlockPos> primaryComponent = this.components.get(node);
+		LinkedHashSet<BlockPos> secondaryComponent;
 		BlockPos primaryNode = primaryComponent.iterator().next();
-		Set<BlockPos> searched = nodeIterator.getSearched();
+		LinkedHashSet<BlockPos> searched = nodeIterator.getSearched();
 
 		if (searched.contains(primaryNode)) {
 			secondaryComponent = new LinkedHashSet<>(Sets.difference(primaryComponent, searched));
@@ -406,8 +406,8 @@ public class ElectricNetwork {
 	}
 
 	private void link(BlockPos primary, BlockPos secondary) {
-		Set<BlockPos> primaryComponent = this.components.get(primary);
-		Set<BlockPos> secondaryComponent = this.components.get(secondary);
+		LinkedHashSet<BlockPos> primaryComponent = this.components.get(primary);
+		LinkedHashSet<BlockPos> secondaryComponent = this.components.get(secondary);
 
 		double primaryOutput = this.getMachineOutput(primary);
 		double secondaryOutput = this.getMachineOutput(secondary);
@@ -415,7 +415,7 @@ public class ElectricNetwork {
 		double secondaryInput = this.getMachineInput(secondary);
 
 		if (primaryComponent == null && secondaryComponent == null) {
-			Set<BlockPos> union = new LinkedHashSet<>();
+			LinkedHashSet<BlockPos> union = new LinkedHashSet<>();
 			this.components.put(secondary, union);
 			this.components.put(primary, union);
 			union.add(secondary);
@@ -447,7 +447,7 @@ public class ElectricNetwork {
 		} else if (primaryComponent != secondaryComponent) {
 			BlockPos primaryNode = primaryComponent.iterator().next();
 			BlockPos secondaryNode = secondaryComponent.iterator().next();
-			Set<BlockPos> union = new LinkedHashSet<>(Sets.union(primaryComponent, secondaryComponent));
+			LinkedHashSet<BlockPos> union = new LinkedHashSet<>(Sets.union(primaryComponent, secondaryComponent));
 			union.forEach(pos -> this.components.put(pos, union));
 
 			double outputDiff = this.totalOutput(secondaryNode);
@@ -525,8 +525,8 @@ public class ElectricNetwork {
 	}
 
 	public class BFSIterator implements Iterator<BlockPos> {
-		private final Set<BlockPos> searched = Sets.newLinkedHashSet();
-		private final Queue<BlockPos> queue = Queues.newArrayDeque();
+		private final LinkedHashSet<BlockPos> searched = new LinkedHashSet<>();
+		private final ArrayDeque<BlockPos> queue = new ArrayDeque<>();
 
 		public BFSIterator(BlockPos node) {
 			node = node.immutable();
@@ -555,7 +555,7 @@ public class ElectricNetwork {
 			return node;
 		}
 
-		public Set<BlockPos> getSearched() {
+		public LinkedHashSet<BlockPos> getSearched() {
 			return this.searched;
 		}
 	}

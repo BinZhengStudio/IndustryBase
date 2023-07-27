@@ -41,7 +41,7 @@ public class MechanicalTransmit implements IMechanicalTransmit {
 			if (!level.isClientSide) {
 				this.setPower(this.tmpPower);
 				this.setResistance(this.tmpResistance);
-				network.addOrChangeBlock(this.pos, this.blockEntity::setChanged);
+				this.network.addOrChangeBlock(this.pos, this.blockEntity::setChanged);
 			}
 		});
 	}
@@ -54,12 +54,13 @@ public class MechanicalTransmit implements IMechanicalTransmit {
 		Optional.ofNullable(this.blockEntity.getLevel()).ifPresent(level -> {
 			if (this.network != null) {
 				if (level.isClientSide) {
-					ApiNetworkManager.INSTANCE.sendToServer(new UnsubscribeSpeedPacket(this.pos));
+					if (this.network.shouldSendUnsubscribePacket(this.pos)) {
+						ApiNetworkManager.INSTANCE.sendToServer(new UnsubscribeSpeedPacket(this.pos));
+					}
 					this.network.removeClientSubscribe(this.pos);
 				} else {
 					this.network.removeBlock(this.pos, this.blockEntity::setChanged);
 				}
-				network.removeBlock(this.pos, this.blockEntity::setChanged);
 			}
 		});
 	}
@@ -82,9 +83,12 @@ public class MechanicalTransmit implements IMechanicalTransmit {
 	@Override
 	@CanIgnoreReturnValue
 	public int setPower(int power) {
-		int diff = this.network.setMachinePower(this.pos, power);
-		if (diff != 0) this.blockEntity.setChanged();
-		return diff;
+		if (!this.blockEntity.getLevel().isClientSide) {
+			int diff = this.network.setMachinePower(this.pos, power);
+			if (diff != 0) this.blockEntity.setChanged();
+			return diff;
+		}
+		return 0;
 	}
 
 	@Override
@@ -95,11 +99,14 @@ public class MechanicalTransmit implements IMechanicalTransmit {
 	@Override
 	@CanIgnoreReturnValue
 	public int setResistance(int resistance) {
-		int diff = this.network.setMachineResistance(this.pos, resistance);
-		if (diff != 0) {
-			this.blockEntity.setChanged();
+		if (!this.blockEntity.getLevel().isClientSide) {
+			int diff = this.network.setMachineResistance(this.pos, resistance);
+			if (diff != 0) {
+				this.blockEntity.setChanged();
+			}
+			return diff;
 		}
-		return diff;
+		return 0;
 	}
 
 	@Override

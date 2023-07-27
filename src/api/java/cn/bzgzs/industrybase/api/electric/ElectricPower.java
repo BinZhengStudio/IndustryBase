@@ -102,9 +102,12 @@ public class ElectricPower implements IElectricPower {
 	 */
 	@Override
 	public double setOutputPower(double power) {
-		double diff = this.network.setMachineOutput(this.pos, power);
-		if (diff != 0) this.blockEntity.setChanged();
-		return diff;
+		if (!this.blockEntity.getLevel().isClientSide) {
+			double diff = this.network.setMachineOutput(this.pos, power);
+			if (diff != 0) this.blockEntity.setChanged();
+			return diff;
+		}
+		return 0;
 	}
 
 	/**
@@ -119,9 +122,12 @@ public class ElectricPower implements IElectricPower {
 
 	@Override
 	public double setInputPower(double power) {
-		double diff = this.network.setMachineInput(this.pos, power);
-		if (diff != 0) this.blockEntity.setChanged();
-		return diff;
+		if (!this.blockEntity.getLevel().isClientSide) {
+			double diff = this.network.setMachineInput(this.pos, power);
+			if (diff != 0) this.blockEntity.setChanged();
+			return diff;
+		}
+		return 0;
 	}
 
 	/**

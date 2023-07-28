@@ -143,11 +143,8 @@ public class TransmitNetwork {
 	}
 
 	public boolean shouldSendUnsubscribePacket(BlockPos pos) {
-		BlockPos root = this.root(pos);
-		if (root.equals(pos)) {
-			return !this.rootCollection.containsValue(root);
-		}
-		return false;
+		// 如果当前网络还有其他非 root 方块，返回 false
+		return !this.rootCollection.containsValue(this.root(pos));
 	}
 
 	public void removeClientSubscribe(BlockPos target) {

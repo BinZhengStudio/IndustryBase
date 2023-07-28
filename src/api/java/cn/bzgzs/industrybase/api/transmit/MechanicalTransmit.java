@@ -54,10 +54,10 @@ public class MechanicalTransmit implements IMechanicalTransmit {
 		Optional.ofNullable(this.blockEntity.getLevel()).ifPresent(level -> {
 			if (this.network != null) {
 				if (level.isClientSide) {
+					this.network.removeClientSubscribe(this.pos);
 					if (this.network.shouldSendUnsubscribePacket(this.pos)) {
 						ApiNetworkManager.INSTANCE.sendToServer(new UnsubscribeSpeedPacket(this.pos));
 					}
-					this.network.removeClientSubscribe(this.pos);
 				} else {
 					this.network.removeBlock(this.pos, this.blockEntity::setChanged);
 				}

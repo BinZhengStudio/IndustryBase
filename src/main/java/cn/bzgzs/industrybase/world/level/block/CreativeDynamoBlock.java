@@ -2,8 +2,7 @@ package cn.bzgzs.industrybase.world.level.block;
 
 import cn.bzgzs.industrybase.api.util.ElectricHelper;
 import cn.bzgzs.industrybase.api.util.TransmitHelper;
-import cn.bzgzs.industrybase.world.level.block.entity.BlockEntityTypeList;
-import cn.bzgzs.industrybase.world.level.block.entity.DynamoBlockEntity;
+import cn.bzgzs.industrybase.world.level.block.entity.CreativeDynamoBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -13,18 +12,16 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import org.jetbrains.annotations.Nullable;
 
-public class DynamoBlock extends BaseEntityBlock {
+public class CreativeDynamoBlock extends BaseEntityBlock {
 	public static final DirectionProperty FACING = BlockStateProperties.FACING;
 
-	public DynamoBlock() {
+	public CreativeDynamoBlock() {
 		super(Properties.copy(Blocks.IRON_BLOCK));
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 	}
@@ -56,11 +53,6 @@ public class DynamoBlock extends BaseEntityBlock {
 	@Nullable
 	@Override
 	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-		return new DynamoBlockEntity(pos, state);
-	}
-
-	@Nullable
-	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> serverType) {
-		return level.isClientSide ? null : createTickerHelper(serverType, BlockEntityTypeList.DYNAMO.get(), DynamoBlockEntity::serverTick);
+		return new CreativeDynamoBlockEntity(pos, state);
 	}
 }

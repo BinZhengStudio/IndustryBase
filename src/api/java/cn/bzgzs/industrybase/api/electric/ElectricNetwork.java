@@ -33,7 +33,7 @@ public class ElectricNetwork {
 	private final HashMap<BlockPos, Double> machineOutput;
 	private final HashMap<BlockPos, Double> machineInput;
 	private final SetMultimap<BlockPos, Direction> FEMachines;
-	private final HashMultimap<BlockPos, ServerPlayer> subscribedWire;
+	private final HashMultimap<BlockPos, ServerPlayer> subscribes;
 
 	public ElectricNetwork(LevelAccessor level) {
 		this.random = new Random();
@@ -49,7 +49,7 @@ public class ElectricNetwork {
 		this.machineOutput = new HashMap<>();
 		this.machineInput = new HashMap<>();
 		this.FEMachines = Multimaps.newSetMultimap(new HashMap<>(), () -> EnumSet.noneOf(Direction.class));
-		this.subscribedWire = HashMultimap.create();
+		this.subscribes = HashMultimap.create();
 	}
 
 	public int size(BlockPos pos) {
@@ -85,12 +85,12 @@ public class ElectricNetwork {
 	}
 
 	public Set<BlockPos> subscribeWire(BlockPos pos, ServerPlayer player) {
-		this.subscribedWire.put(pos, player);
+		this.subscribes.put(pos, player);
 		return this.wireConn.get(pos);
 	}
 
 	public void unsubscribeWire(BlockPos pos, ServerPlayer player) {
-		this.subscribedWire.remove(pos, player);
+		this.subscribes.remove(pos, player);
 	}
 
 	public void addClientWire(BlockPos from, BlockPos to) {
@@ -123,6 +123,7 @@ public class ElectricNetwork {
 	}
 	
 	public double setMachineOutput(BlockPos pos, double power) {
+		if (this.getMachineOutput(pos) == power) return 0;
 		double diff;
 		if (power > 0) {
 			diff = power - this.getMachineOutput(pos);
@@ -146,6 +147,7 @@ public class ElectricNetwork {
 	}
 
 	public double setMachineInput(BlockPos pos, double power) {
+		if (this.getMachineInput(pos) == power) return 0;
 		double diff;
 		if (power > 0) {
 			diff = power - this.getMachineInput(pos);
@@ -218,8 +220,8 @@ public class ElectricNetwork {
 					this.spilt(pos, another);
 					this.level.getChunk(another).setUnsaved(true); // 此处不能检查区块是否加载，无论连接的方块是否位于加载区块，都要强制保存
 				}
-				this.subscribedWire.get(pos).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new RemoveWiresPacket(pos)));
-				this.subscribedWire.removeAll(pos);
+				this.subscribes.get(pos).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new RemoveWiresPacket(pos)));
+				this.subscribes.removeAll(pos);
 			}
 			callback.run();
 		});
@@ -245,8 +247,8 @@ public class ElectricNetwork {
 		if (this.wireConn.remove(from, to)) {
 			this.wireConn.remove(to, from);
 			this.spilt(from, to);
-			this.subscribedWire.get(from).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnSyncPacket(from, to, true)));
-			this.subscribedWire.get(to).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnSyncPacket(to, from, true)));
+			this.subscribes.get(from).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnSyncPacket(from, to, true)));
+			this.subscribes.get(to).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnSyncPacket(to, from, true)));
 		}
 	}
 
@@ -400,8 +402,8 @@ public class ElectricNetwork {
 		if (this.wireConn.put(secondary, primary)) {
 			this.wireConn.put(primary, secondary);
 			this.link(primary, secondary);
-			this.subscribedWire.get(from).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnSyncPacket(from, to, false)));
-			this.subscribedWire.get(to).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnSyncPacket(to, from, false)));
+			this.subscribes.get(from).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnSyncPacket(from, to, false)));
+			this.subscribes.get(to).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnSyncPacket(to, from, false)));
 		}
 	}
 

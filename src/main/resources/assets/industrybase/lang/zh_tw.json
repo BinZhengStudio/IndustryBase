@@ -4,6 +4,7 @@
   "item.industrybase.wire_coil": "導線卷",
 
   "block.industrybase.steam_engine": "小型蒸汽機",
+  "block.industrybase.creative_steam_engine": "創造小型蒸汽機",
   "block.industrybase.oak_transmission_rod": "橡木傳動杆",
   "block.industrybase.spruce_transmission_rod": "雲杉傳動杆",
   "block.industrybase.birch_transmission_rod": "白桦傳動杆",
@@ -19,12 +20,15 @@
   "block.industrybase.gold_transmission_rod": "嵌金傳動杆",
   "block.industrybase.diamond_transmission_rod": "嵌金剛石傳動杆",
   "block.industrybase.dynamo": "發電機",
+  "block.industrybase.creative_dynamo": "創造發電機",
   "block.industrybase.wire": "導線方塊",
   "block.industrybase.wire_connector": "接線樁",
   "block.industrybase.axis_connector": "軸連器",
   "block.industrybase.electric_motor": "電機",
+  "block.industrybase.creative_electric_motor": "創造電機",
 
   "container.industrybase.steam_engine": "小型蒸汽機",
+  "container.industrybase.creative_steam_engine": "創造小型蒸汽機",
 
   "label.transmit_panel.speed": "速度: %1$s",
   "label.transmit_panel.power": "功率: %1$s",

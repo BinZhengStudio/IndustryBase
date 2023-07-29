@@ -86,7 +86,7 @@ public class SteamEngineBlock extends BaseEntityBlock {
 			}
 			super.onRemove(state, level, pos, newState, isMoving);
 		}
-		TransmitHelper.updateOnRemove(level, state, newState, pos, AXIS);
+		TransmitHelper.updateOnRemove(level, state, newState, pos);
 	}
 
 	@Override

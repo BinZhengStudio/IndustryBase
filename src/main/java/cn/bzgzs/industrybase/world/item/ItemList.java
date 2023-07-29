@@ -14,6 +14,7 @@ public class ItemList {
 	public static final RegistryObject<Item> WIRE_COIL = ITEMS.register("wire_coil", WireCoilItem::new);
 
 	public static final RegistryObject<BlockItem> DYNAMO = ITEMS.register("dynamo", () -> new BlockItem(BlockList.DYNAMO.get(), new Item.Properties()));
+	public static final RegistryObject<BlockItem> CREATIVE_DYNAMO = ITEMS.register("creative_dynamo", () -> new BlockItem(BlockList.CREATIVE_DYNAMO.get(), new Item.Properties()));
 	public static final RegistryObject<BlockItem> OAK_TRANSMISSION_ROD = ITEMS.register("oak_transmission_rod", () -> new BlockEntityItem(BlockList.OAK_TRANSMISSION_ROD.get(), new Item.Properties()));
 	public static final RegistryObject<BlockItem> SPRUCE_TRANSMISSION_ROD = ITEMS.register("spruce_transmission_rod", () -> new BlockEntityItem(BlockList.SPRUCE_TRANSMISSION_ROD.get(), new Item.Properties()));
 	public static final RegistryObject<BlockItem> BIRCH_TRANSMISSION_ROD = ITEMS.register("birch_transmission_rod", () -> new BlockEntityItem(BlockList.BIRCH_TRANSMISSION_ROD.get(), new Item.Properties()));
@@ -26,10 +27,12 @@ public class ItemList {
 	public static final RegistryObject<BlockItem> GOLD_TRANSMISSION_ROD = ITEMS.register("gold_transmission_rod", () -> new BlockEntityItem(BlockList.GOLD_TRANSMISSION_ROD.get(), new Item.Properties()));
 	public static final RegistryObject<BlockItem> DIAMOND_TRANSMISSION_ROD = ITEMS.register("diamond_transmission_rod", () -> new BlockEntityItem(BlockList.DIAMOND_TRANSMISSION_ROD.get(), new Item.Properties()));
 	public static final RegistryObject<BlockItem> STEAM_ENGINE = ITEMS.register("steam_engine", () -> new BlockEntityItem(BlockList.STEAM_ENGINE.get(), new Item.Properties()));
+	public static final RegistryObject<BlockItem> CREATIVE_STEAM_ENGINE = ITEMS.register("creative_steam_engine", () -> new BlockEntityItem(BlockList.CREATIVE_STEAM_ENGINE.get(), new Item.Properties()));
 	public static final RegistryObject<BlockItem> AXIS_CONNECTOR = ITEMS.register("axis_connector", () -> new BlockEntityItem(BlockList.AXIS_CONNECTOR.get(), new Item.Properties()));
 	public static final RegistryObject<BlockItem> WIRE = ITEMS.register("wire", () -> new BlockEntityItem(BlockList.WIRE.get(), new Item.Properties()));
 	public static final RegistryObject<BlockItem> WIRE_CONNECTOR = ITEMS.register("wire_connector", () -> new BlockEntityItem(BlockList.WIRE_CONNECTOR.get(), new Item.Properties()));
 	public static final RegistryObject<BlockItem> ELECTRIC_MOTOR = ITEMS.register("electric_motor", () -> new BlockEntityItem(BlockList.ELECTRIC_MOTOR.get(), new Item.Properties()));
+	public static final RegistryObject<BlockItem> CREATIVE_ELECTRIC_MOTOR = ITEMS.register("creative_electric_motor", () -> new BlockEntityItem(BlockList.CREATIVE_ELECTRIC_MOTOR.get(), new Item.Properties()));
 	public static final RegistryObject<BlockItem> CHERRY_TRANSMISSION_ROD = ITEMS.register("cherry_transmission_rod", () -> new BlockEntityItem(BlockList.CHERRY_TRANSMISSION_ROD.get(), new Item.Properties()));
 	public static final RegistryObject<BlockItem> CRIMSON_TRANSMISSION_ROD = ITEMS.register("crimson_transmission_rod", () -> new BlockEntityItem(BlockList.CRIMSON_TRANSMISSION_ROD.get(), new Item.Properties()));
 	public static final RegistryObject<BlockItem> WARPED_TRANSMISSION_ROD = ITEMS.register("warped_transmission_rod", () -> new BlockEntityItem(BlockList.WARPED_TRANSMISSION_ROD.get(), new Item.Properties()));

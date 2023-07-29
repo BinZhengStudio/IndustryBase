@@ -38,8 +38,8 @@ public class ElectricMotorBlock extends BaseEntityBlock {
 	@Override
 	@SuppressWarnings("deprecation")
 	public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-		TransmitHelper.updateOnRemove(level, state, newState, pos, FACING);
-		ElectricHelper.updateOnRemove(level, state, newState, pos, FACING);
+		TransmitHelper.updateOnRemove(level, state, newState, pos);
+		ElectricHelper.updateOnRemove(level, state, newState, pos);
 		super.onRemove(state, level, pos, newState, isMoving);
 	}
 

@@ -24,29 +24,29 @@ public class TransmitNetwork {
 	private final SetMultimap<BlockPos, Direction> connections;
 	private final LevelAccessor level;
 	private final ArrayDeque<Runnable> tasks;
-	private final HashMultiset<BlockPos> powerCollection; // BlockPos 是中心块的坐标，出现个数为连通域总功率的数值
-	private final HashMultiset<BlockPos> resistanceCollection;
-	private final HashMap<BlockPos, Float> speedCollection;
+	private final HashMultiset<BlockPos> totalPower; // BlockPos 是中心块的坐标，出现个数为连通域总功率的数值
+	private final HashMultiset<BlockPos> totalResistance;
+	private final HashMap<BlockPos, Float> speeds;
 	private final HashMultiset<BlockPos> machinePower;
 	private final HashMultiset<BlockPos> machineResistance;
-	private final HashMultimap<BlockPos, ServerPlayer> subscribed; // BlockPos is of root block
+	private final HashMultimap<BlockPos, ServerPlayer> subscribes; // BlockPos is of root block
 	// Only update in client
-	private final HashMap<BlockPos, BlockPos> rootCollection;
-	private final HashMap<BlockPos, RotateContext> rotateCollection;
+	private final HashMap<BlockPos, BlockPos> roots;
+	private final HashMap<BlockPos, RotateContext> rotates;
 
 	public TransmitNetwork(LevelAccessor level) {
 		this.components = new HashMap<>();
 		this.connections = Multimaps.newSetMultimap(new HashMap<>(), () -> EnumSet.noneOf(Direction.class));
 		this.level = level;
 		this.tasks = new ArrayDeque<>();
-		this.powerCollection = HashMultiset.create();
-		this.resistanceCollection = HashMultiset.create();
-		this.speedCollection = new HashMap<>();
-		this.rotateCollection = new HashMap<>();
-		this.rootCollection = new HashMap<>();
+		this.totalPower = HashMultiset.create();
+		this.totalResistance = HashMultiset.create();
+		this.speeds = new HashMap<>();
+		this.rotates = new HashMap<>();
+		this.roots = new HashMap<>();
 		this.machinePower = HashMultiset.create();
 		this.machineResistance = HashMultiset.create();
-		this.subscribed = HashMultimap.create();
+		this.subscribes = HashMultimap.create();
 	}
 
 	public int size(BlockPos pos) {
@@ -55,7 +55,7 @@ public class TransmitNetwork {
 
 	public BlockPos root(BlockPos pos) {
 		if (this.level.isClientSide()) {
-			return this.rootCollection.getOrDefault(pos, pos);
+			return this.roots.getOrDefault(pos, pos);
 		} else {
 			return this.components.containsKey(pos) ? this.components.get(pos).iterator().next() : pos;
 		}
@@ -63,42 +63,42 @@ public class TransmitNetwork {
 
 	public int totalPower(BlockPos pos) {
 		BlockPos root = this.root(pos);
-		return this.powerCollection.count(root);
+		return this.totalPower.count(root);
 	}
 
 	public int totalResistance(BlockPos pos) {
 		BlockPos root = this.root(pos);
-		return this.resistanceCollection.count(root);
+		return this.totalResistance.count(root);
 	}
 
 	public float speed(BlockPos pos) {
 		BlockPos root = this.root(pos);
-		return this.speedCollection.getOrDefault(root, 0.0F);
+		return this.speeds.getOrDefault(root, 0.0F);
 	}
 
 	public RotateContext getRotateContext(BlockPos pos) {
 		BlockPos root = this.root(pos);
-		return this.rotateCollection.getOrDefault(root, RotateContext.NULL);
+		return this.rotates.getOrDefault(root, RotateContext.NULL);
 	}
 
 	public float subscribeSpeed(BlockPos pos, ServerPlayer player) {
 		BlockPos root = this.root(pos);
-		this.subscribed.put(root, player);
-		return this.speedCollection.getOrDefault(root, 0.0F);
+		this.subscribes.put(root, player);
+		return this.speeds.getOrDefault(root, 0.0F);
 	}
 
 	public void unsubscribe(BlockPos pos, ServerPlayer player) {
-		this.subscribed.remove(pos, player);
+		this.subscribes.remove(pos, player);
 	}
 
 	public void addClientSpeed(BlockPos target, BlockPos root, float speed) {
 		if (this.level.isClientSide()) {
 			this.updateClientRoot(target, root);
 			if (speed > 0.0F) {
-				this.speedCollection.put(root, speed);
+				this.speeds.put(root, speed);
 			} else {
-				this.speedCollection.remove(root);
-				this.rotateCollection.remove(root);
+				this.speeds.remove(root);
+				this.rotates.remove(root);
 			}
 		}
 	}
@@ -106,10 +106,10 @@ public class TransmitNetwork {
 	public void updateClientSpeed(BlockPos root, float speed) {
 		if (this.level.isClientSide()) {
 			if (speed > 0.0F) {
-				this.speedCollection.put(root, speed);
+				this.speeds.put(root, speed);
 			} else {
-				this.speedCollection.remove(root);
-				this.rotateCollection.remove(root);
+				this.speeds.remove(root);
+				this.rotates.remove(root);
 			}
 		}
 	}
@@ -117,9 +117,9 @@ public class TransmitNetwork {
 	public void updateClientRoot(BlockPos target, BlockPos root) {
 		if (this.level.isClientSide()) {
 			if (!target.equals(root)) {
-				this.rootCollection.put(target, root);
+				this.roots.put(target, root);
 			} else {
-				this.rootCollection.remove(target);
+				this.roots.remove(target);
 			}
 		}
 	}
@@ -128,9 +128,9 @@ public class TransmitNetwork {
 		if (this.level.isClientSide()) {
 			targets.forEach(target -> {
 				if (!target.equals(root)) {
-					this.rootCollection.put(target, root);
+					this.roots.put(target, root);
 				} else {
-					this.rootCollection.remove(target);
+					this.roots.remove(target);
 				}
 			});
 		}
@@ -138,20 +138,20 @@ public class TransmitNetwork {
 
 	public void removeClientRoots(Collection<BlockPos> targets) {
 		if (this.level.isClientSide()) {
-			targets.forEach(this.rootCollection::remove);
+			targets.forEach(this.roots::remove);
 		}
 	}
 
 	public boolean shouldSendUnsubscribePacket(BlockPos pos) {
 		// 如果当前网络还有其他非 root 方块，返回 false
-		return !this.rootCollection.containsValue(this.root(pos));
+		return !this.roots.containsValue(this.root(pos));
 	}
 
 	public void removeClientSubscribe(BlockPos target) {
 		if (this.level.isClientSide()) {
-			this.speedCollection.remove(target);
-			this.rootCollection.remove(target);
-			this.rotateCollection.remove(target);
+			this.speeds.remove(target);
+			this.roots.remove(target);
+			this.rotates.remove(target);
 		}
 	}
 
@@ -160,13 +160,14 @@ public class TransmitNetwork {
 	}
 
 	public int setMachinePower(BlockPos pos, int power) {
+		if (this.machinePower.count(pos) == power) return 0;
 		int diff = power - this.machinePower.setCount(pos, power);
 		if (this.components.containsKey(pos)) {
 			BlockPos root = this.root(pos);
 			if (diff >= 0) {
-				this.powerCollection.add(root, diff);
+				this.totalPower.add(root, diff);
 			} else {
-				this.powerCollection.remove(root, -diff);
+				this.totalPower.remove(root, -diff);
 			}
 		}
 		this.updateSpeed(pos);
@@ -178,13 +179,14 @@ public class TransmitNetwork {
 	}
 
 	public int setMachineResistance(BlockPos pos, int resistance) {
+		if (this.machineResistance.count(pos) == resistance) return 0;
 		int diff = resistance - this.machineResistance.setCount(pos, resistance);
 		if (this.components.containsKey(pos)) {
 			BlockPos root = this.root(pos);
 			if (diff >= 0) {
-				this.resistanceCollection.add(root, diff);
+				this.totalResistance.add(root, diff);
 			} else {
-				this.resistanceCollection.remove(root, -diff);
+				this.totalResistance.remove(root, -diff);
 			}
 		}
 		this.updateSpeed(pos);
@@ -195,8 +197,8 @@ public class TransmitNetwork {
 		BlockPos root = this.root(pos);
 		float speed = 0.0F;
 		if (this.components.containsKey(pos)) {
-			int power = this.powerCollection.count(root);
-			int resistance = this.resistanceCollection.count(root);
+			int power = this.totalPower.count(root);
+			int resistance = this.totalResistance.count(root);
 			if (power > 0 && resistance > 0) {
 				speed = (float) power / resistance;
 			} else if (power > 0) {
@@ -205,11 +207,11 @@ public class TransmitNetwork {
 		}
 		float finalSpeed = speed;
 		if (finalSpeed > 0.0F) {
-			this.speedCollection.put(root, finalSpeed);
+			this.speeds.put(root, finalSpeed);
 		} else {
-			this.speedCollection.remove(root);
+			this.speeds.remove(root);
 		}
-		this.subscribed.get(root).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new SpeedSyncPacket(root, finalSpeed)));
+		this.subscribes.get(root).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new SpeedSyncPacket(root, finalSpeed)));
 	}
 
 	public void removeBlock(BlockPos pos, Runnable callback) {
@@ -219,7 +221,7 @@ public class TransmitNetwork {
 			for (Direction side : Direction.values()) {
 				this.cut(pos, side);
 			}
-			this.subscribed.removeAll(pos);
+			this.subscribes.removeAll(pos);
 			callback.run();
 		});
 	}
@@ -262,12 +264,12 @@ public class TransmitNetwork {
 
 				int powerDiff = this.machinePower.count(secondaryNode);
 				int resistanceDiff = this.machineResistance.count(secondaryNode);
-				this.powerCollection.remove(primaryNode, powerDiff);
-				this.resistanceCollection.remove(primaryNode, resistanceDiff);
-				this.subscribed.get(primaryNode).forEach(player -> {
+				this.totalPower.remove(primaryNode, powerDiff);
+				this.totalResistance.remove(primaryNode, resistanceDiff);
+				this.subscribes.get(primaryNode).forEach(player -> {
 					ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
 							new RootSyncPacket(secondaryNode, secondaryNode));
-					this.subscribed.put(secondaryNode, player);
+					this.subscribes.put(secondaryNode, player);
 				});
 			} else {
 				int powerDiff = 0;
@@ -278,23 +280,23 @@ public class TransmitNetwork {
 					powerDiff += this.machinePower.count(pos);
 					resistanceDiff += this.machineResistance.count(pos);
 				}
-				this.subscribed.get(primaryNode).forEach(player -> {
+				this.subscribes.get(primaryNode).forEach(player -> {
 					ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
 							new RootsSyncPacket(secondaryComponent, secondaryNode));
-					this.subscribed.put(secondaryNode, player);
+					this.subscribes.put(secondaryNode, player);
 				});
 
-				this.powerCollection.remove(primaryNode, powerDiff);
-				this.resistanceCollection.remove(primaryNode, resistanceDiff);
-				this.powerCollection.add(secondaryNode, powerDiff);
-				this.resistanceCollection.add(secondaryNode, resistanceDiff);
+				this.totalPower.remove(primaryNode, powerDiff);
+				this.totalResistance.remove(primaryNode, resistanceDiff);
+				this.totalPower.add(secondaryNode, powerDiff);
+				this.totalResistance.add(secondaryNode, resistanceDiff);
 			}
 			if (primaryComponent.size() <= 1) {
 				this.components.remove(primaryNode);
 
-				this.powerCollection.setCount(primaryNode, 0);
-				this.resistanceCollection.setCount(primaryNode, 0);
-				this.subscribed.get(primaryNode).forEach(player -> {
+				this.totalPower.setCount(primaryNode, 0);
+				this.totalResistance.setCount(primaryNode, 0);
+				this.subscribes.get(primaryNode).forEach(player -> {
 					ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
 							new RootSyncPacket(primaryNode, primaryNode));
 				});
@@ -350,42 +352,42 @@ public class TransmitNetwork {
 				union.add(secondary);
 				union.add(primary);
 
-				this.powerCollection.setCount(secondary, primaryPower + secondaryPower);
-				this.resistanceCollection.setCount(secondary, primaryResistance + secondaryResistance);
+				this.totalPower.setCount(secondary, primaryPower + secondaryPower);
+				this.totalResistance.setCount(secondary, primaryResistance + secondaryResistance);
 				this.updateSpeed(secondary);
 
-				this.subscribed.removeAll(primary).forEach(player -> {
+				this.subscribes.removeAll(primary).forEach(player -> {
 					ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
 							new RootSyncPacket(primary, secondary));
-					this.subscribed.put(secondary, player);
+					this.subscribes.put(secondary, player);
 				});
 			} else if (primaryComponent == null) {
 				BlockPos secondaryNode = secondaryComponent.iterator().next();
 				this.components.put(primary, secondaryComponent);
 				secondaryComponent.add(primary);
 
-				this.powerCollection.add(secondaryNode, primaryPower);
-				this.resistanceCollection.add(secondaryNode, primaryResistance);
+				this.totalPower.add(secondaryNode, primaryPower);
+				this.totalResistance.add(secondaryNode, primaryResistance);
 				this.updateSpeed(secondaryNode);
 
-				this.subscribed.removeAll(primary).forEach(player -> {
+				this.subscribes.removeAll(primary).forEach(player -> {
 					ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
 							new RootSyncPacket(primary, secondaryNode));
-					this.subscribed.put(secondaryNode, player);
+					this.subscribes.put(secondaryNode, player);
 				});
 			} else if (secondaryComponent == null) {
 				BlockPos primaryNode = primaryComponent.iterator().next();
 				this.components.put(secondary, primaryComponent);
 				primaryComponent.add(secondary);
 
-				this.powerCollection.add(primaryNode, secondaryPower);
-				this.resistanceCollection.add(primaryNode, secondaryResistance);
+				this.totalPower.add(primaryNode, secondaryPower);
+				this.totalResistance.add(primaryNode, secondaryResistance);
 				this.updateSpeed(primaryNode);
 
-				this.subscribed.removeAll(secondary).forEach(player -> {
+				this.subscribes.removeAll(secondary).forEach(player -> {
 					ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
 							new RootSyncPacket(secondary, primaryNode));
-					this.subscribed.put(primaryNode, player);
+					this.subscribes.put(primaryNode, player);
 				});
 			} else if (primaryComponent != secondaryComponent) {
 				BlockPos primaryNode = primaryComponent.iterator().next();
@@ -394,19 +396,19 @@ public class TransmitNetwork {
 					primaryComponent.add(pos);
 					this.components.put(pos, primaryComponent);
 				});
-				this.subscribed.removeAll(secondaryNode).forEach(player -> {
+				this.subscribes.removeAll(secondaryNode).forEach(player -> {
 					ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
 							new RootsSyncPacket(secondaryComponent, primaryNode));
 					ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
 							new SpeedSyncPacket(secondaryNode, 0.0F));
-					this.subscribed.put(primaryNode, player);
+					this.subscribes.put(primaryNode, player);
 				});
 
-				this.powerCollection.add(primaryNode, this.powerCollection.setCount(secondaryNode, 0));
-				this.resistanceCollection.add(primaryNode, this.resistanceCollection.setCount(secondaryNode, 0));
+				this.totalPower.add(primaryNode, this.totalPower.setCount(secondaryNode, 0));
+				this.totalResistance.add(primaryNode, this.totalResistance.setCount(secondaryNode, 0));
 
 				this.updateSpeed(primaryNode);
-				this.speedCollection.remove(secondaryNode);
+				this.speeds.remove(secondaryNode);
 			}
 		}
 	}
@@ -418,8 +420,8 @@ public class TransmitNetwork {
 	}
 
 	private void clientTick() {
-		this.speedCollection.forEach((pos, speed) -> {
-			RotateContext context = this.rotateCollection.computeIfAbsent(pos, blockPos -> new RotateContext(0.0F, 0.0F));
+		this.speeds.forEach((pos, speed) -> {
+			RotateContext context = this.rotates.computeIfAbsent(pos, blockPos -> new RotateContext(0.0F, 0.0F));
 			float degree = context.getDegree();
 			context.setOldDegree(degree);
 			context.setDegree(degree + (speed * 18.0F));

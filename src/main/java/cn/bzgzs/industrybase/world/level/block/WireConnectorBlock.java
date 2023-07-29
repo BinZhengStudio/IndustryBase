@@ -69,7 +69,7 @@ public class WireConnectorBlock extends BaseEntityBlock {
 			}
 			super.onRemove(state, level, pos, newState, isMoving);
 		}
-		ElectricHelper.updateOnRemove(level, state, newState, pos, FACING);
+		ElectricHelper.updateOnRemove(level, state, newState, pos);
 	}
 
 	@SuppressWarnings("deprecation")

@@ -4,6 +4,7 @@
   "item.industrybase.wire_coil": "Wire Coil",
 
   "block.industrybase.steam_engine": "Mini Steam Engine",
+  "block.industrybase.creative_steam_engine": "Creative Mini Steam Engine",
   "block.industrybase.oak_transmission_rod": "Oak Transmission Rod",
   "block.industrybase.spruce_transmission_rod": "Spruce Transmission Rod",
   "block.industrybase.birch_transmission_rod": "Birch Transmission Rod",
@@ -19,12 +20,15 @@
   "block.industrybase.gold_transmission_rod": "Embedded Gold Transmission Rod",
   "block.industrybase.diamond_transmission_rod": "Embedded Diamond Transmission Rod",
   "block.industrybase.dynamo": "Dynamo",
+  "block.industrybase.creative_dynamo": "Creative Dynamo",
   "block.industrybase.wire": "Wire Block",
   "block.industrybase.wire_connector": "Wire Connector",
   "block.industrybase.axis_connector": "Axis Connector",
   "block.industrybase.electric_motor": "Electric Motor",
+  "block.industrybase.creative_electric_motor": "Creative Electric Motor",
 
   "container.industrybase.steam_engine": "Mini Steam Engine",
+  "container.industrybase.creative_steam_engine": "Creative Mini Steam Engine",
 
   "label.transmit_panel.speed": "Speed: %1$s",
   "label.transmit_panel.power": "Power: %1$s",

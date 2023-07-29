@@ -1,0 +1,14 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "industrybase:block/steam_engine_xz_lit",
+      "y": 90
+    },
+    "axis=y": {
+      "model": "industrybase:block/steam_engine_y_lit"
+    },
+    "axis=z": {
+      "model": "industrybase:block/steam_engine_xz_lit"
+    }
+  }
+}

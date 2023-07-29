@@ -15,6 +15,7 @@ public class CreativeModeTabList { // 创造模式物品栏
 			.displayItems((parameters, output) -> { // 添加物品
 				output.accept(ItemList.WIRE_COIL.get());
 				output.accept(ItemList.DYNAMO.get());
+				output.accept(ItemList.CREATIVE_DYNAMO.get());
 				output.accept(ItemList.OAK_TRANSMISSION_ROD.get());
 				output.accept(ItemList.SPRUCE_TRANSMISSION_ROD.get());
 				output.accept(ItemList.BIRCH_TRANSMISSION_ROD.get());
@@ -31,9 +32,11 @@ public class CreativeModeTabList { // 创造模式物品栏
 				output.accept(ItemList.GOLD_TRANSMISSION_ROD.get());
 				output.accept(ItemList.DIAMOND_TRANSMISSION_ROD.get());
 				output.accept(ItemList.STEAM_ENGINE.get());
+				output.accept(ItemList.CREATIVE_STEAM_ENGINE.get());
 				output.accept(ItemList.AXIS_CONNECTOR.get());
 				output.accept(ItemList.WIRE.get());
 				output.accept(ItemList.WIRE_CONNECTOR.get());
 				output.accept(ItemList.ELECTRIC_MOTOR.get());
+				output.accept(ItemList.CREATIVE_ELECTRIC_MOTOR.get());
 			}).build());
 }

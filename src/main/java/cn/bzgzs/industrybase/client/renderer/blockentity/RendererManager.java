@@ -90,6 +90,7 @@ public class RendererManager {
 		event.registerBlockEntityRenderer(BlockEntityTypeList.GOLD_TRANSMISSION_ROD.get(), TransmissionRodRenderer::new);
 		event.registerBlockEntityRenderer(BlockEntityTypeList.DIAMOND_TRANSMISSION_ROD.get(), TransmissionRodRenderer::new);
 		event.registerBlockEntityRenderer(BlockEntityTypeList.STEAM_ENGINE.get(), SteamEngineRenderer::new);
+		event.registerBlockEntityRenderer(BlockEntityTypeList.CREATIVE_STEAM_ENGINE.get(), CreativeSteamEngineRenderer::new);
 		event.registerBlockEntityRenderer(BlockEntityTypeList.WIRE_CONNECTOR.get(), WireConnectableRenderer::new);
 	}
 

@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "industrybase:block/dynamo"
+    },
+    "facing=east": {
+      "model": "industrybase:block/dynamo",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "industrybase:block/dynamo",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "industrybase:block/dynamo",
+      "y": 270
+    },
+    "facing=up": {
+      "model": "industrybase:block/dynamo",
+      "x": 270
+    },
+    "facing=down": {
+      "model": "industrybase:block/dynamo",
+      "x": 90
+    }
+  }
+}

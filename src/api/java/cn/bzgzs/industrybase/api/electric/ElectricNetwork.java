@@ -203,6 +203,7 @@ public class ElectricNetwork {
 		return extract;
 	}
 
+	@SuppressWarnings("deprecation")
 	public void removeBlock(BlockPos pos, Runnable callback) {
 		this.tasks.offer(() -> {
 			this.setMachineOutput(pos, 0);
@@ -218,7 +219,9 @@ public class ElectricNetwork {
 					iterator.remove();
 					this.wireConn.remove(another, pos);
 					this.spilt(pos, another);
-					this.level.getChunk(another).setUnsaved(true); // 此处不能检查区块是否加载，无论连接的方块是否位于加载区块，都要强制保存
+					if (this.level.isAreaLoaded(another, 0)) {
+						this.level.getChunk(another).setUnsaved(true);
+					}
 				}
 				this.subscribes.get(pos).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new RemoveWiresPacket(pos)));
 				this.subscribes.removeAll(pos);

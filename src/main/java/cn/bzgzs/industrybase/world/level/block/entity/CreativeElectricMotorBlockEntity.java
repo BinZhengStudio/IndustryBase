@@ -19,7 +19,7 @@ public class CreativeElectricMotorBlockEntity extends BlockEntity {
 	private final ElectricPower electricPower = new ElectricPower(this);
 
 	public CreativeElectricMotorBlockEntity(BlockPos pos, BlockState state) {
-		super(BlockEntityTypeList.ELECTRIC_MOTOR.get(), pos, state);
+		super(BlockEntityTypeList.CREATIVE_ELECTRIC_MOTOR.get(), pos, state);
 	}
 
 	@Override

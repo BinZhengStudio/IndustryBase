@@ -156,7 +156,7 @@ public class ElectricPower implements IElectricPower {
 		if (this.network != null) { // TODO 1.19.3 可能不用
 			nbt.putDouble("Output", this.getOutputPower());
 			nbt.putDouble("Input", this.getInputPower());
-			this.network.wireConnects(this.pos).forEach(pos -> listTag.add(NbtUtils.writeBlockPos(pos)));
+			this.network.getWireConn(this.pos).forEach(pos -> listTag.add(NbtUtils.writeBlockPos(pos)));
 			nbt.put("Connections", listTag);
 		} else {
 			nbt.putDouble("Output", this.tmpOutputPower);

@@ -60,7 +60,7 @@ public class WireConnectorBlock extends BaseEntityBlock {
 			if (blockEntity instanceof IWireConnectable) {
 				if (level instanceof ServerLevel) {
 					ElectricNetwork network = ElectricNetwork.Manager.get(level);
-					network.wireConnects(pos).forEach(blockPos -> {
+					network.getWireConn(pos).forEach(blockPos -> {
 						ItemStack coil = new ItemStack(ItemList.WIRE_COIL.get());
 						coil.setDamageValue(coil.getMaxDamage() - (int) Math.sqrt(pos.distSqr(blockPos))); // 设置耐久
 						Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), coil);

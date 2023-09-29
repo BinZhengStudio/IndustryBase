@@ -60,10 +60,6 @@ public class ElectricNetwork {
 		return this.components.containsKey(pos) ? this.components.get(pos).iterator().next() : pos;
 	}
 
-	public ImmutableSet<BlockPos> wireConnects(BlockPos pos) {
-		return ImmutableSet.copyOf(this.wireConn.get(pos));
-	}
-
 	public double getTotalOutput(BlockPos pos) {
 		return this.totalOutput(this.root(pos));
 	}

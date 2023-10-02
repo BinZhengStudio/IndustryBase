@@ -21,6 +21,7 @@ build
 eclipse
 run
 ModRelease
+hot-seconds.xml
 
 # Files from Forge MDK
 forge*changelog.txt

@@ -1,23 +1,15 @@
 package cn.bzgzs.industrybase.client.renderer.blockentity;
 
-import cn.bzgzs.industrybase.api.IndustryBaseApi;
 import cn.bzgzs.industrybase.world.level.block.entity.CreativeSteamEngineBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.resources.ResourceLocation;
 import org.joml.Matrix4f;
 
 public class CreativeSteamEngineRenderer implements BlockEntityRenderer<CreativeSteamEngineBlockEntity> {
-	private static final ResourceLocation TEXTURE = new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/fake_fluid.png");
-	private final ModelPart main;
-
 	public CreativeSteamEngineRenderer(BlockEntityRendererProvider.Context context) {
-		ModelPart root = context.bakeLayer(SteamEngineRenderer.MAIN);
-		this.main = root.getChild("main");
 	}
 
 	@Override

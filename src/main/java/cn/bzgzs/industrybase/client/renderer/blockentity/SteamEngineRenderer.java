@@ -1,20 +1,14 @@
 package cn.bzgzs.industrybase.client.renderer.blockentity;
 
-import cn.bzgzs.industrybase.api.IndustryBaseApi;
 import cn.bzgzs.industrybase.world.level.block.entity.SteamEngineBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.model.geom.ModelLayerLocation;
-import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.model.geom.PartPose;
-import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluids;
@@ -25,22 +19,7 @@ import net.minecraftforge.common.ForgeMod;
 import org.joml.Matrix4f;
 
 public class SteamEngineRenderer implements BlockEntityRenderer<SteamEngineBlockEntity> {
-	public static final ModelLayerLocation MAIN = new ModelLayerLocation(new ResourceLocation(IndustryBaseApi.MODID, "steam_engine"), "main");
-	private static final ResourceLocation TEXTURE = new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/fake_fluid.png");
-	private final ModelPart main;
-
 	public SteamEngineRenderer(BlockEntityRendererProvider.Context context) {
-		ModelPart root = context.bakeLayer(MAIN);
-		this.main = root.getChild("main");
-	}
-
-	public static LayerDefinition createBodyLayer() {
-		MeshDefinition meshdefinition = new MeshDefinition();
-		PartDefinition partdefinition = meshdefinition.getRoot();
-
-		partdefinition.addOrReplaceChild("main", CubeListBuilder.create().texOffs(0, 0).addBox(0.0F, 0.0F, 0.0F, 16.0F, 16.0F, 16.0F, new CubeDeformation(0.0F)), PartPose.ZERO);
-
-		return LayerDefinition.create(meshdefinition, 64, 32);
 	}
 
 	@Override
@@ -58,12 +37,12 @@ public class SteamEngineRenderer implements BlockEntityRenderer<SteamEngineBlock
 		poseStack.translate(-pos.getX(), -pos.getY(), -pos.getZ());
 		Matrix4f matrix4f = poseStack.last().pose();
 
-		float minX = (float) box.minX + 0.06252F;
+		float minX = (float) box.minX + 0.0626F; // 应为 0.0625，0.0626 是为兼容铷
 		float minY = (float) box.minY + 0.5F;
-		float minZ = (float) box.minZ + 0.06252F;
-		float maxX = (float) box.maxX - 0.06252F;
-		float maxY = (float) box.minY + 0.5F + 0.43748F * waterAmount;
-		float maxZ = (float) box.maxZ - 0.06252F;
+		float minZ = (float) box.minZ + 0.0626F;
+		float maxX = (float) box.maxX - 0.0626F;
+		float maxY = (float) box.minY + 0.5F + 0.4374F * waterAmount; // 应为 0.4375，0.4374 是为兼容铷
+		float maxZ = (float) box.maxZ - 0.0626F;
 
 		FlowingFluid fluid = Fluids.WATER;
 		TextureAtlasSprite[] sprites = ForgeHooksClient.getFluidSprites(blockEntity.getLevel(), pos, fluid.defaultFluidState());

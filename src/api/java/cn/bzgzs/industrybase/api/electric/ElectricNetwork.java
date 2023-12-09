@@ -4,7 +4,10 @@ import cn.bzgzs.industrybase.api.CapabilityList;
 import cn.bzgzs.industrybase.api.network.ApiNetworkManager;
 import cn.bzgzs.industrybase.api.network.server.RemoveWiresPacket;
 import cn.bzgzs.industrybase.api.network.server.WireConnSyncPacket;
-import com.google.common.collect.*;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
@@ -21,47 +24,41 @@ import java.util.*;
 
 public class ElectricNetwork {
 	private final Random random;
-	private final HashMap<BlockPos, LinkedHashSet<BlockPos>> components;
+	private final ComponentMap components;
 	private final SetMultimap<BlockPos, Direction> sideConn;
 	private final HashMultimap<BlockPos, BlockPos> wireConn;
 	private final LevelAccessor level;
 	private final ArrayDeque<Runnable> tasks;
-	private final EnergyMap totalEnergy;
-	private final HashMultiset<BlockPos> FEEnergy;
-	private final HashMultiset<BlockPos> FEInput;
+	private final ArrayList<Context> converted2EP;
+	private final HashSet<Context> hasFE;
 	private final EnergyMap machineEnergy;
 	private final SetMultimap<BlockPos, Direction> FEMachines;
 	private final HashMultimap<BlockPos, ServerPlayer> subscribes;
 
 	public ElectricNetwork(LevelAccessor level) {
 		this.random = new Random();
-		this.components = new HashMap<>();
+		this.machineEnergy = new EnergyMap();
+		this.components = new ComponentMap(this.machineEnergy);
 		this.sideConn = Multimaps.newSetMultimap(new HashMap<>(), () -> EnumSet.noneOf(Direction.class));
 		this.wireConn = HashMultimap.create();
 		this.level = level;
 		this.tasks = new ArrayDeque<>();
-		this.totalEnergy = new EnergyMap();
-		this.FEEnergy = HashMultiset.create();
-		this.FEInput = HashMultiset.create();
-		this.machineEnergy = new EnergyMap();
+		this.converted2EP = new ArrayList<>();
+		this.hasFE = new HashSet<>();
 		this.FEMachines = Multimaps.newSetMultimap(new HashMap<>(), () -> EnumSet.noneOf(Direction.class));
 		this.subscribes = HashMultimap.create();
 	}
 
 	public int size(BlockPos pos) {
-		return this.components.containsKey(pos) ? this.components.get(pos).size() : 1;
-	}
-
-	public BlockPos root(BlockPos pos) {
-		return this.components.containsKey(pos) ? this.components.get(pos).iterator().next() : pos;
+		return this.components.containsKey(pos) ? this.components.get(pos).getContext().size() : 1;
 	}
 
 	public double getTotalOutput(BlockPos pos) {
-		return this.totalEnergy.get(this.root(pos)).getOutput();
+		return this.components.get(pos).getContext().getOutputEnergy();
 	}
 
 	public double getTotalInput(BlockPos pos) {
-		return this.totalEnergy.get(this.root(pos)).getInput();
+		return this.components.get(pos).getContext().getInputEnergy();
 	}
 
 	public Set<BlockPos> getWireConn(BlockPos pos) {
@@ -103,41 +100,40 @@ public class ElectricNetwork {
 	}
 
 	public double getMachineOutput(BlockPos pos) {
-		return this.machineEnergy.get(pos).getOutput();
+		return this.machineEnergy.get(pos).getOutputEnergy();
 	}
 	
 	public double setMachineOutput(BlockPos pos, double power) {
 		long powerLong = (long) Math.max(power * 100.0D, 0.0D);
-		long outputOld = this.machineEnergy.get(pos).getOutputLong();
+		long outputOld = this.machineEnergy.get(pos).getOutput();
 		if (outputOld == powerLong) return 0.0D;
 
 		long diff = powerLong - outputOld;
 		this.machineEnergy.addOutput(pos, diff);
-		this.totalEnergy.addOutput(this.root(pos), diff);
+		this.components.get(pos).getContext().addOutput(diff);
 		return diff / 100.0D;
 	}
 
 	public double getMachineInput(BlockPos pos) {
-		return this.machineEnergy.get(pos).getInput();
+		return this.machineEnergy.get(pos).getInputEnergy();
 	}
 
 	public double setMachineInput(BlockPos pos, double power) {
 		long powerLong = (long) Math.max(power * 100.0D, 0.0D);
-		long inputOld = this.machineEnergy.get(pos).getInputLong();
+		long inputOld = this.machineEnergy.get(pos).getInput();
 		if (inputOld == powerLong) return 0.0D;
 
 		long diff = powerLong - inputOld;
 		this.machineEnergy.addInput(pos, diff);
-		this.totalEnergy.addInput(this.root(pos), diff);
+		this.components.get(pos).getContext().addInput(diff);
 		return diff / 100.0D;
 	}
 
 	public double getRealInput(BlockPos pos) {
-		BlockPos root = this.root(pos);
-		EnergyMap.Energy energy = this.totalEnergy.get(root);
-		long totalOutput = energy.getOutputLong() + (this.FEInput.count(root) * 100L);
-		long totalInput = energy.getInputLong();
-		double machineInput = this.machineEnergy.get(pos).getInput();
+		Context context = this.components.get(pos).getContext();
+		long totalOutput = context.getOutput() + (context.getFEInput() * 100L);
+		long totalInput = context.getInput();
+		double machineInput = this.machineEnergy.get(pos).getInputEnergy();
 		if (totalInput > 0L) {
 			if (totalOutput >= totalInput) {
 				return machineInput;
@@ -149,7 +145,7 @@ public class ElectricNetwork {
 	}
 
 	public int getFEEnergy(BlockPos pos) {
-		return this.FEEnergy.count(this.root(pos));
+		return this.components.get(pos).getContext().getForgeEnergy();
 	}
 
 	public int getMaxFEStored(BlockPos pos) {
@@ -157,23 +153,29 @@ public class ElectricNetwork {
 	}
 
 	public int receiveFEEnergy(BlockPos pos, int maxReceive, boolean simulate) {
-		BlockPos root = this.root(pos);
-		int receive = Math.min(maxReceive, this.getMaxFEStored(root) - this.FEEnergy.count(root));
-		if (!simulate) this.FEEnergy.add(root, receive);
+		Context context = this.components.get(pos).getContext();
+		int receive = Math.min(maxReceive, this.getMaxFEStored(pos) - context.getForgeEnergy());
+		if (!simulate) {
+			context.addForgeEnergy(receive);
+			this.hasFE.add(context);
+		}
 		return receive;
 	}
 
 	public int extractFEEnergy(BlockPos pos, int maxExtract, boolean simulate) {
-		BlockPos root = this.root(pos);
-		int extract = Math.min(maxExtract, this.FEEnergy.count(root));
-		if (!simulate) this.FEEnergy.remove(root, extract);
+		Context context = this.components.get(pos).getContext();
+		int extract = Math.min(maxExtract, context.getForgeEnergy());
+		if (!simulate) {
+			context.addForgeEnergy(-extract);
+			if (!context.hasForgeEnergy()) this.hasFE.remove(context);
+		}
 		return extract;
 	}
 
 	@SuppressWarnings("deprecation")
 	public void removeBlock(BlockPos pos, Runnable callback) {
 		this.tasks.offer(() -> {
-			this.totalEnergy.shrink(this.root(pos), this.machineEnergy.remove(pos));
+			this.components.get(pos).getContext().shrinkEnergy(this.machineEnergy.remove(pos));
 			for (Direction side : Direction.values()) {
 				this.cutSide(pos, side);
 			}
@@ -236,43 +238,25 @@ public class ElectricNetwork {
 			return;
 		}
 
-		LinkedHashSet<BlockPos> primaryComponent = this.components.get(node);
-		LinkedHashSet<BlockPos> secondaryComponent;
-		BlockPos primaryNode = primaryComponent.iterator().next();
-		LinkedHashSet<BlockPos> searched = nodeIterator.getSearched();
-
-		if (searched.contains(primaryNode)) {
-			secondaryComponent = new LinkedHashSet<>(Sets.difference(primaryComponent, searched));
-			primaryComponent.retainAll(searched);
+		HashSet<BlockPos> searched = nodeIterator.getSearched();
+		Context primaryContext, secondaryContext = new Context(searched.iterator().next().hashCode(), searched.size());
+		ContextWrapper wrapper = new ContextWrapper(1, secondaryContext);
+		searched.forEach(pos -> {
+			this.components.put(pos, wrapper);
+			secondaryContext.add(this.machineEnergy.get(pos));
+		});
+		if (searched.contains(node)) {
+			primaryContext = this.components.get(another).getContext().shrink(secondaryContext);
 		} else {
-			secondaryComponent = searched;
-			primaryComponent.removeAll(searched);
+			primaryContext = this.components.get(node).getContext().shrink(secondaryContext);
 		}
 
-		BlockPos secondaryNode = secondaryComponent.iterator().next();
-		if (secondaryComponent.size() <= 1) {
-			this.components.remove(secondaryNode);
-
-			EnergyMap.Energy diff = this.machineEnergy.get(secondaryNode);
-			this.totalEnergy.shrink(primaryNode, diff);
-		} else {
-			EnergyMap.TempEnergy diff = new EnergyMap.TempEnergy();
-			for (BlockPos pos : secondaryComponent) {
-				this.components.put(pos, secondaryComponent);
-				diff.add(this.machineEnergy.get(pos));
-			}
-			this.totalEnergy.shrink(primaryNode, diff);
-			this.totalEnergy.put(secondaryNode, diff);
-		}
-		if (primaryComponent.size() <= 1) {
-			this.components.remove(primaryNode);
-			// 已在 shrink 中完成对 primaryNode 的能量的检查和清除
-		}
 		// 分配 FE 能量
-		int primarySize = this.size(primaryNode), secondarySize = this.size(secondaryNode);
-		int diff = this.FEEnergy.count(primaryNode) * secondarySize / (primarySize + secondarySize);
-		this.FEEnergy.remove(primaryNode, diff);
-		this.FEEnergy.add(secondaryNode, diff);
+		int primarySize = primaryContext.size(), secondarySize = secondaryContext.size();
+		// TODO 整数直接相除？？？
+		int diff = primaryContext.getForgeEnergy() * secondarySize / (primarySize + secondarySize);
+		primaryContext.addForgeEnergy(-diff);
+		secondaryContext.addForgeEnergy(diff);
 	}
 
 	public void addOrChangeBlock(BlockPos pos, Runnable callback) {
@@ -347,104 +331,100 @@ public class ElectricNetwork {
 	}
 
 	private void link(BlockPos primary, BlockPos secondary) {
-		LinkedHashSet<BlockPos> primaryComponent = this.components.get(primary);
-		LinkedHashSet<BlockPos> secondaryComponent = this.components.get(secondary);
+		ContextWrapper primaryWrapper = this.components.getNullable(primary);
+		ContextWrapper secondaryWrapper = this.components.getNullable(secondary);
 
-		EnergyMap.Energy primaryEnergy = this.machineEnergy.get(primary);
-		EnergyMap.Energy secondaryEnergy = this.machineEnergy.get(secondary);
+		if (primaryWrapper == null && secondaryWrapper == null) {
+			Energy primaryEnergy = this.machineEnergy.get(primary), secondaryEnergy = this.machineEnergy.get(secondary);
+			ContextWrapper wrapper = new ContextWrapper(1, primary.hashCode(), 2, primaryEnergy, secondaryEnergy);
+			this.components.put(primary, wrapper);
+			this.components.put(secondary, wrapper);
+		} else if (primaryWrapper == null) {
+			secondaryWrapper.getContext().addEnergy(this.machineEnergy.get(primary)).addSize();
+			this.components.put(primary, secondaryWrapper);
+		} else if (secondaryWrapper == null) {
+			primaryWrapper.getContext().addEnergy(this.machineEnergy.get(secondary)).addSize();
+			this.components.put(secondary, primaryWrapper);
+		} else if ((primaryWrapper = primaryWrapper.getLast()) != (secondaryWrapper = secondaryWrapper.getLast())) {
+			Context primaryContext = primaryWrapper.getLastContext();
+			Context secondaryContext = secondaryWrapper.getLastContext();
+			int primaryLayer;
 
-		if (primaryComponent == null && secondaryComponent == null) {
-			LinkedHashSet<BlockPos> union = new LinkedHashSet<>();
-			this.components.put(secondary, union);
-			this.components.put(primary, union);
-			union.add(secondary);
-			union.add(primary);
-
-			this.totalEnergy.put(secondary, EnergyMap.Energy.union(primaryEnergy, secondaryEnergy));
-			this.totalEnergy.remove(primary);
-			this.mergeFE(secondary, primary);
-		} else if (primaryComponent == null) {
-			BlockPos secondaryNode = secondaryComponent.iterator().next();
-			this.components.put(primary, secondaryComponent);
-			secondaryComponent.add(primary);
-
-			this.totalEnergy.add(secondaryNode, primaryEnergy);
-			this.totalEnergy.remove(primary);
-			this.mergeFE(secondaryNode, primary);
-		} else if (secondaryComponent == null) {
-			BlockPos primaryNode = primaryComponent.iterator().next();
-			this.components.put(secondary, primaryComponent);
-			primaryComponent.add(secondary);
-
-			this.totalEnergy.add(primaryNode, secondaryEnergy);
-			this.totalEnergy.remove(secondary);
-			this.mergeFE(primaryNode, secondary);
-		} else if (primaryComponent != secondaryComponent) {
-			BlockPos primaryNode = primaryComponent.iterator().next();
-			BlockPos secondaryNode = secondaryComponent.iterator().next();
-			LinkedHashSet<BlockPos> union = new LinkedHashSet<>(Sets.union(primaryComponent, secondaryComponent));
-			union.forEach(pos -> this.components.put(pos, union));
-
-			this.totalEnergy.add(primaryNode, this.totalEnergy.remove(secondaryNode));
-			this.mergeFE(primaryNode, secondaryNode);
+			if (primaryContext.size() <= 1) {
+				secondaryContext.addAll(primaryContext);
+				this.components.put(primary, secondaryWrapper);
+			} else if (secondaryContext.size() <= 1) {
+				primaryContext.addAll(secondaryContext);
+				this.components.put(secondary, primaryWrapper);
+			} else if ((primaryLayer = primaryWrapper.layer()) > secondaryWrapper.layer()) {
+				primaryContext.addAll(secondaryContext);
+				secondaryWrapper.setContext(primaryWrapper);
+			} else {
+				secondaryContext.addAll(primaryContext);
+				primaryWrapper.setContext(secondaryWrapper);
+				secondaryWrapper.setLayer(primaryLayer + 1);
+			}
 		}
-	}
-
-	private void mergeFE(BlockPos primaryNode, BlockPos secondaryNode) {
-		int diff = this.FEEnergy.count(secondaryNode);
-		this.FEEnergy.remove(secondaryNode, diff);
-		this.FEEnergy.add(primaryNode, diff);
 	}
 
 	private void tickStart() {
+//		long st = System.currentTimeMillis();
+//		boolean flag = this.tasks.isEmpty();
 		for (Runnable runnable = this.tasks.poll(); runnable != null; runnable = this.tasks.poll()) {
 			runnable.run();
 		}
+//		if (!flag) System.out.println("Time: " + (System.currentTimeMillis() - st));
 	}
 
 	@SuppressWarnings("deprecation")
 	private void tickEnd() {
-		HashSet<BlockPos> updated = new HashSet<>();
-		Multiset<BlockPos> forgeEnergy = HashMultiset.create();
+		HashSet<Context> updated = new HashSet<>();
+		HashMultiset<Context> forgeEnergy = HashMultiset.create();
 		for (Map.Entry<BlockPos, Direction> entry : this.shuffle(this.FEMachines.entries())) {
 			BlockPos pos = entry.getKey();
 			Direction direction = entry.getValue();
 			BlockPos target = pos.relative(direction);
-			if (this.level.isAreaLoaded(target, 0)) {
-				BlockPos root = this.root(pos);
+			if (this.level.isAreaLoaded(target, 0)) { // TODO 需要检查吗？
+				Context context = this.components.get(pos).getContext();
 				// 将剩余 EP 转换为 FE
-				if (updated.add(root)) { // 已转换过的能量网络则跳过
-					EnergyMap.Energy energy = this.totalEnergy.get(root);
-					long power = energy.getOutputLong();
-					long excess = power - energy.getInputLong();
+				if (updated.add(context)) { // 已转换过的能量网络则跳过
+					long excess = context.getOutput() - context.getInput();
 					if (excess > 0L) {
-						forgeEnergy.add(root, (int) Math.floor(excess / 100.0D));
+						forgeEnergy.add(context, (int) Math.floor(excess / 100.0D));
 					}
 				}
 
 				// 向 FE 方块输出能量
-				Optional.ofNullable(this.level.getBlockEntity(target)).ifPresent(blockEntity -> blockEntity.getCapability(ForgeCapabilities.ENERGY, direction.getOpposite()).ifPresent(capability -> {
-					if (capability.canReceive()) {
-						int diff = forgeEnergy.count(root);
-						int FEDiff = this.FEEnergy.count(root);
-						forgeEnergy.remove(root, capability.receiveEnergy(diff, false));
-						if (forgeEnergy.count(root) <= 0) { // 先将 EP 转化的 FE 分配完
-							this.FEEnergy.remove(root, capability.receiveEnergy(FEDiff, false));
+				BlockEntity blockEntity;
+				if ((blockEntity = this.level.getBlockEntity(target)) != null) {
+					blockEntity.getCapability(ForgeCapabilities.ENERGY, direction.getOpposite()).ifPresent(capability -> {
+						if (capability.canReceive()) {
+							int diff = forgeEnergy.count(context);
+							int FEDiff = context.getForgeEnergy();
+							forgeEnergy.remove(context, capability.receiveEnergy(diff, false));
+							if (forgeEnergy.count(context) <= 0) { // 先将新转化的 FE 分配完
+								context.addForgeEnergy(-capability.receiveEnergy(FEDiff, false));
+							}
+							// 由 EP 转化的能量，多余的均丢弃
 						}
-					}
-				}));
+					});
+				}
 			}
 		}
+
 		// 将未使用 FE 转化为 EP
-		this.FEInput.clear(); // 清除先前转换的 EP
-		this.FEEnergy.forEachEntry((root, count) -> {
-			EnergyMap.Energy energy = this.totalEnergy.get(root);
-			long lack = energy.getInputLong() - energy.getOutputLong();
+		Iterator<Context> iterator = this.converted2EP.iterator();
+		while (iterator.hasNext()) { // 清除先前转换的 EP
+			iterator.next().clearFEInput();
+			iterator.remove();
+		}
+		this.hasFE.forEach(context -> {
+			long lack = context.getInput() - context.getOutput();
 			if (lack > 0L) {
-				this.FEInput.setCount(root, Math.min((int) Math.ceil(lack / 100.0D), count));
+				context.convertFEInput((int) Math.ceil(lack / 100.0D));
+				this.converted2EP.add(context);
 			}
 		});
-		this.FEInput.forEachEntry(this.FEEnergy::remove);
 	}
 
 	private <T> List<T> shuffle(Collection<? extends T> iterable) {
@@ -454,7 +434,7 @@ public class ElectricNetwork {
 	}
 
 	public class BFSIterator implements Iterator<BlockPos> {
-		private final LinkedHashSet<BlockPos> searched = new LinkedHashSet<>();
+		private final HashSet<BlockPos> searched = new HashSet<>();
 		private final ArrayDeque<BlockPos> queue = new ArrayDeque<>();
 
 		public BFSIterator(BlockPos node) {
@@ -464,7 +444,7 @@ public class ElectricNetwork {
 		}
 
 		public boolean hasNext() {
-			return this.queue.size() > 0;
+			return !this.queue.isEmpty();
 		}
 
 		@Override
@@ -484,14 +464,14 @@ public class ElectricNetwork {
 			return node;
 		}
 
-		public LinkedHashSet<BlockPos> getSearched() {
+		public HashSet<BlockPos> getSearched() {
 			return this.searched;
 		}
 	}
 
 	@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
 	public static class Manager {
-		private static final Map<LevelAccessor, ElectricNetwork> INSTANCES = new IdentityHashMap<>();
+		private static final IdentityHashMap<LevelAccessor, ElectricNetwork> INSTANCES = new IdentityHashMap<>();
 
 		public static ElectricNetwork get(LevelAccessor level) {
 			return INSTANCES.computeIfAbsent(Objects.requireNonNull(level, "Level can't be null!"), ElectricNetwork::new);

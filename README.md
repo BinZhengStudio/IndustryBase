@@ -7,10 +7,6 @@
 
 **English (en-US)** | [简体中文 (zh-CN)](/README.zh-CN.md)
 
-## Suspension of project maintenance
-
-This project is currently on maintenance hold and is expected to resume updates on June 9, 2024.
-
 ## Introductions
 
 This mod is a Minecraft industrial mod, but currently has only simple elements.

@@ -1,33 +1,34 @@
 package net.industrybase.api.network.client;
 
 import net.industrybase.api.electric.ElectricNetwork;
-import net.industrybase.api.network.CustomPacket;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.event.network.CustomPayloadEvent;
 
-import java.util.Optional;
-import java.util.function.Supplier;
-
-public class UnsubscribeWireConnPacket extends CustomPacket {
+public class UnsubscribeWireConnPacket {
+	public static final StreamCodec<RegistryFriendlyByteBuf, UnsubscribeWireConnPacket> STREAM_CODEC =
+			StreamCodec.ofMember(UnsubscribeWireConnPacket::encode, UnsubscribeWireConnPacket::new);
 	private final BlockPos target;
 
 	public UnsubscribeWireConnPacket(BlockPos target) {
 		this.target = target;
 	}
 
-	public UnsubscribeWireConnPacket(FriendlyByteBuf buf) {
+	public UnsubscribeWireConnPacket(RegistryFriendlyByteBuf buf) {
 		this.target = buf.readBlockPos();
 	}
 
-	@Override
-	public void encode(FriendlyByteBuf buf) {
+	public void encode(RegistryFriendlyByteBuf buf) {
 		buf.writeBlockPos(this.target);
 	}
 
-	@Override
-	public void consumer(Supplier<NetworkEvent.Context> context) {
-		context.get().enqueueWork(() -> Optional.ofNullable(context.get().getSender()).ifPresent(player -> ElectricNetwork.Manager.get(player.level()).unsubscribeWire(this.target, player)));
-		context.get().setPacketHandled(true);
+	public static void handler(UnsubscribeWireConnPacket msg, CustomPayloadEvent.Context context) {
+		context.enqueueWork(() -> {
+			ServerPlayer player = context.getSender();
+			if (player != null) ElectricNetwork.Manager.get(player.level()).unsubscribeWire(msg.target, player);
+		});
+		context.setPacketHandled(true);
 	}
 }

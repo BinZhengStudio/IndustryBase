@@ -206,13 +206,13 @@ public class FluidRenderer {
 				float v1;
 				if (flowVec.x == 0.0D && flowVec.z == 0.0D) { // 如果在水平方向没有流动（竖直流下）
 					TextureAtlasSprite stillTexture = textureAtlasSprites[0];
-					u = stillTexture.getU(0.0D);
+					u = stillTexture.getU(0.0F);
 					u1 = u;
-					v = stillTexture.getV(0.0D);
+					v = stillTexture.getV(0.0F);
 					v1 = v;
-					u2 = stillTexture.getU(16.0D);
+					u2 = stillTexture.getU(16.0F);
 					u21 = u2;
-					v2 = stillTexture.getV(16.0D);
+					v2 = stillTexture.getV(16.0F);
 					v21 = v2;
 				} else { // 水平流动的 UV
 					TextureAtlasSprite flowTexture = textureAtlasSprites[1];
@@ -331,11 +331,11 @@ public class FluidRenderer {
 						}
 					}
 
-					float f54 = flowTexture.getU(0.0D);
-					float f55 = flowTexture.getU(8.0D);
+					float f54 = flowTexture.getU(0.0F);
+					float f55 = flowTexture.getU(8.0F);
 					float f33 = flowTexture.getV((1.0F - height1) * 16.0F * 0.5F);
 					float f34 = flowTexture.getV((1.0F - height2) * 16.0F * 0.5F);
-					float f35 = flowTexture.getV(8.0D);
+					float f35 = flowTexture.getV(8.0F);
 					float horizonShade = direction.getAxis() == Direction.Axis.Z ? northShade : westShade;
 					float r = upShade * horizonShade * red;
 					float g = upShade * horizonShade * green;

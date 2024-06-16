@@ -7,8 +7,8 @@ public abstract class WoodTransmissionRod extends TransmissionRodBlock {
 		super(properties, 5);
 	}
 
-	public WoodTransmissionRod(BlockBehaviour fromWood) {
-		super(Properties.copy(fromWood), 5);
+	public WoodTransmissionRod(BlockBehaviour wood) {
+		super(Properties.ofFullCopy(wood), 5);
 	}
 
 	public WoodTransmissionRod(Properties properties, int maxResistance) {

@@ -1,5 +1,6 @@
 package net.industrybase.api.transmit;
 
+import com.mojang.serialization.MapCodec;
 import net.industrybase.api.util.TransmitHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

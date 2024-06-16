@@ -21,6 +21,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.network.PacketDistributor;
 
 public class TransmissionRodRenderer implements BlockEntityRenderer<TransmissionRodBlockEntity> {
 	public static final ModelLayerLocation MAIN = new ModelLayerLocation(new ResourceLocation(IndustryBaseApi.MODID, "transmission_rod"), "main");
@@ -63,7 +64,8 @@ public class TransmissionRodRenderer implements BlockEntityRenderer<Transmission
 
 	public static void subscribeSpeed(TransmissionRodBlockEntity blockEntity) {
 		if (blockEntity.hasLevel() && !blockEntity.isSubscribed()) {
-			ApiNetworkManager.INSTANCE.sendToServer(new SubscribeSpeedPacket(blockEntity.getBlockPos()));
+			ApiNetworkManager.INSTANCE.send(new SubscribeSpeedPacket(blockEntity.getBlockPos()),
+					PacketDistributor.SERVER.noArg());
 			blockEntity.setSubscribed();
 		}
 	}

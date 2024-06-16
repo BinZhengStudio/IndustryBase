@@ -57,7 +57,7 @@ public class TransmitNetwork {
 		if (this.level.isClientSide()) {
 			return this.roots.getOrDefault(pos, pos);
 		} else {
-			return this.components.containsKey(pos) ? this.components.get(pos).iterator().next() : pos;
+			return this.components.containsKey(pos) ? this.components.get(pos).getFirst() : pos;
 		}
 	}
 
@@ -211,7 +211,9 @@ public class TransmitNetwork {
 		} else {
 			this.speeds.remove(root);
 		}
-		this.subscribes.get(root).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new SpeedSyncPacket(root, finalSpeed)));
+		this.subscribes.get(root).forEach(player ->
+				ApiNetworkManager.INSTANCE.send(new SpeedSyncPacket(root, finalSpeed),
+						PacketDistributor.PLAYER.with(player)));
 	}
 
 	public void removeBlock(BlockPos pos, Runnable callback) {
@@ -247,7 +249,7 @@ public class TransmitNetwork {
 
 			LinkedHashSet<BlockPos> primaryComponent = this.components.get(node);
 			LinkedHashSet<BlockPos> secondaryComponent;
-			BlockPos primaryNode = primaryComponent.iterator().next();
+			BlockPos primaryNode = primaryComponent.getFirst();
 			LinkedHashSet<BlockPos> searched = nodeIterator.getSearched();
 
 			if (searched.contains(primaryNode)) {
@@ -258,7 +260,7 @@ public class TransmitNetwork {
 				primaryComponent.removeAll(searched);
 			}
 
-			BlockPos secondaryNode = secondaryComponent.iterator().next();
+			BlockPos secondaryNode = secondaryComponent.getFirst();
 			if (secondaryComponent.size() <= 1) {
 				this.components.remove(secondaryNode);
 
@@ -267,8 +269,8 @@ public class TransmitNetwork {
 				this.totalPower.remove(primaryNode, powerDiff);
 				this.totalResistance.remove(primaryNode, resistanceDiff);
 				this.subscribes.get(primaryNode).forEach(player -> {
-					ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
-							new RootSyncPacket(secondaryNode, secondaryNode));
+					ApiNetworkManager.INSTANCE.send(new RootSyncPacket(secondaryNode, secondaryNode),
+							PacketDistributor.PLAYER.with(player));
 					this.subscribes.put(secondaryNode, player);
 				});
 			} else {
@@ -281,8 +283,8 @@ public class TransmitNetwork {
 					resistanceDiff += this.machineResistance.count(pos);
 				}
 				this.subscribes.get(primaryNode).forEach(player -> {
-					ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
-							new RootsSyncPacket(secondaryComponent, secondaryNode));
+					ApiNetworkManager.INSTANCE.send(new RootsSyncPacket(secondaryComponent, secondaryNode),
+							PacketDistributor.PLAYER.with(player));
 					this.subscribes.put(secondaryNode, player);
 				});
 
@@ -297,8 +299,8 @@ public class TransmitNetwork {
 				this.totalPower.setCount(primaryNode, 0);
 				this.totalResistance.setCount(primaryNode, 0);
 				this.subscribes.get(primaryNode).forEach(player -> {
-					ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
-							new RootSyncPacket(primaryNode, primaryNode));
+					ApiNetworkManager.INSTANCE.send(new RootSyncPacket(primaryNode, primaryNode),
+							PacketDistributor.PLAYER.with(player));
 				});
 			}
 
@@ -357,12 +359,12 @@ public class TransmitNetwork {
 				this.updateSpeed(secondary);
 
 				this.subscribes.removeAll(primary).forEach(player -> {
-					ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
-							new RootSyncPacket(primary, secondary));
+					ApiNetworkManager.INSTANCE.send(new RootSyncPacket(primary, secondary),
+							PacketDistributor.PLAYER.with(player));
 					this.subscribes.put(secondary, player);
 				});
 			} else if (primaryComponent == null) {
-				BlockPos secondaryNode = secondaryComponent.iterator().next();
+				BlockPos secondaryNode = secondaryComponent.getFirst();
 				this.components.put(primary, secondaryComponent);
 				secondaryComponent.add(primary);
 
@@ -371,12 +373,12 @@ public class TransmitNetwork {
 				this.updateSpeed(secondaryNode);
 
 				this.subscribes.removeAll(primary).forEach(player -> {
-					ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
-							new RootSyncPacket(primary, secondaryNode));
+					ApiNetworkManager.INSTANCE.send(new RootSyncPacket(primary, secondaryNode),
+							PacketDistributor.PLAYER.with(player));
 					this.subscribes.put(secondaryNode, player);
 				});
 			} else if (secondaryComponent == null) {
-				BlockPos primaryNode = primaryComponent.iterator().next();
+				BlockPos primaryNode = primaryComponent.getFirst();
 				this.components.put(secondary, primaryComponent);
 				primaryComponent.add(secondary);
 
@@ -385,22 +387,22 @@ public class TransmitNetwork {
 				this.updateSpeed(primaryNode);
 
 				this.subscribes.removeAll(secondary).forEach(player -> {
-					ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
-							new RootSyncPacket(secondary, primaryNode));
+					ApiNetworkManager.INSTANCE.send(new RootSyncPacket(secondary, primaryNode),
+							PacketDistributor.PLAYER.with(player));
 					this.subscribes.put(primaryNode, player);
 				});
 			} else if (primaryComponent != secondaryComponent) {
-				BlockPos primaryNode = primaryComponent.iterator().next();
-				BlockPos secondaryNode = secondaryComponent.iterator().next();
+				BlockPos primaryNode = primaryComponent.getFirst();
+				BlockPos secondaryNode = secondaryComponent.getFirst();
 				secondaryComponent.forEach(pos -> { // TODO size
 					primaryComponent.add(pos);
 					this.components.put(pos, primaryComponent);
 				});
 				this.subscribes.removeAll(secondaryNode).forEach(player -> {
-					ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
-							new RootsSyncPacket(secondaryComponent, primaryNode));
-					ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
-							new SpeedSyncPacket(secondaryNode, 0.0F));
+					ApiNetworkManager.INSTANCE.send(new RootsSyncPacket(secondaryComponent, primaryNode),
+							PacketDistributor.PLAYER.with(player));
+					ApiNetworkManager.INSTANCE.send(new SpeedSyncPacket(secondaryNode, 0.0F),
+							PacketDistributor.PLAYER.with(player));
 					this.subscribes.put(primaryNode, player);
 				});
 
@@ -440,7 +442,7 @@ public class TransmitNetwork {
 
 		@Override
 		public boolean hasNext() {
-			return this.queue.size() > 0;
+			return !this.queue.isEmpty();
 		}
 
 		@Override

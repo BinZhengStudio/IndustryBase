@@ -1,5 +1,6 @@
 package net.industrybase.world.level.block;
 
+import com.mojang.serialization.MapCodec;
 import net.industrybase.api.CapabilityList;
 import net.industrybase.api.electric.ElectricNetwork;
 import net.industrybase.world.level.block.entity.WireBlockEntity;
@@ -30,6 +31,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class WireBlock extends BaseEntityBlock {
+	public static final MapCodec<WireBlock> CODEC = simpleCodec((properties) -> new WireBlock());
+
 	public static final EnumMap<Direction, BooleanProperty> PROPERTIES = new EnumMap<>(ImmutableMap.of(
 			Direction.NORTH, BlockStateProperties.NORTH,
 			Direction.EAST, BlockStateProperties.EAST,
@@ -145,6 +148,11 @@ public class WireBlock extends BaseEntityBlock {
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
 		builder.add(PROPERTIES.values().toArray(new BooleanProperty[0]));
+	}
+
+	@Override
+	protected MapCodec<? extends BaseEntityBlock> codec() {
+		return CODEC;
 	}
 
 	@Override

@@ -1,18 +1,19 @@
 package net.industrybase.api.network.server;
 
-import net.industrybase.api.network.CustomPacket;
 import net.industrybase.api.transmit.TransmitNetwork;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.event.network.CustomPayloadEvent;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Optional;
-import java.util.function.Supplier;
 
-public class RootsSyncPacket extends CustomPacket {
+public class RootsSyncPacket {
+	public static final StreamCodec<RegistryFriendlyByteBuf, RootsSyncPacket> STREAM_CODEC =
+			StreamCodec.ofMember(RootsSyncPacket::encode, RootsSyncPacket::new);
 	private final Collection<BlockPos> targets;
 	private final BlockPos root;
 
@@ -21,35 +22,21 @@ public class RootsSyncPacket extends CustomPacket {
 		this.root = root;
 	}
 
-	public RootsSyncPacket(FriendlyByteBuf buf) {
-		this.targets = buf.readCollection(count -> new HashSet<>(), FriendlyByteBuf::readBlockPos);
+	public RootsSyncPacket(RegistryFriendlyByteBuf buf) {
+		this.targets = buf.readCollection(count -> new HashSet<>(), RegistryFriendlyByteBuf::readBlockPos);
 		this.root = buf.readBlockPos();
 	}
 
-	@Override
-	public void encode(FriendlyByteBuf buf) {
-		buf.writeCollection(this.targets, FriendlyByteBuf::writeBlockPos);
+	public void encode(RegistryFriendlyByteBuf buf) {
+		buf.writeCollection(this.targets, RegistryFriendlyByteBuf::writeBlockPos);
 		buf.writeBlockPos(this.root);
 	}
 
-	@Override
-	public void consumer(Supplier<NetworkEvent.Context> context) {
-		context.get().enqueueWork(() -> Optional.ofNullable(Minecraft.getInstance().level).ifPresent(level -> {
-//			boolean flag = false;
-//			for (BlockPos pos : this.targets) {
-//				if (level.isLoaded(pos)) {
-//					flag = true;
-//					break;
-//				}
-//			}
-			TransmitNetwork network = TransmitNetwork.Manager.get(level);
-//			if (flag) {
-				network.updateClientRoots(this.targets, this.root);
-//				ApiNetworkManager.INSTANCE.sendToServer(new SubscribeSpeedPacket(this.root));
-//			} else {
-//				network.removeClientRoots(this.targets);
-//			}
-		}));
-		context.get().setPacketHandled(true);
+	public static void handler(RootsSyncPacket msg, CustomPayloadEvent.Context context) {
+		context.enqueueWork(() -> {
+			Level level = Minecraft.getInstance().level;
+			if (level != null) TransmitNetwork.Manager.get(level).updateClientRoots(msg.targets, msg.root);
+		});
+		context.setPacketHandled(true);
 	}
 }

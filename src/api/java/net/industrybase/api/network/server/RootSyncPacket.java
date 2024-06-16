@@ -1,16 +1,17 @@
 package net.industrybase.api.network.server;
 
-import net.industrybase.api.network.CustomPacket;
+import net.industrybase.api.network.client.SubscribeSpeedPacket;
 import net.industrybase.api.transmit.TransmitNetwork;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.event.network.CustomPayloadEvent;
 
-import java.util.Optional;
-import java.util.function.Supplier;
-
-public class RootSyncPacket extends CustomPacket {
+public class RootSyncPacket {
+	public static final StreamCodec<RegistryFriendlyByteBuf, RootSyncPacket> STREAM_CODEC =
+			StreamCodec.ofMember(RootSyncPacket::encode, RootSyncPacket::new);
 	private final BlockPos targets;
 	private final BlockPos root;
 
@@ -19,20 +20,21 @@ public class RootSyncPacket extends CustomPacket {
 		this.root = root;
 	}
 
-	public RootSyncPacket(FriendlyByteBuf buf) {
+	public RootSyncPacket(RegistryFriendlyByteBuf buf) {
 		this.targets = buf.readBlockPos();
 		this.root = buf.readBlockPos();
 	}
 
-	@Override
-	public void encode(FriendlyByteBuf buf) {
+	public void encode(RegistryFriendlyByteBuf buf) {
 		buf.writeBlockPos(this.targets);
 		buf.writeBlockPos(this.root);
 	}
 
-	@Override
-	public void consumer(Supplier<NetworkEvent.Context> context) {
-		context.get().enqueueWork(() -> Optional.ofNullable(Minecraft.getInstance().level).ifPresent(level -> TransmitNetwork.Manager.get(level).updateClientRoot(this.targets, this.root)));
-		context.get().setPacketHandled(true);
+	public static void handler(RootSyncPacket msg, CustomPayloadEvent.Context context) {
+		context.enqueueWork(() -> {
+			Level level = Minecraft.getInstance().level;
+			if (level != null) TransmitNetwork.Manager.get(level).updateClientRoot(msg.targets, msg.root);
+		});
+		context.setPacketHandled(true);
 	}
 }

@@ -189,7 +189,8 @@ public class ElectricNetwork {
 						this.level.getChunk(another).setUnsaved(true);
 					}
 				}
-				this.subscribes.get(pos).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new RemoveWiresPacket(pos)));
+				this.subscribes.get(pos).forEach(player -> ApiNetworkManager.INSTANCE.send(new RemoveWiresPacket(pos),
+						PacketDistributor.PLAYER.with(player)));
 				this.subscribes.removeAll(pos);
 			}
 			callback.run();
@@ -216,8 +217,10 @@ public class ElectricNetwork {
 		if (this.wireConn.remove(from, to)) {
 			this.wireConn.remove(to, from);
 			this.spilt(from, to);
-			this.subscribes.get(from).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnSyncPacket(from, to, true)));
-			this.subscribes.get(to).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnSyncPacket(to, from, true)));
+			this.subscribes.get(from).forEach(player -> ApiNetworkManager.INSTANCE.send(
+					new WireConnSyncPacket(from, to, true), PacketDistributor.PLAYER.with(player)));
+			this.subscribes.get(to).forEach(player -> ApiNetworkManager.INSTANCE.send(
+					new WireConnSyncPacket(to, from, true), PacketDistributor.PLAYER.with(player)));
 		}
 	}
 
@@ -341,8 +344,10 @@ public class ElectricNetwork {
 		if (this.wireConn.put(secondary, primary)) {
 			this.wireConn.put(primary, secondary);
 			this.link(primary, secondary);
-			this.subscribes.get(from).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnSyncPacket(from, to, false)));
-			this.subscribes.get(to).forEach(player -> ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WireConnSyncPacket(to, from, false)));
+			this.subscribes.get(from).forEach(player -> ApiNetworkManager.INSTANCE.send(
+					new WireConnSyncPacket(from, to, false), PacketDistributor.PLAYER.with(player)));
+			this.subscribes.get(to).forEach(player -> ApiNetworkManager.INSTANCE.send(
+					new WireConnSyncPacket(to, from, false), PacketDistributor.PLAYER.with(player)));
 		}
 	}
 

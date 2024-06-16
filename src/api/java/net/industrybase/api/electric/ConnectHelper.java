@@ -3,52 +3,62 @@ package net.industrybase.api.electric;
 import net.industrybase.api.IndustryBaseApi;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import java.util.Optional;
+
 public class ConnectHelper {
 	@CanIgnoreReturnValue
 	public static boolean addConnect(LevelAccessor level, BlockPos from, BlockPos to, Runnable callback) {
-		ElectricNetwork network = ElectricNetwork.Manager.get(level);
-		return network.addWire(from, to, callback);
+		return ElectricNetwork.Manager.get(level).addWire(from, to, callback);
 	}
 
 	public static InteractionResult wireCoilUseOn(UseOnContext context, int maxLength) {
 		Level level = context.getLevel();
 		BlockPos toPos = context.getClickedPos();
 		BlockEntity blockEntity = level.getBlockEntity(toPos);
-		if (blockEntity instanceof IWireConnectable) { // 检查右键的方块是否可连接
+		if (blockEntity instanceof IWireConnectable) { // Check whether the right-clicked block connectable
 			if (!level.isClientSide) {
-				CompoundTag tag = context.getItemInHand().getOrCreateTag();
+				boolean tagModified = false;
+				ItemStack stack = context.getItemInHand();
+				CustomData data = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY); // Get data
+				CompoundTag tag = data.copyTag(); // Copy tag from data
+				Optional<BlockPos> fromPosOptional = NbtUtils.readBlockPos(tag, "ConnectPos");
 				BlockPos fromPos;
-				// 检查是否已绑定方块，并再次检查绑定的方块是否可连接（防止绑定的方块被替换）
-				if (tag.contains("ConnectPos") && level.getBlockEntity(fromPos = NbtUtils.readBlockPos(tag.getCompound("ConnectPos"))) instanceof IWireConnectable) {
+				// Check if stack bind block and if block connectable (prevent the block be replaced)
+				if (fromPosOptional.isPresent() && level.getBlockEntity(fromPos = fromPosOptional.get()) instanceof IWireConnectable) {
 					Player player = context.getPlayer();
 					if (player != null) {
-						ItemStack stack = context.getItemInHand();
-						// 耐久度，或者是剩余可连接长度（创造模式则为最大长度）
+						// Get the remainder length, max length if creative mode
 						int durability = player.getAbilities().instabuild ? maxLength : stack.getMaxDamage() - stack.getDamageValue();
 						double distSqr = fromPos.distSqr(toPos);
 						if (distSqr > durability * durability) {
 							player.sendSystemMessage(Component.translatable("message." + IndustryBaseApi.MODID + ".wire_coil.too_long", durability));
 						} else {
 							tag.remove("ConnectPos");
+							tagModified = true;
 							if (ConnectHelper.addConnect(level, fromPos, toPos, blockEntity::setChanged)) {
-								stack.hurtAndBreak((int) Math.sqrt(distSqr), player, user -> user.broadcastBreakEvent(player.getUsedItemHand()));
+								stack.hurtAndBreak((int) Math.sqrt(distSqr), player, LivingEntity.getSlotForHand(context.getHand()));
 							}
 						}
 					}
-				} else { // 未绑定方块，或已绑定方块已经被替换成不可连接方块
-					tag.put("ConnectPos", NbtUtils.writeBlockPos(toPos)); // 绑定当前右键方块
+				} else { // If didn't bind block, or the block was replaced with not connectable one
+					tag.put("ConnectPos", NbtUtils.writeBlockPos(toPos)); // Bind the block right-clicked to
+					tagModified = true;
 				}
+				if (tagModified) stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag)); // Save data
 			}
 			return InteractionResult.sidedSuccess(level.isClientSide);
 		}

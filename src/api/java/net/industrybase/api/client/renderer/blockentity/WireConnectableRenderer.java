@@ -16,6 +16,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.network.PacketDistributor;
 import org.joml.Matrix4f;
 
 public class WireConnectableRenderer<T extends BlockEntity> implements BlockEntityRenderer<T> {
@@ -36,7 +37,8 @@ public class WireConnectableRenderer<T extends BlockEntity> implements BlockEnti
 	public void render(T blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 		if (blockEntity instanceof IWireConnectable connectable) {
 			if (blockEntity.hasLevel() && !connectable.isSubscribed()) {
-				ApiNetworkManager.INSTANCE.sendToServer(new SubscribeWireConnPacket(blockEntity.getBlockPos()));
+				ApiNetworkManager.INSTANCE.send(new SubscribeWireConnPacket(blockEntity.getBlockPos()),
+						PacketDistributor.SERVER.noArg());
 				connectable.setSubscribed();
 			}
 			connectable.getWires().forEach(pos -> this.renderWire(blockEntity, blockEntity.getBlockPos(), pos, poseStack, bufferSource));

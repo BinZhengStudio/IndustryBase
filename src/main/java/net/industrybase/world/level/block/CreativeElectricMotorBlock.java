@@ -1,5 +1,6 @@
 package net.industrybase.world.level.block;
 
+import com.mojang.serialization.MapCodec;
 import net.industrybase.api.util.ElectricHelper;
 import net.industrybase.api.util.TransmitHelper;
 import net.industrybase.world.level.block.entity.CreativeElectricMotorBlockEntity;
@@ -22,13 +23,14 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public class CreativeElectricMotorBlock extends BaseEntityBlock {
+	public static final MapCodec<CreativeElectricMotorBlock> CODEC = simpleCodec((properties) -> new CreativeElectricMotorBlock());
 	public static final DirectionProperty FACING = BlockStateProperties.FACING;
 	private static final VoxelShape X = Block.box(0.0D, 2.0D, 2.0D, 16.0D, 14.0D, 14.0D);
 	private static final VoxelShape Y = Block.box(2.0D, 0.0D, 2.0D, 14.0D, 16.0D, 14.0D);
 	private static final VoxelShape Z = Block.box(2.0D, 2.0D, 0.0D, 14.0D, 14.0D, 16.0D);
 
 	public CreativeElectricMotorBlock() {
-		super(Properties.copy(Blocks.IRON_BLOCK).noOcclusion());
+		super(Properties.ofFullCopy(Blocks.IRON_BLOCK).noOcclusion());
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 	}
 
@@ -48,6 +50,11 @@ public class CreativeElectricMotorBlock extends BaseEntityBlock {
 			case Y -> Y;
 			case Z -> Z;
 		};
+	}
+
+	@Override
+	protected MapCodec<? extends BaseEntityBlock> codec() {
+		return CODEC;
 	}
 
 	@Override

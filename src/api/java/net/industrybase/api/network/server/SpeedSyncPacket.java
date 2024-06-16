@@ -1,16 +1,16 @@
 package net.industrybase.api.network.server;
 
-import net.industrybase.api.network.CustomPacket;
 import net.industrybase.api.transmit.TransmitNetwork;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.event.network.CustomPayloadEvent;
 
-import java.util.Optional;
-import java.util.function.Supplier;
-
-public class SpeedSyncPacket extends CustomPacket {
+public class SpeedSyncPacket {
+	public static final StreamCodec<RegistryFriendlyByteBuf, SpeedSyncPacket> STREAM_CODEC =
+			StreamCodec.ofMember(SpeedSyncPacket::encode, SpeedSyncPacket::new);
 	private final BlockPos root;
 	private final float speed;
 
@@ -19,20 +19,23 @@ public class SpeedSyncPacket extends CustomPacket {
 		this.speed = speed;
 	}
 
-	public SpeedSyncPacket(FriendlyByteBuf buf) {
+	public SpeedSyncPacket(RegistryFriendlyByteBuf buf) {
 		this.root = buf.readBlockPos();
 		this.speed = buf.readFloat();
 	}
 
-	@Override
-	public void encode(FriendlyByteBuf buf) {
+	public void encode(RegistryFriendlyByteBuf buf) {
 		buf.writeBlockPos(this.root);
 		buf.writeFloat(this.speed);
 	}
 
-	@Override
-	public void consumer(Supplier<NetworkEvent.Context> context) {
-		context.get().enqueueWork(() -> Optional.ofNullable(Minecraft.getInstance().level).ifPresent(level -> TransmitNetwork.Manager.get(level).updateClientSpeed(this.root, this.speed)));
-		context.get().setPacketHandled(true);
+	public static void handler(SpeedSyncPacket msg, CustomPayloadEvent.Context context) {
+		context.enqueueWork(() -> {
+			Level level = Minecraft.getInstance().level;
+			if (level != null) {
+				TransmitNetwork.Manager.get(level).updateClientSpeed(msg.root, msg.speed);
+			}
+		});
+		context.setPacketHandled(true);
 	}
 }

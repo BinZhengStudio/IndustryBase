@@ -9,6 +9,7 @@ import net.industrybase.world.inventory.SteamEngineMenu;
 import net.industrybase.world.level.block.SteamEngineBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -43,7 +44,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 	private int shrinkTick;
 	public static final int MAX_POWER = 100;
 	public static final int MAX_WATER = FluidType.BUCKET_VOLUME * 2;
-	private final NonNullList<ItemStack> inventory = NonNullList.withSize(1, ItemStack.EMPTY);
+	private NonNullList<ItemStack> inventory = NonNullList.withSize(1, ItemStack.EMPTY);
 	private final FluidTank tank = new FluidTank(MAX_WATER, fluidStack -> fluidStack.getFluid() instanceof WaterFluid);
 	private final LazyOptional<IFluidHandler> fluidHandler = LazyOptional.of(() -> tank);
 	private final MechanicalTransmit transmit = new MechanicalTransmit(this);
@@ -92,7 +93,8 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 				if (blockEntity.shrinkTick <= 0) { // 消耗水
 					blockEntity.tank.drain(1, IFluidHandler.FluidAction.EXECUTE);
 					// 发包同步
-					((ServerLevel) level).getPlayers(player -> true).forEach(player -> NetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player), new WaterAmountPacket(pos, blockEntity.tank.getFluidAmount())));
+					((ServerLevel) level).getPlayers(player -> true).forEach(player -> NetworkManager.INSTANCE.send(
+							new WaterAmountPacket(pos, blockEntity.tank.getFluidAmount()), PacketDistributor.PLAYER.with(player)));
 					blockEntity.shrinkTick = 6; // 每 6tick 减一次 waterAmount，这样水不会少的太快
 				} else {
 					--blockEntity.shrinkTick;
@@ -162,6 +164,16 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 	}
 
 	@Override
+	protected NonNullList<ItemStack> getItems() {
+		return this.inventory;
+	}
+
+	@Override
+	protected void setItems(NonNullList<ItemStack> items) {
+		this.inventory = items;
+	}
+
+	@Override
 	protected AbstractContainerMenu createMenu(int id, Inventory inventory) {
 		return new SteamEngineMenu(id, inventory, this, this.data);
 	}
@@ -187,10 +199,10 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 	}
 
 	@Override
-	public void load(CompoundTag tag) {
-		super.load(tag);
+	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.loadAdditional(tag, registries);
 		this.transmit.readFromNBT(tag);
-		ContainerHelper.loadAllItems(tag, this.inventory);
+		ContainerHelper.loadAllItems(tag, this.inventory, registries);
 		this.burnTime = tag.getInt("BurnTime");
 		this.totalBurnTime = tag.getInt("TotalBurnTime");
 		this.shrinkTick = tag.getInt("ShrinkTick");
@@ -198,10 +210,10 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag tag) {
-		super.saveAdditional(tag);
+	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.saveAdditional(tag, registries);
 		this.transmit.writeToNBT(tag);
-		ContainerHelper.saveAllItems(tag, this.inventory);
+		ContainerHelper.saveAllItems(tag, this.inventory, registries);
 		tag.putInt("BurnTime", this.burnTime);
 		tag.putInt("TotalBurnTime", this.totalBurnTime);
 		tag.putInt("ShrinkTick", this.shrinkTick);

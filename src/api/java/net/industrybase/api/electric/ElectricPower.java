@@ -5,16 +5,15 @@ import net.industrybase.api.energy.IElectricPower;
 import net.industrybase.api.network.ApiNetworkManager;
 import net.industrybase.api.network.client.UnsubscribeWireConnPacket;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import net.industrybase.api.util.NbtHelper;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.IEnergyStorage;
+import net.minecraftforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
@@ -75,7 +74,8 @@ public class ElectricPower implements IElectricPower {
 		Optional.ofNullable(this.blockEntity.getLevel()).ifPresent(level -> {
 			if (this.network != null) {
 				if (level.isClientSide) {
-					ApiNetworkManager.INSTANCE.sendToServer(new UnsubscribeWireConnPacket(this.pos));
+					ApiNetworkManager.INSTANCE.send(new UnsubscribeWireConnPacket(this.pos),
+							PacketDistributor.SERVER.noArg());
 					this.network.removeClientWires(this.pos);
 				} else {
 					this.network.removeBlock(this.pos, this.blockEntity::setChanged);
@@ -145,7 +145,8 @@ public class ElectricPower implements IElectricPower {
 		CompoundTag nbt = tag.getCompound("ElectricPower");
 		this.tmpOutputPower = nbt.getDouble("Output");
 		this.tmpInputPower = nbt.getDouble("Input");
-		nbt.getList("Connections", Tag.TAG_COMPOUND).forEach(entry -> this.tmpConn.add(NbtUtils.readBlockPos((CompoundTag) entry)));
+		nbt.getList("Connections", Tag.TAG_INT_ARRAY).forEach(entry ->
+				NbtHelper.readBlockPos((IntArrayTag) entry).ifPresent(this.tmpConn::add));
 		return this;
 	}
 

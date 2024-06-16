@@ -1,5 +1,6 @@
 package net.industrybase.world.level.block;
 
+import com.mojang.serialization.MapCodec;
 import net.industrybase.api.electric.ElectricNetwork;
 import net.industrybase.api.electric.IWireConnectable;
 import net.industrybase.api.util.ElectricHelper;
@@ -32,6 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class WireConnectorBlock extends BaseEntityBlock {
+	public static final MapCodec<WireConnectorBlock> CODEC = simpleCodec((properties) -> new WireConnectorBlock());
 	public static final DirectionProperty FACING = BlockStateProperties.FACING;
 	private static final VoxelShape CORE = Block.box(4.0D, 4.0D, 4.0D, 12.0D, 12.0D, 12.0D);
 	private static final Map<Direction, VoxelShape> SHAPES_DIRECTION = new EnumMap<>(ImmutableMap.of(
@@ -44,7 +46,7 @@ public class WireConnectorBlock extends BaseEntityBlock {
 	private static final Map<BlockState, VoxelShape> SHAPES = new HashMap<>();
 
 	protected WireConnectorBlock() {
-		super(Properties.copy(BlockList.WIRE.get()));
+		super(Properties.ofFullCopy(BlockList.WIRE.get()));
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.DOWN));
 
 		for (BlockState state : this.getStateDefinition().getPossibleStates()) {
@@ -99,6 +101,11 @@ public class WireConnectorBlock extends BaseEntityBlock {
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
 		builder.add(FACING);
+	}
+
+	@Override
+	protected MapCodec<? extends BaseEntityBlock> codec() {
+		return CODEC;
 	}
 
 	@Override

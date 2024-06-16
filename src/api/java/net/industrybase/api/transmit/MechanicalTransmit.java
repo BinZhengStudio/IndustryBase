@@ -8,6 +8,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -56,7 +57,8 @@ public class MechanicalTransmit implements IMechanicalTransmit {
 				if (level.isClientSide) {
 					this.network.removeClientSubscribe(this.pos);
 					if (this.network.shouldSendUnsubscribePacket(this.pos)) {
-						ApiNetworkManager.INSTANCE.sendToServer(new UnsubscribeSpeedPacket(this.pos));
+						ApiNetworkManager.INSTANCE.send(new UnsubscribeSpeedPacket(this.pos),
+								PacketDistributor.SERVER.noArg());
 					}
 				} else {
 					this.network.removeBlock(this.pos, this.blockEntity::setChanged);

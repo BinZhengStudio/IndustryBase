@@ -1,33 +1,33 @@
 package net.industrybase.api.network.client;
 
-import net.industrybase.api.network.CustomPacket;
 import net.industrybase.api.transmit.TransmitNetwork;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.event.network.CustomPayloadEvent;
 
-import java.util.Optional;
-import java.util.function.Supplier;
-
-public class UnsubscribeSpeedPacket extends CustomPacket {
+public class UnsubscribeSpeedPacket {
+	public static final StreamCodec<RegistryFriendlyByteBuf, UnsubscribeSpeedPacket> STREAM_CODEC = StreamCodec.ofMember(UnsubscribeSpeedPacket::encode, UnsubscribeSpeedPacket::new);
 	private final BlockPos target;
 
 	public UnsubscribeSpeedPacket(BlockPos target) {
 		this.target = target;
 	}
 
-	public UnsubscribeSpeedPacket(FriendlyByteBuf buf) {
+	public UnsubscribeSpeedPacket(RegistryFriendlyByteBuf buf) {
 		this.target = buf.readBlockPos();
 	}
 
-	@Override
-	public void encode(FriendlyByteBuf buf) {
+	public void encode(RegistryFriendlyByteBuf buf) {
 		buf.writeBlockPos(this.target);
 	}
 
-	@Override
-	public void consumer(Supplier<NetworkEvent.Context> context) {
-		context.get().enqueueWork(() -> Optional.ofNullable(context.get().getSender()).ifPresent(player -> TransmitNetwork.Manager.get(player.level()).unsubscribe(this.target, player)));
-		context.get().setPacketHandled(true);
+	public static void handler(UnsubscribeSpeedPacket msg, CustomPayloadEvent.Context context) {
+		context.enqueueWork(() -> {
+			ServerPlayer player = context.getSender();
+			if (player != null) TransmitNetwork.Manager.get(player.level()).unsubscribe(msg.target, player);
+		});
+		context.setPacketHandled(true);
 	}
 }

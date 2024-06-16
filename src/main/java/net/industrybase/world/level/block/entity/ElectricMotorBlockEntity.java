@@ -7,6 +7,7 @@ import net.industrybase.api.util.TransmitHelper;
 import net.industrybase.world.level.block.ElectricMotorBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -62,15 +63,15 @@ public class ElectricMotorBlockEntity extends BlockEntity {
 	}
 
 	@Override
-	public void load(CompoundTag tag) {
-		super.load(tag);
+	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.loadAdditional(tag, registries);
 		this.transmit.readFromNBT(tag);
 		this.electricPower.readFromNBT(tag);
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag tag) {
-		super.saveAdditional(tag);
+	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.saveAdditional(tag, registries);
 		this.transmit.writeToNBT(tag);
 		this.electricPower.writeToNBT(tag);
 	}

@@ -1,16 +1,17 @@
 package net.industrybase.api.network.server;
 
 import net.industrybase.api.electric.ElectricNetwork;
-import net.industrybase.api.network.CustomPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraftforge.event.network.CustomPayloadEvent;
 
 import java.util.Optional;
-import java.util.function.Supplier;
 
-public class WireConnSyncPacket extends CustomPacket {
+public class WireConnSyncPacket {
+	public static final StreamCodec<RegistryFriendlyByteBuf, WireConnSyncPacket> STREAM_CODEC =
+			StreamCodec.ofMember(WireConnSyncPacket::encode, WireConnSyncPacket::new);
 	private final BlockPos from;
 	private final BlockPos to;
 	private final boolean isRemove;
@@ -21,29 +22,27 @@ public class WireConnSyncPacket extends CustomPacket {
 		this.isRemove = isRemove;
 	}
 
-	public WireConnSyncPacket(FriendlyByteBuf buf) {
+	public WireConnSyncPacket(RegistryFriendlyByteBuf buf) {
 		this.from = buf.readBlockPos();
 		this.to = buf.readBlockPos();
 		this.isRemove = buf.readBoolean();
 	}
 
-	@Override
-	public void encode(FriendlyByteBuf buf) {
+	public void encode(RegistryFriendlyByteBuf buf) {
 		buf.writeBlockPos(this.from);
 		buf.writeBlockPos(this.to);
 		buf.writeBoolean(this.isRemove);
 	}
 
-	@Override
-	public void consumer(Supplier<NetworkEvent.Context> context) {
-		context.get().enqueueWork(() -> Optional.ofNullable(Minecraft.getInstance().level).ifPresent(level -> {
+	public static void handler(WireConnSyncPacket msg, CustomPayloadEvent.Context context) {
+		context.enqueueWork(() -> Optional.ofNullable(Minecraft.getInstance().level).ifPresent(level -> {
 			ElectricNetwork network = ElectricNetwork.Manager.get(level);
-			if (this.isRemove) {
-				network.removeClientWire(this.from, this.to);
+			if (msg.isRemove) {
+				network.removeClientWire(msg.from, msg.to);
 			} else {
-				network.addClientWire(this.from, this.to);
+				network.addClientWire(msg.from, msg.to);
 			}
 		}));
-		context.get().setPacketHandled(true);
+		context.setPacketHandled(true);
 	}
 }

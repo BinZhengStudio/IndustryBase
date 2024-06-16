@@ -1,34 +1,35 @@
 package net.industrybase.api.network.server;
 
 import net.industrybase.api.electric.ElectricNetwork;
-import net.industrybase.api.network.CustomPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.event.network.CustomPayloadEvent;
 
-import java.util.Optional;
-import java.util.function.Supplier;
-
-public class RemoveWiresPacket extends CustomPacket {
+public class RemoveWiresPacket {
+	public static final StreamCodec<RegistryFriendlyByteBuf, RemoveWiresPacket> STREAM_CODEC =
+			StreamCodec.ofMember(RemoveWiresPacket::encode, RemoveWiresPacket::new);
 	private final BlockPos from;
 
 	public RemoveWiresPacket(BlockPos from) {
 		this.from = from;
 	}
 
-	public RemoveWiresPacket(FriendlyByteBuf buf) {
+	public RemoveWiresPacket(RegistryFriendlyByteBuf buf) {
 		this.from = buf.readBlockPos();
 	}
 
-	@Override
-	public void encode(FriendlyByteBuf buf) {
+	public void encode(RegistryFriendlyByteBuf buf) {
 		buf.writeBlockPos(this.from);
 	}
 
-	@Override
-	public void consumer(Supplier<NetworkEvent.Context> context) {
-		context.get().enqueueWork(() -> Optional.ofNullable(Minecraft.getInstance().level).ifPresent(level -> ElectricNetwork.Manager.get(level).removeClientWires(this.from)));
-		context.get().setPacketHandled(true);
+	public static void handler(RemoveWiresPacket msg, CustomPayloadEvent.Context context) {
+		context.enqueueWork(() -> {
+			Level level = Minecraft.getInstance().level;
+			if (level != null) ElectricNetwork.Manager.get(level).removeClientWires(msg.from);
+		});
+		context.setPacketHandled(true);
 	}
 }

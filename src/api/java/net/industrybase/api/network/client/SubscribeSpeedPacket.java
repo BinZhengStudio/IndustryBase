@@ -1,43 +1,46 @@
 package net.industrybase.api.network.client;
 
 import net.industrybase.api.network.ApiNetworkManager;
-import net.industrybase.api.network.CustomPacket;
 import net.industrybase.api.network.server.ReturnSpeedPacket;
 import net.industrybase.api.transmit.TransmitNetwork;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.event.network.CustomPayloadEvent;
 import net.minecraftforge.network.PacketDistributor;
 
-import java.util.Optional;
-import java.util.function.Supplier;
-
-public class SubscribeSpeedPacket extends CustomPacket {
+public class SubscribeSpeedPacket {
+	public static final StreamCodec<RegistryFriendlyByteBuf, SubscribeSpeedPacket> STREAM_CODEC =
+			StreamCodec.ofMember(SubscribeSpeedPacket::encode, SubscribeSpeedPacket::new);
 	private final BlockPos target;
 
 	public SubscribeSpeedPacket(BlockPos target) {
 		this.target = target;
 	}
 
-	public SubscribeSpeedPacket(FriendlyByteBuf buf) {
+	public SubscribeSpeedPacket(RegistryFriendlyByteBuf buf) {
 		this.target = buf.readBlockPos();
 	}
 
-	@Override
-	public void encode(FriendlyByteBuf buf) {
+	public void encode(RegistryFriendlyByteBuf buf) {
 		buf.writeBlockPos(this.target);
 	}
 
 	@SuppressWarnings("deprecation")
-	@Override
-	public void consumer(Supplier<NetworkEvent.Context> context) {
-		context.get().enqueueWork(() -> Optional.ofNullable(context.get().getSender()).ifPresent(player -> {
- 			if (player.level().isAreaLoaded(this.target, 0)) {
-				TransmitNetwork network = TransmitNetwork.Manager.get(player.level());
-				ApiNetworkManager.INSTANCE.send(PacketDistributor.PLAYER.with(() -> player),
-						new ReturnSpeedPacket(this.target, network.root(this.target), network.subscribeSpeed(this.target, player)));
+	public static void handler(SubscribeSpeedPacket msg, CustomPayloadEvent.Context context) {
+		context.enqueueWork(() -> {
+			ServerPlayer player = context.getSender();
+			if (player != null) {
+				if (player.level().isAreaLoaded(msg.target, 0)) {
+					TransmitNetwork network = TransmitNetwork.Manager.get(player.level());
+					ApiNetworkManager.INSTANCE.send(
+							new ReturnSpeedPacket(msg.target, network.root(msg.target), network.subscribeSpeed(msg.target, player)),
+							PacketDistributor.PLAYER.with(player)
+					);
+				}
 			}
-		}));
-		context.get().setPacketHandled(true);
+		});
+		context.setPacketHandled(true);
 	}
 }

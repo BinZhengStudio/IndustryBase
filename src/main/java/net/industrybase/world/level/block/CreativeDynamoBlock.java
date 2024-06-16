@@ -1,5 +1,6 @@
 package net.industrybase.world.level.block;
 
+import com.mojang.serialization.MapCodec;
 import net.industrybase.api.util.ElectricHelper;
 import net.industrybase.api.util.TransmitHelper;
 import net.industrybase.world.level.block.entity.CreativeDynamoBlockEntity;
@@ -19,10 +20,11 @@ import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import org.jetbrains.annotations.Nullable;
 
 public class CreativeDynamoBlock extends BaseEntityBlock {
+	public static final MapCodec<CreativeDynamoBlock> CODEC = simpleCodec((properties) -> new CreativeDynamoBlock());
 	public static final DirectionProperty FACING = BlockStateProperties.FACING;
 
 	public CreativeDynamoBlock() {
-		super(Properties.copy(Blocks.IRON_BLOCK));
+		super(Properties.ofFullCopy(Blocks.IRON_BLOCK));
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 	}
 
@@ -32,6 +34,11 @@ public class CreativeDynamoBlock extends BaseEntityBlock {
 		TransmitHelper.updateOnRemove(level, state, newState, pos);
 		ElectricHelper.updateOnRemove(level, state, newState, pos);
 		super.onRemove(state, level, pos, newState, isMoving);
+	}
+
+	@Override
+	protected MapCodec<? extends BaseEntityBlock> codec() {
+		return CODEC;
 	}
 
 	@Override

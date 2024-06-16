@@ -7,6 +7,7 @@ import net.industrybase.world.inventory.CreativeSteamEngineMenu;
 import net.industrybase.world.level.block.SteamEngineBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -26,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CreativeSteamEngineBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
-	private final NonNullList<ItemStack> inventory = NonNullList.withSize(1, new ItemStack(Items.LAVA_BUCKET));
+	private NonNullList<ItemStack> inventory = NonNullList.withSize(1, new ItemStack(Items.LAVA_BUCKET));
 	private final MechanicalTransmit transmit = new MechanicalTransmit(this);
 	private final ContainerData data = new ContainerData() { // 用于双端同步数据
 		@Override
@@ -62,6 +63,16 @@ public class CreativeSteamEngineBlockEntity extends BaseContainerBlockEntity imp
 	}
 
 	@Override
+	protected NonNullList<ItemStack> getItems() {
+		return this.inventory;
+	}
+
+	@Override
+	protected void setItems(NonNullList<ItemStack> items) {
+		this.inventory = items;
+	}
+
+	@Override
 	protected AbstractContainerMenu createMenu(int id, Inventory inventory) {
 		return new CreativeSteamEngineMenu(id, inventory, this, this.data);
 	}
@@ -77,17 +88,17 @@ public class CreativeSteamEngineBlockEntity extends BaseContainerBlockEntity imp
 	}
 
 	@Override
-	public void load(CompoundTag tag) {
-		super.load(tag);
+	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.loadAdditional(tag, registries);
 		this.transmit.readFromNBT(tag);
-		ContainerHelper.loadAllItems(tag, this.inventory);
+		ContainerHelper.loadAllItems(tag, this.inventory, registries);
 	}
 
 	@Override
-	protected void saveAdditional(CompoundTag tag) {
-		super.saveAdditional(tag);
+	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.saveAdditional(tag, registries);
 		this.transmit.writeToNBT(tag);
-		ContainerHelper.saveAllItems(tag, this.inventory);
+		ContainerHelper.saveAllItems(tag, this.inventory, registries);
 	}
 
 	@Override

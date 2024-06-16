@@ -31,6 +31,9 @@ public class IndustryBase {
 		MenuTypeList.MENU_TYPES.register(modBus);
 		ItemList.ITEMS.register(modBus);
 
+		ApiNetworkManager.register();
+		NetworkManager.register();
+
 		// 添加事件监听
 		modBus.addListener(this::setup);
 		modBus.addListener(this::doClientStuff);

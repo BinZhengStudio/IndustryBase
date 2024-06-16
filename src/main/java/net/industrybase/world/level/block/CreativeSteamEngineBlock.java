@@ -1,5 +1,6 @@
 package net.industrybase.world.level.block;
 
+import com.mojang.serialization.MapCodec;
 import net.industrybase.api.util.TransmitHelper;
 import net.industrybase.world.level.block.entity.CreativeSteamEngineBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -22,10 +23,11 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 public class CreativeSteamEngineBlock extends BaseEntityBlock {
+	public static final MapCodec<CreativeSteamEngineBlock> CODEC = simpleCodec((properties) -> new CreativeSteamEngineBlock());
 	public static final EnumProperty<Direction.Axis> AXIS = BlockStateProperties.AXIS;
 
 	protected CreativeSteamEngineBlock() {
-		super(Properties.copy(Blocks.IRON_BLOCK).noOcclusion().lightLevel(state -> 13));
+		super(Properties.ofFullCopy(Blocks.IRON_BLOCK).noOcclusion().lightLevel(state -> 13));
 		this.registerDefaultState(this.stateDefinition.any().setValue(AXIS, Direction.Axis.X));
 	}
 
@@ -57,6 +59,11 @@ public class CreativeSteamEngineBlock extends BaseEntityBlock {
 	@Override
 	public BlockState getStateForPlacement(BlockPlaceContext context) {
 		return this.defaultBlockState().setValue(AXIS, context.getClickedFace().getAxis());
+	}
+
+	@Override
+	protected MapCodec<? extends BaseEntityBlock> codec() {
+		return CODEC;
 	}
 
 	@Override

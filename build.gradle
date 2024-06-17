@@ -51,12 +51,6 @@ minecraft {
 		}
 
 		client {
-			workingDirectory project.file('run')
-
-			property 'forge.logging.markers', 'REGISTRIES'
-
-			property 'forge.logging.console.level', 'info'
-
 			property 'forge.enabledGameTestNamespaces', mod_id
 
 			mods {
@@ -68,12 +62,6 @@ minecraft {
 		}
 
 		server {
-			workingDirectory project.file('run')
-
-			property 'forge.logging.markers', 'REGISTRIES'
-
-			property 'forge.logging.console.level', 'info'
-
 			property 'forge.enabledGameTestNamespaces', mod_id
 
 			mods {
@@ -85,12 +73,6 @@ minecraft {
 		}
 
 		gameTestServer {
-			workingDirectory project.file('run')
-
-			property 'forge.logging.markers', 'REGISTRIES'
-
-			property 'forge.logging.console.level', 'info'
-
 			property 'forge.enabledGameTestNamespaces', mod_id
 
 			mods {
@@ -103,10 +85,6 @@ minecraft {
 
 		data {
 			workingDirectory project.file('run-data')
-
-			property 'forge.logging.markers', 'REGISTRIES'
-
-			property 'forge.logging.console.level', 'info'
 
 			// Specify the mod_id for data generation, where to output the resulting resource, and where to look for existing resources.
 			args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
@@ -164,6 +142,7 @@ var manifest_info = [
 ]
 
 tasks.named('jar', Jar).configure {
+	from sourceSets.api.output
 	manifest {
 		attributes(manifest_info)
 	}

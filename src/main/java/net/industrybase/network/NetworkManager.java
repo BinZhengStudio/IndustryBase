@@ -14,7 +14,7 @@ public class NetworkManager {
 	private static final Marker MARKER = MarkerManager.getMarker("INDUSTRYBASE_NETWORK");
 	public static final int VERSION = 1;
 	public static final SimpleChannel INSTANCE = ChannelBuilder
-			.named(new ResourceLocation(IndustryBaseApi.MODID, "api"))
+			.named(new ResourceLocation(IndustryBaseApi.MODID, "main"))
 			.networkProtocolVersion(VERSION)
 			.simpleChannel()
 			.play()

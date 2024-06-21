@@ -39,12 +39,10 @@ public class IndustryBase {
 		modBus.addListener(this::doClientStuff);
 	}
 
-	private void setup(final FMLCommonSetupEvent event) { // 双端都要执行的初始化
-		event.enqueueWork(ApiNetworkManager::register); // 网络通信注册
-		event.enqueueWork(NetworkManager::register); // 网络通信注册
+	private void setup(final FMLCommonSetupEvent event) {
 	}
 
-	private void doClientStuff(final FMLClientSetupEvent event) { // 与客户端相关的初始化
-		event.enqueueWork(MenuScreenManager::register); // 绑定Container与Screen
+	private void doClientStuff(final FMLClientSetupEvent event) {
+		event.enqueueWork(MenuScreenManager::register);
 	}
 }

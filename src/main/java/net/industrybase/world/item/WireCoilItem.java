@@ -24,7 +24,9 @@ public class WireCoilItem extends Item implements IWireCoil {
 	public static final int MAX_LENGTH = 256;
 
 	public WireCoilItem() {
-		super(new Properties().durability(MAX_LENGTH));
+		super(new Properties()
+				.durability(MAX_LENGTH)
+				.component(DataComponents.CUSTOM_DATA, CustomData.EMPTY));
 	}
 
 	@Override

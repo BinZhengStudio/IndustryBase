@@ -1,12 +1,7 @@
 package net.industrybase.api.client.renderer.blockentity;
 
 import net.industrybase.api.IndustryBaseApi;
-import net.industrybase.api.network.ApiNetworkManager;
-import net.industrybase.api.network.client.SubscribeSpeedPacket;
-import net.industrybase.api.transmit.LayeredTransmissionRodBlock;
-import net.industrybase.api.transmit.TransmissionRodBlock;
-import net.industrybase.api.transmit.TransmissionRodBlockEntity;
-import net.industrybase.api.transmit.TransmitNetwork;
+import net.industrybase.api.transmit.*;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.model.geom.ModelLayerLocation;
@@ -21,7 +16,6 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.PacketDistributor;
 
 public class TransmissionRodRenderer implements BlockEntityRenderer<TransmissionRodBlockEntity> {
 	public static final ModelLayerLocation MAIN = new ModelLayerLocation(new ResourceLocation(IndustryBaseApi.MODID, "transmission_rod"), "main");
@@ -50,7 +44,6 @@ public class TransmissionRodRenderer implements BlockEntityRenderer<Transmission
 
 	@Override
 	public void render(TransmissionRodBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-		subscribeSpeed(blockEntity);
 		poseStack.pushPose();
 		poseStack.translate(0.5D, 0.5D, 0.5D);
 		rodRotate(blockEntity, partialTick, poseStack); // 设置传动杆旋转
@@ -62,14 +55,6 @@ public class TransmissionRodRenderer implements BlockEntityRenderer<Transmission
 		poseStack.popPose();
 	}
 
-	public static void subscribeSpeed(TransmissionRodBlockEntity blockEntity) {
-		if (blockEntity.hasLevel() && !blockEntity.isSubscribed()) {
-			ApiNetworkManager.INSTANCE.send(new SubscribeSpeedPacket(blockEntity.getBlockPos()),
-					PacketDistributor.SERVER.noArg());
-			blockEntity.setSubscribed();
-		}
-	}
-
 	public static void rodRotate(TransmissionRodBlockEntity blockEntity, float partialTick, PoseStack poseStack) {
 		// 按照轴旋转模型
 		switch (blockEntity.getBlockState().getValue(TransmissionRodBlock.AXIS)) {
@@ -78,7 +63,7 @@ public class TransmissionRodRenderer implements BlockEntityRenderer<Transmission
 		}
 		Level level = blockEntity.getLevel();
 		if (level != null) {
-			TransmitNetwork.RotateContext context = blockEntity.getRotate();
+			TransmitClientNetwork.RotateContext context = blockEntity.getRotate();
 			// 根据速度设定传动杆的旋转角度
 			poseStack.mulPose(Axis.YP.rotationDegrees(Mth.rotLerp(partialTick, context.getOldDegree(), context.getDegree())));
 		}

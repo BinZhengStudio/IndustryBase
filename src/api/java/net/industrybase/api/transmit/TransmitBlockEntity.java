@@ -23,7 +23,7 @@ public class TransmitBlockEntity extends BlockEntity {
 
 	@Override
 	public void onLoad() {
-		this.transmit.register();
+		this.transmit.register(false);
 		super.onLoad();
 	}
 

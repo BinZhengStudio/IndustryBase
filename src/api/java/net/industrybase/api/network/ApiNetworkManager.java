@@ -1,12 +1,15 @@
 package net.industrybase.api.network;
 
 import net.industrybase.api.IndustryBaseApi;
-import net.industrybase.api.network.client.SubscribeSpeedPacket;
+import net.industrybase.api.transmit.network.client.SpeedSubscribePacket;
 import net.industrybase.api.network.client.SubscribeWireConnPacket;
-import net.industrybase.api.network.client.UnsubscribeSpeedPacket;
 import net.industrybase.api.network.client.UnsubscribeWireConnPacket;
 import net.industrybase.api.network.server.*;
+import net.industrybase.api.transmit.network.server.ReturnSpeedPacket;
+import net.industrybase.api.transmit.network.server.RootSyncPacket;
+import net.industrybase.api.transmit.network.server.SpeedSyncPacket;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,15 +26,13 @@ public class ApiNetworkManager {
 			.simpleChannel()
 			.play()
 			.serverbound()
-			.add(SubscribeSpeedPacket.class, SubscribeSpeedPacket.STREAM_CODEC, SubscribeSpeedPacket::handler)
-			.add(UnsubscribeSpeedPacket.class, UnsubscribeSpeedPacket.STREAM_CODEC, UnsubscribeSpeedPacket::handler)
+			.add(SpeedSubscribePacket.class, SpeedSubscribePacket.STREAM_CODEC, SpeedSubscribePacket::handler)
 			.add(SubscribeWireConnPacket.class, SubscribeWireConnPacket.STREAM_CODEC, SubscribeWireConnPacket::handler)
 			.add(UnsubscribeWireConnPacket.class, UnsubscribeWireConnPacket.STREAM_CODEC, UnsubscribeWireConnPacket::handler)
 			.clientbound()
 			.add(ReturnSpeedPacket.class, ReturnSpeedPacket.STREAM_CODEC, ReturnSpeedPacket::handler)
 			.add(SpeedSyncPacket.class, SpeedSyncPacket.STREAM_CODEC, SpeedSyncPacket::handler)
 			.add(RootSyncPacket.class, RootSyncPacket.STREAM_CODEC, RootSyncPacket::handler)
-			.add(RootsSyncPacket.class, RootsSyncPacket.STREAM_CODEC, RootsSyncPacket::handler)
 			.add(WireConnSyncPacket.class, WireConnSyncPacket.STREAM_CODEC, WireConnSyncPacket::handler)
 			.add(RemoveWiresPacket.class, RemoveWiresPacket.STREAM_CODEC, RemoveWiresPacket::handler)
 			.add(ReturnWireConnPacket.class, ReturnWireConnPacket.STREAM_CODEC, ReturnWireConnPacket::handler)
@@ -40,5 +41,21 @@ public class ApiNetworkManager {
 	public static void register() {
 		for (var channel : new Channel[]{INSTANCE})
 			LOGGER.debug(MARKER, "Registering Network {} v{}", channel.getName(), channel.getProtocolVersion());
+	}
+
+	public static void sendToServer(Object packet) {
+		INSTANCE.send(packet, PacketDistributor.SERVER.noArg());
+	}
+
+	public static void sendToPlayer(Object packet, ServerPlayer player) {
+		INSTANCE.send(packet, PacketDistributor.PLAYER.with(player));
+	}
+
+	public static void sendToPlayers(Object packet, ServerPlayer[] players) {
+		for (ServerPlayer player : players) sendToPlayer(packet, player);
+	}
+
+	public static void sendToPlayers(Object packet, Iterable<ServerPlayer> players) {
+		for (ServerPlayer player : players) sendToPlayer(packet, player);
 	}
 }

@@ -52,7 +52,7 @@ public class CreativeSteamEngineBlockEntity extends BaseContainerBlockEntity imp
 	@Override
 	public void onLoad() {
 		super.onLoad();
-		this.transmit.register();
+		this.transmit.register(false);
 		this.transmit.setPower(100);
 		this.transmit.setResistance(10);
 	}

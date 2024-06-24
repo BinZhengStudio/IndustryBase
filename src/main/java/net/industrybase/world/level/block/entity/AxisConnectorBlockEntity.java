@@ -21,7 +21,7 @@ public class AxisConnectorBlockEntity extends BlockEntity {
 	@Override
 	public void onLoad() {
 		super.onLoad();
-		this.transmit.register();
+		this.transmit.register(false);
 	}
 
 	@Override

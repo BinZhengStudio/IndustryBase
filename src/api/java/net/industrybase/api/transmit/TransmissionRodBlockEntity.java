@@ -13,7 +13,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class TransmissionRodBlockEntity extends BlockEntity {
 	private final MechanicalTransmit transmit = new MechanicalTransmit(this);
-	private boolean subscribed = false;
 
 	public TransmissionRodBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
 		super(type, pos, state);
@@ -22,7 +21,7 @@ public class TransmissionRodBlockEntity extends BlockEntity {
 	@Override
 	public void onLoad() {
 		super.onLoad();
-		this.transmit.register();
+		this.transmit.register(true);
 	}
 
 	@Override
@@ -39,18 +38,12 @@ public class TransmissionRodBlockEntity extends BlockEntity {
 		super.setRemoved();
 	}
 
-	public boolean isSubscribed() {
-		return this.subscribed;
-	}
-
-	public void setSubscribed() {
-		this.subscribed = true;
-	}
-
-	public TransmitNetwork.RotateContext getRotate() {
+	public TransmitClientNetwork.RotateContext getRotate() {
 		if (this.transmit.getNetwork() != null) {
-			return this.transmit.getNetwork().getRotateContext(this.worldPosition);
+			if (this.level != null && this.level.isClientSide) {
+				return ((TransmitClientNetwork) this.transmit.getNetwork()).getRotateContext(this.worldPosition);
+			}
 		}
-		return TransmitNetwork.RotateContext.NULL;
+		return TransmitClientNetwork.RotateContext.NULL;
 	}
 }

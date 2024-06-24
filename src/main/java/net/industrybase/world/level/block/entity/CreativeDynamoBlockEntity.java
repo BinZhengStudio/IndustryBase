@@ -25,7 +25,7 @@ public class CreativeDynamoBlockEntity extends BlockEntity {
 	@Override
 	public void onLoad() {
 		super.onLoad();
-		this.transmit.register();
+		this.transmit.register(false);
 		this.transmit.setResistance(RESISTANCE);
 		this.electricPower.register();
 		this.electricPower.setOutputPower(10.0D);

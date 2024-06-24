@@ -1,6 +1,5 @@
-package net.industrybase.api.network.server;
+package net.industrybase.api.transmit.network.server;
 
-import net.industrybase.api.network.client.SubscribeSpeedPacket;
 import net.industrybase.api.transmit.TransmitNetwork;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -12,28 +11,28 @@ import net.minecraftforge.event.network.CustomPayloadEvent;
 public class RootSyncPacket {
 	public static final StreamCodec<RegistryFriendlyByteBuf, RootSyncPacket> STREAM_CODEC =
 			StreamCodec.ofMember(RootSyncPacket::encode, RootSyncPacket::new);
-	private final BlockPos targets;
-	private final BlockPos root;
+	private final BlockPos oldServerRoot;
+	private final BlockPos newServerRoot;
 
-	public RootSyncPacket(BlockPos targets, BlockPos root) {
-		this.targets = targets;
-		this.root = root;
+	public RootSyncPacket(BlockPos oldServerRoot, BlockPos newServerRoot) {
+		this.oldServerRoot = oldServerRoot;
+		this.newServerRoot = newServerRoot;
 	}
 
 	public RootSyncPacket(RegistryFriendlyByteBuf buf) {
-		this.targets = buf.readBlockPos();
-		this.root = buf.readBlockPos();
+		this.oldServerRoot = buf.readBlockPos();
+		this.newServerRoot = buf.readBlockPos();
 	}
 
 	public void encode(RegistryFriendlyByteBuf buf) {
-		buf.writeBlockPos(this.targets);
-		buf.writeBlockPos(this.root);
+		buf.writeBlockPos(this.oldServerRoot);
+		buf.writeBlockPos(this.newServerRoot);
 	}
 
 	public static void handler(RootSyncPacket msg, CustomPayloadEvent.Context context) {
 		context.enqueueWork(() -> {
 			Level level = Minecraft.getInstance().level;
-			if (level != null) TransmitNetwork.Manager.get(level).updateClientRoot(msg.targets, msg.root);
+			if (level != null) TransmitNetwork.Manager.getClient(level).updateClientRoot(msg.oldServerRoot, msg.newServerRoot);
 		});
 		context.setPacketHandled(true);
 	}

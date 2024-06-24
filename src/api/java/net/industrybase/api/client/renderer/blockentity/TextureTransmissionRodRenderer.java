@@ -30,7 +30,6 @@ public abstract class TextureTransmissionRodRenderer implements BlockEntityRende
 
 	@Override
 	public void render(TransmissionRodBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-		TransmissionRodRenderer.subscribeSpeed(blockEntity);
 		poseStack.pushPose();
 		poseStack.translate(0.5D, 0.5D, 0.5D);
 		TransmissionRodRenderer.rodRotate(blockEntity, partialTick, poseStack);

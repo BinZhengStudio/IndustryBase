@@ -1,17 +1,14 @@
 package net.industrybase.api.transmit;
 
 import net.industrybase.api.energy.IMechanicalTransmit;
-import net.industrybase.api.network.ApiNetworkManager;
-import net.industrybase.api.network.client.UnsubscribeSpeedPacket;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.network.PacketDistributor;
 
 import javax.annotation.Nullable;
-import java.util.Optional;
 
 public class MechanicalTransmit implements IMechanicalTransmit {
 	private int tmpPower;
@@ -36,15 +33,19 @@ public class MechanicalTransmit implements IMechanicalTransmit {
 	 * 向传动网络注册该方块。
 	 * 需要在 {@link BlockEntity#onLoad()} 中执行一次。
 	 */
-	public void register() {
-		Optional.ofNullable(this.blockEntity.getLevel()).ifPresent(level -> {
+	public void register(boolean requireSpeedSync) {
+		Level level = this.blockEntity.getLevel();
+		if (level != null) {
 			this.network = TransmitNetwork.Manager.get(level);
-			if (!level.isClientSide) {
-				this.setPower(this.tmpPower);
-				this.setResistance(this.tmpResistance);
-				this.network.addOrChangeBlock(this.pos, this.blockEntity::setChanged);
-			}
-		});
+			this.network.addOrChangeBlock(this.pos, () -> {
+				if (level.isClientSide) {
+					if (requireSpeedSync) ((TransmitClientNetwork) this.network).requireSpeedSync(this.pos);
+				} else {
+					this.setPower(this.tmpPower);
+					this.setResistance(this.tmpResistance);
+				}
+			});
+		}
 	}
 
 	/**
@@ -52,19 +53,9 @@ public class MechanicalTransmit implements IMechanicalTransmit {
 	 * 在 {@link BlockEntity#setRemoved()} 中执行。
 	 */
 	public void remove() {
-		Optional.ofNullable(this.blockEntity.getLevel()).ifPresent(level -> {
-			if (this.network != null) {
-				if (level.isClientSide) {
-					this.network.removeClientSubscribe(this.pos);
-					if (this.network.shouldSendUnsubscribePacket(this.pos)) {
-						ApiNetworkManager.INSTANCE.send(new UnsubscribeSpeedPacket(this.pos),
-								PacketDistributor.SERVER.noArg());
-					}
-				} else {
-					this.network.removeBlock(this.pos, this.blockEntity::setChanged);
-				}
-			}
-		});
+		if (this.network != null) {
+			this.network.removeBlock(this.pos);
+		}
 	}
 
 	@Nullable

@@ -154,7 +154,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 	@Override
 	public void onLoad() {
 		super.onLoad();
-		this.transmit.register();
+		this.transmit.register(false);
 		this.transmit.setResistance(10);
 	}
 

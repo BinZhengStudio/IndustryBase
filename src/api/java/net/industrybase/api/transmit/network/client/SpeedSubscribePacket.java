@@ -29,6 +29,7 @@ public class SpeedSubscribePacket {
 
 	public void encode(RegistryFriendlyByteBuf buf) {
 		buf.writeBlockPos(this.clientRoot);
+		buf.writeBoolean(this.unsubscribe);
 	}
 
 	@SuppressWarnings("deprecation")

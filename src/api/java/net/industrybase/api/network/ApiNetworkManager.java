@@ -5,6 +5,7 @@ import net.industrybase.api.transmit.network.client.SpeedSubscribePacket;
 import net.industrybase.api.network.client.SubscribeWireConnPacket;
 import net.industrybase.api.network.client.UnsubscribeWireConnPacket;
 import net.industrybase.api.network.server.*;
+import net.industrybase.api.transmit.network.server.DomainSpiltPacket;
 import net.industrybase.api.transmit.network.server.ReturnSpeedPacket;
 import net.industrybase.api.transmit.network.server.RootSyncPacket;
 import net.industrybase.api.transmit.network.server.SpeedSyncPacket;
@@ -30,6 +31,7 @@ public class ApiNetworkManager {
 			.add(SubscribeWireConnPacket.class, SubscribeWireConnPacket.STREAM_CODEC, SubscribeWireConnPacket::handler)
 			.add(UnsubscribeWireConnPacket.class, UnsubscribeWireConnPacket.STREAM_CODEC, UnsubscribeWireConnPacket::handler)
 			.clientbound()
+			.add(DomainSpiltPacket.class, DomainSpiltPacket.STREAM_CODEC, DomainSpiltPacket::handler)
 			.add(ReturnSpeedPacket.class, ReturnSpeedPacket.STREAM_CODEC, ReturnSpeedPacket::handler)
 			.add(SpeedSyncPacket.class, SpeedSyncPacket.STREAM_CODEC, SpeedSyncPacket::handler)
 			.add(RootSyncPacket.class, RootSyncPacket.STREAM_CODEC, RootSyncPacket::handler)

@@ -32,11 +32,8 @@ public abstract class TransmitNetwork {
 		this.totalPower = HashMultiset.create();
 		this.totalResistance = HashMultiset.create();
 		this.speeds = new HashMap<>();
-//		this.rotates = new HashMap<>();
-//		this.roots = new HashMap<>();
 		this.machinePower = HashMultiset.create();
 		this.machineResistance = HashMultiset.create();
-//		this.subscribes = HashMultimap.create();
 	}
 
 	public int size(BlockPos pos) {
@@ -102,13 +99,14 @@ public abstract class TransmitNetwork {
 
 	protected abstract void updateSpeed(BlockPos root);
 
-	public void removeBlock(BlockPos pos) {
+	public void removeBlock(BlockPos pos, Runnable callback) {
 		this.tasks.offer(() -> {
 			this.setMachinePower(pos, 0);
 			this.setMachineResistance(pos, 0);
 			for (Direction side : Direction.values()) {
 				this.cut(pos, side);
 			}
+			callback.run();
 		});
 	}
 
@@ -160,6 +158,8 @@ public abstract class TransmitNetwork {
 
 					powerDiff += this.machinePower.count(pos);
 					resistanceDiff += this.machineResistance.count(pos);
+
+					this.forEachSecondaryPos(primaryRoot, secondaryRoot, pos);
 				}
 
 				this.totalPower.remove(primaryRoot, powerDiff);
@@ -176,6 +176,8 @@ public abstract class TransmitNetwork {
 			this.afterSplit(primaryRoot, secondaryRoot);
 		}
 	}
+
+	protected abstract void forEachSecondaryPos(BlockPos primaryRoot, BlockPos secondaryRoot, BlockPos pos);
 
 	protected abstract void afterSplit(BlockPos primaryRoot, BlockPos secondaryRoot);
 

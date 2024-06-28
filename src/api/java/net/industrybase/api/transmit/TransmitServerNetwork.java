@@ -48,6 +48,10 @@ public class TransmitServerNetwork extends TransmitNetwork {
 	}
 
 	@Override
+	protected void forEachSecondaryPos(BlockPos primaryRoot, BlockPos secondaryRoot, BlockPos pos) {
+	}
+
+	@Override
 	protected void afterSplit(BlockPos primaryRoot, BlockPos secondaryRoot) {
 		this.updateSpeed(primaryRoot);
 		this.updateSpeed(secondaryRoot);

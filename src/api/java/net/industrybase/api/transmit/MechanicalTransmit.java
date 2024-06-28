@@ -38,13 +38,15 @@ public class MechanicalTransmit implements IMechanicalTransmit {
 		if (level != null) {
 			this.network = TransmitNetwork.Manager.get(level);
 			this.network.addOrChangeBlock(this.pos, () -> {
-				if (level.isClientSide) {
-					if (requireSpeedSync) ((TransmitClientNetwork) this.network).requireSpeedSync(this.pos);
-				} else {
-					this.setPower(this.tmpPower);
-					this.setResistance(this.tmpResistance);
+				if (level.isClientSide && requireSpeedSync) {
+					((TransmitClientNetwork) this.network).requireSpeedSync(this.pos);
 				}
 			});
+
+			if (!level.isClientSide) {
+				this.setPower(this.tmpPower);
+				this.setResistance(this.tmpResistance);
+			}
 		}
 	}
 
@@ -54,7 +56,14 @@ public class MechanicalTransmit implements IMechanicalTransmit {
 	 */
 	public void remove() {
 		if (this.network != null) {
-			this.network.removeBlock(this.pos);
+			Level level = this.blockEntity.getLevel();
+			if (level != null) {
+				this.network.removeBlock(this.pos, () -> {
+					if (level.isClientSide) {
+						((TransmitClientNetwork) this.network).removeSpeedSync(this.pos);
+					}
+				});
+			}
 		}
 	}
 

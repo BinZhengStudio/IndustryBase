@@ -1,18 +1,17 @@
 package net.industrybase.api.transmit;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.HashMultiset;
 import net.industrybase.api.network.ApiNetworkManager;
 import net.industrybase.api.transmit.network.client.SpeedSubscribePacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LevelAccessor;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Set;
 
 public class TransmitClientNetwork extends TransmitNetwork {
-	private final HashMultiset<BlockPos> requiredSyncRoot;
+	private final HashMultimap<BlockPos, BlockPos> requiredSyncRoot; // client root to blocks
 	private final HashMultimap<BlockPos, BlockPos> serverRootReverse; // server root to client roots
 	private final HashMap<BlockPos, BlockPos> serverRoot; // client root to server root
 	private final HashMap<BlockPos, RotateContext> rotates;
@@ -20,7 +19,7 @@ public class TransmitClientNetwork extends TransmitNetwork {
 	public TransmitClientNetwork(LevelAccessor level) {
 		super(level);
 		if (!level.isClientSide()) throw new IllegalArgumentException("server level can't be used in client transmit network");
-		this.requiredSyncRoot = HashMultiset.create();
+		this.requiredSyncRoot = HashMultimap.create();
 		this.serverRootReverse = HashMultimap.create();
 		this.rotates = new HashMap<>();
 		this.serverRoot = new HashMap<>();
@@ -32,20 +31,21 @@ public class TransmitClientNetwork extends TransmitNetwork {
 
 	public void requireSpeedSync(BlockPos pos) {
 		BlockPos root = this.root(pos.immutable());
-		this.requiredSyncRoot.add(root);
-		if (this.requiredSyncRoot.count(root) <= 1) { // if the network never subscribed before
+		this.requiredSyncRoot.put(root, pos);
+		if (this.requiredSyncRoot.get(root).size() <= 1) { // if the network never subscribed before
 			ApiNetworkManager.sendToServer(new SpeedSubscribePacket(root, false));
 		}
 	}
 
 	public void removeSpeedSync(BlockPos pos) {
 		BlockPos root = this.root(pos);
-		this.requiredSyncRoot.remove(root);
-		if (this.requiredSyncRoot.count(root) <= 0) { // if not other block requires sync
-			ApiNetworkManager.sendToServer(new SpeedSubscribePacket(root, true));
-			BlockPos serverRoot = this.serverRoot.remove(root);
-			this.speeds.remove(serverRoot);
-			this.serverRootReverse.remove(serverRoot, root);
+		if (this.requiredSyncRoot.remove(root, pos)) {
+			if (this.requiredSyncRoot.containsKey(root)) { // if not other block requires sync
+				ApiNetworkManager.sendToServer(new SpeedSubscribePacket(root, true));
+				BlockPos serverRoot = this.serverRoot.remove(root);
+				this.speeds.remove(serverRoot);
+				this.serverRootReverse.remove(serverRoot, root);
+			}
 		}
 	}
 
@@ -82,18 +82,6 @@ public class TransmitClientNetwork extends TransmitNetwork {
 		}
 	}
 
-	public void updateClientRoots(Collection<BlockPos> targets, BlockPos root) {
-		if (this.level.isClientSide()) {
-			targets.forEach(target -> {
-				if (!target.equals(root)) {
-					this.serverRoot.put(target, root);
-				} else {
-					this.serverRoot.remove(target);
-				}
-			});
-		}
-	}
-
 	public void afterServerSpilt(BlockPos serverRoot) {
 		this.serverRootReverse.get(serverRoot).forEach(root ->
 				ApiNetworkManager.sendToServer(new SpeedSubscribePacket(root, false)));
@@ -101,6 +89,15 @@ public class TransmitClientNetwork extends TransmitNetwork {
 
 	@Override
 	protected void updateSpeed(BlockPos root) {
+	}
+
+	@Override
+	protected void forEachSecondaryPos(BlockPos primaryRoot, BlockPos secondaryRoot, BlockPos pos) {
+		Set<BlockPos> primarySet = this.requiredSyncRoot.get(primaryRoot);
+		if (primarySet.contains(pos)) {
+			primarySet.remove(pos);
+			this.requiredSyncRoot.put(secondaryRoot, pos);
+		}
 	}
 
 	@Override
@@ -112,7 +109,8 @@ public class TransmitClientNetwork extends TransmitNetwork {
 
 	@Override
 	protected void afterMerge(BlockPos primaryRoot, BlockPos secondaryRoot) {
-		// TODO
+		this.requiredSyncRoot.putAll(primaryRoot, this.requiredSyncRoot.removeAll(secondaryRoot));
+		this.serverRootReverse.remove(this.serverRoot.remove(secondaryRoot), secondaryRoot);
 	}
 
 	public RotateContext getRotateContext(BlockPos pos) {
@@ -139,8 +137,8 @@ public class TransmitClientNetwork extends TransmitNetwork {
 		}
 
 		public void update(float speed) {
-			this.oldDegree = this.degree % 360.0F;
-			this.degree = this.degree + (speed * 18.0F) % 360.0F;
+			this.oldDegree = this.degree;
+			this.degree = (degree + (speed * 18.0F)) % 360.0F;
 		}
 
 		public float getOldDegree() {

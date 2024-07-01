@@ -1,17 +1,18 @@
 package net.industrybase.api.transmit;
 
+import com.google.common.collect.*;
 import net.industrybase.api.CapabilityList;
 import net.industrybase.api.network.ApiNetworkManager;
 import net.industrybase.api.network.server.RootSyncPacket;
 import net.industrybase.api.network.server.RootsSyncPacket;
 import net.industrybase.api.network.server.SpeedSyncPacket;
-import com.google.common.collect.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -30,6 +31,7 @@ public class TransmitNetwork {
 	private final HashMultiset<BlockPos> machinePower;
 	private final HashMultiset<BlockPos> machineResistance;
 	private final HashMultimap<BlockPos, ServerPlayer> subscribes; // BlockPos is of root block
+	private final HashMultimap<ServerPlayer, BlockPos> subscribesReverse; // BlockPos is of root block
 	// Only update in client
 	private final HashMap<BlockPos, BlockPos> roots;
 	private final HashMap<BlockPos, RotateContext> rotates;
@@ -47,6 +49,7 @@ public class TransmitNetwork {
 		this.machinePower = HashMultiset.create();
 		this.machineResistance = HashMultiset.create();
 		this.subscribes = HashMultimap.create();
+		this.subscribesReverse = HashMultimap.create();
 	}
 
 	public int size(BlockPos pos) {
@@ -84,11 +87,13 @@ public class TransmitNetwork {
 	public float subscribeSpeed(BlockPos pos, ServerPlayer player) {
 		BlockPos root = this.root(pos);
 		this.subscribes.put(root, player);
+		this.subscribesReverse.put(player, root);
 		return this.speeds.getOrDefault(root, 0.0F);
 	}
 
 	public void unsubscribe(BlockPos pos, ServerPlayer player) {
 		this.subscribes.remove(pos, player);
+		this.subscribesReverse.remove(player, pos);
 	}
 
 	public void addClientSpeed(BlockPos target, BlockPos root, float speed) {
@@ -223,7 +228,7 @@ public class TransmitNetwork {
 			for (Direction side : Direction.values()) {
 				this.cut(pos, side);
 			}
-			this.subscribes.removeAll(pos);
+			this.subscribes.removeAll(pos).forEach(player -> this.subscribesReverse.remove(player, pos));
 			callback.run();
 		});
 	}
@@ -272,6 +277,7 @@ public class TransmitNetwork {
 					ApiNetworkManager.INSTANCE.send(new RootSyncPacket(secondaryNode, secondaryNode),
 							PacketDistributor.PLAYER.with(player));
 					this.subscribes.put(secondaryNode, player);
+					this.subscribesReverse.put(player, secondaryNode);
 				});
 			} else {
 				int powerDiff = 0;
@@ -286,6 +292,7 @@ public class TransmitNetwork {
 					ApiNetworkManager.INSTANCE.send(new RootsSyncPacket(secondaryComponent, secondaryNode),
 							PacketDistributor.PLAYER.with(player));
 					this.subscribes.put(secondaryNode, player);
+					this.subscribesReverse.put(player, secondaryNode);
 				});
 
 				this.totalPower.remove(primaryNode, powerDiff);
@@ -362,6 +369,8 @@ public class TransmitNetwork {
 					ApiNetworkManager.INSTANCE.send(new RootSyncPacket(primary, secondary),
 							PacketDistributor.PLAYER.with(player));
 					this.subscribes.put(secondary, player);
+					this.subscribesReverse.remove(player, primary);
+					this.subscribesReverse.put(player, secondary);
 				});
 			} else if (primaryComponent == null) {
 				BlockPos secondaryNode = secondaryComponent.getFirst();
@@ -376,6 +385,8 @@ public class TransmitNetwork {
 					ApiNetworkManager.INSTANCE.send(new RootSyncPacket(primary, secondaryNode),
 							PacketDistributor.PLAYER.with(player));
 					this.subscribes.put(secondaryNode, player);
+					this.subscribesReverse.remove(player, primary);
+					this.subscribesReverse.put(player, secondaryNode);
 				});
 			} else if (secondaryComponent == null) {
 				BlockPos primaryNode = primaryComponent.getFirst();
@@ -390,6 +401,9 @@ public class TransmitNetwork {
 					ApiNetworkManager.INSTANCE.send(new RootSyncPacket(secondary, primaryNode),
 							PacketDistributor.PLAYER.with(player));
 					this.subscribes.put(primaryNode, player);
+					this.subscribesReverse.remove(player, secondary);
+					this.subscribesReverse.put(player, primaryNode);
+
 				});
 			} else if (primaryComponent != secondaryComponent) {
 				BlockPos primaryNode = primaryComponent.getFirst();
@@ -404,6 +418,8 @@ public class TransmitNetwork {
 					ApiNetworkManager.INSTANCE.send(new SpeedSyncPacket(secondaryNode, 0.0F),
 							PacketDistributor.PLAYER.with(player));
 					this.subscribes.put(primaryNode, player);
+					this.subscribesReverse.remove(player, secondaryNode);
+					this.subscribesReverse.put(player, primaryNode);
 				});
 
 				this.totalPower.add(primaryNode, this.totalPower.setCount(secondaryNode, 0));
@@ -495,6 +511,15 @@ public class TransmitNetwork {
 
 		public static TransmitNetwork get(LevelAccessor level) {
 			return INSTANCES.computeIfAbsent(level, TransmitNetwork::new);
+		}
+
+		@SubscribeEvent
+		public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
+			ServerPlayer player = (ServerPlayer) event.getEntity();
+			TransmitNetwork network = INSTANCES.get(player.level());
+			network.subscribesReverse.get(player).forEach(pos -> {
+				network.unsubscribe(pos, player);
+			});
 		}
 
 		@SubscribeEvent

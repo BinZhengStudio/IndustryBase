@@ -55,13 +55,8 @@ public class TransmitClientNetwork extends TransmitNetwork {
 	}
 
 	public void setClientRoot(BlockPos root, BlockPos serverRoot) {
-		if (root.equals(serverRoot)) {
-			this.serverRoot.remove(root);
-			this.serverRootReverse.remove(serverRoot, root);
-		} else {
-			this.serverRoot.put(root, serverRoot);
-			this.serverRootReverse.put(serverRoot, root);
-		}
+		this.serverRoot.put(root, serverRoot);
+		this.serverRootReverse.put(serverRoot, root);
 	}
 
 	public void updateClientRoot(BlockPos oldServerRoot, BlockPos newServerRoot) {
@@ -79,6 +74,7 @@ public class TransmitClientNetwork extends TransmitNetwork {
 			this.speeds.put(serverRoot, speed);
 		} else {
 			this.speeds.remove(serverRoot);
+			this.rotates.get(serverRoot).stop();
 		}
 	}
 
@@ -139,6 +135,10 @@ public class TransmitClientNetwork extends TransmitNetwork {
 		public void update(float speed) {
 			this.oldDegree = this.degree;
 			this.degree = (degree + (speed * 18.0F)) % 360.0F;
+		}
+
+		public void stop() {
+			this.oldDegree = this.degree;
 		}
 
 		public float getOldDegree() {

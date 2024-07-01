@@ -13,7 +13,7 @@
     "$"
   ],
   "result": {
-    "item": "industrybase:wire_connector",
+    "id": "industrybase:wire_connector",
     "count": 2
   }
 }

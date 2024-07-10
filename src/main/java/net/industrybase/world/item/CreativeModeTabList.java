@@ -7,7 +7,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
 
-public class CreativeModeTabList { // 创造模式物品栏
+public class CreativeModeTabList {
 	public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, IndustryBaseApi.MODID);
 	public static final RegistryObject<CreativeModeTab> INDUSTRYBASE = CREATIVE_MODE_TABS.register("industrybase", () -> CreativeModeTab.builder()
 			.title(Component.translatable("itemGroup.industrybase"))
@@ -38,5 +38,7 @@ public class CreativeModeTabList { // 创造模式物品栏
 				output.accept(ItemList.WIRE_CONNECTOR.get());
 				output.accept(ItemList.ELECTRIC_MOTOR.get());
 				output.accept(ItemList.CREATIVE_ELECTRIC_MOTOR.get());
+				output.accept(ItemList.IRON_PIPE.get());
+				output.accept(ItemList.WATER_PUMP.get());
 			}).build());
 }

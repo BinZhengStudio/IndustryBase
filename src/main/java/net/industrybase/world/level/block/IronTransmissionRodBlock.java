@@ -14,7 +14,7 @@ public class IronTransmissionRodBlock extends TransmissionRodBlock {
 	public static final MapCodec<IronTransmissionRodBlock> CODEC = simpleCodec((properties) -> new IronTransmissionRodBlock());
 
 	public IronTransmissionRodBlock() {
-		super(Properties.ofFullCopy(Blocks.IRON_BLOCK), 20);
+		super(Properties.ofFullCopy(Blocks.IRON_BLOCK).strength(3.0F).noOcclusion(), 20);
 	}
 
 	@Nullable

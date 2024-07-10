@@ -1,9 +1,9 @@
 package net.industrybase.world.level.block.entity;
 
+import com.mojang.datafixers.DSL;
 import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.api.transmit.TransmissionRodBlockEntity;
 import net.industrybase.world.level.block.BlockList;
-import com.mojang.datafixers.DSL;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -37,6 +37,8 @@ public class BlockEntityTypeList {
 	public static final RegistryObject<BlockEntityType<WireConnectorBlockEntity>> WIRE_CONNECTOR = register("wire_connector", WireConnectorBlockEntity::new, BlockList.WIRE_CONNECTOR);
 	public static final RegistryObject<BlockEntityType<ElectricMotorBlockEntity>> ELECTRIC_MOTOR = register("electric_motor", ElectricMotorBlockEntity::new, BlockList.ELECTRIC_MOTOR);
 	public static final RegistryObject<BlockEntityType<CreativeElectricMotorBlockEntity>> CREATIVE_ELECTRIC_MOTOR = register("creative_electric_motor", CreativeElectricMotorBlockEntity::new, BlockList.CREATIVE_ELECTRIC_MOTOR);
+	public static final RegistryObject<BlockEntityType<IronPipeBlockEntity>> IRON_PIPE = register("iron_pipe", IronPipeBlockEntity::new, BlockList.IRON_PIPE);
+	public static final RegistryObject<BlockEntityType<WaterPumpBlockEntity>> WATER_PUMP = register("water_pump", WaterPumpBlockEntity::new, BlockList.WATER_PUMP);
 
 	private static <T extends BlockEntity> RegistryObject<BlockEntityType<T>> register(String name, BlockEntityType.BlockEntitySupplier<T> blockEntity, RegistryObject<? extends Block> block) {
 		return BLOCK_ENTITY_TYPES.register(name, () -> BlockEntityType.Builder.of(blockEntity, block.get()).build(DSL.remainderType()));

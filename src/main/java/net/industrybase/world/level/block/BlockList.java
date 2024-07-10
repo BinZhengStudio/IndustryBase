@@ -32,5 +32,7 @@ public class BlockList {
 	public static final RegistryObject<Block> CHERRY_TRANSMISSION_ROD = BLOCKS.register("cherry_transmission_rod", CherryTransmissionRodBlock::new);
 	public static final RegistryObject<Block> CRIMSON_TRANSMISSION_ROD = BLOCKS.register("crimson_transmission_rod", CrimsonTransmissionRodBlock::new);
 	public static final RegistryObject<Block> WARPED_TRANSMISSION_ROD = BLOCKS.register("warped_transmission_rod", WarpedTransmissionRodBlock::new);
+	public static final RegistryObject<Block> IRON_PIPE = BLOCKS.register("iron_pipe", IronPipeBlock::new);
+	public static final RegistryObject<Block> WATER_PUMP = BLOCKS.register("water_pump", WaterPumpBlock::new);
 
 }

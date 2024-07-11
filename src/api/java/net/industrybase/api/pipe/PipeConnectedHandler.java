@@ -1,7 +1,7 @@
 package net.industrybase.api.pipe;
 
-import net.industrybase.api.CapabilityList;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
@@ -19,7 +19,7 @@ public class PipeConnectedHandler implements IFluidHandler {
 	}
 
 	public <X> LazyOptional<X> cast(Capability<X> cap, LazyOptional<X> defaultCap) {
-		if (cap == CapabilityList.ELECTRIC_POWER) {
+		if (cap == ForgeCapabilities.FLUID_HANDLER) {
 			return this.lazyOptional.cast();
 		}
 		return defaultCap;

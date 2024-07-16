@@ -9,12 +9,8 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -32,12 +28,12 @@ public class WireConnectorBlockEntity extends BlockEntity implements IWireConnec
 		this.electricPower.register();
 	}
 
-	@Override
-	public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+	@Nullable
+	public ElectricPower getElectricPower(Direction side) {
 		if (side == this.getBlockState().getValue(DynamoBlock.FACING)) {
-			return this.electricPower.cast(cap, super.getCapability(cap, side));
+			return this.electricPower;
 		}
-		return super.getCapability(cap, side);
+		return null;
 	}
 
 	@Override
@@ -56,13 +52,6 @@ public class WireConnectorBlockEntity extends BlockEntity implements IWireConnec
 	public void setRemoved() {
 		this.electricPower.remove();
 		super.setRemoved();
-	}
-
-	@Override
-	public AABB getRenderBoundingBox() {
-//		return INFINITE_EXTENT_AABB;
-		BlockPos pos = this.getBlockPos();
-		return new AABB(pos.offset(-256, -256, -256).getCenter(), pos.offset(256, 256, 256).getCenter());
 	}
 
 	@Override

@@ -1,10 +1,9 @@
 package net.industrybase.api.client.renderer.blockentity;
 
-import net.industrybase.api.electric.IWireConnectable;
-import net.industrybase.api.network.ApiNetworkManager;
-import net.industrybase.api.network.client.SubscribeWireConnPacket;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.industrybase.api.electric.IWireConnectable;
+import net.industrybase.api.network.client.SubscribeWireConnPacket;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -16,7 +15,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Matrix4f;
 
 public class WireConnectableRenderer<T extends BlockEntity> implements BlockEntityRenderer<T> {
@@ -37,8 +36,7 @@ public class WireConnectableRenderer<T extends BlockEntity> implements BlockEnti
 	public void render(T blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 		if (blockEntity instanceof IWireConnectable connectable) {
 			if (blockEntity.hasLevel() && !connectable.isSubscribed()) {
-				ApiNetworkManager.INSTANCE.send(new SubscribeWireConnPacket(blockEntity.getBlockPos()),
-						PacketDistributor.SERVER.noArg());
+				PacketDistributor.sendToServer(new SubscribeWireConnPacket(blockEntity.getBlockPos()));
 				connectable.setSubscribed();
 			}
 			connectable.getWires().forEach(pos -> this.renderWire(blockEntity, blockEntity.getBlockPos(), pos, poseStack, bufferSource));

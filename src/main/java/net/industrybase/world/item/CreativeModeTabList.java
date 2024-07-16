@@ -4,12 +4,12 @@ import net.industrybase.api.IndustryBaseApi;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class CreativeModeTabList {
 	public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, IndustryBaseApi.MODID);
-	public static final RegistryObject<CreativeModeTab> INDUSTRYBASE = CREATIVE_MODE_TABS.register("industrybase", () -> CreativeModeTab.builder()
+	public static final DeferredHolder<CreativeModeTab, CreativeModeTab> INDUSTRYBASE = CREATIVE_MODE_TABS.register("industrybase", () -> CreativeModeTab.builder()
 			.title(Component.translatable("itemGroup.industrybase"))
 			.icon(() -> ItemList.ELECTRIC_MOTOR.get().getDefaultInstance())
 			.displayItems((parameters, output) -> { // 添加物品
@@ -26,7 +26,6 @@ public class CreativeModeTabList {
 				output.accept(ItemList.CHERRY_TRANSMISSION_ROD.get());
 				output.accept(ItemList.CRIMSON_TRANSMISSION_ROD.get());
 				output.accept(ItemList.WARPED_TRANSMISSION_ROD.get());
-				output.accept(ItemList.CRIMSON_TRANSMISSION_ROD.get());
 				output.accept(ItemList.STONE_TRANSMISSION_ROD.get());
 				output.accept(ItemList.IRON_TRANSMISSION_ROD.get());
 				output.accept(ItemList.GOLD_TRANSMISSION_ROD.get());

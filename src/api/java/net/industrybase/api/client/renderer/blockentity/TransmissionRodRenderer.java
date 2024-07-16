@@ -1,14 +1,12 @@
 package net.industrybase.api.client.renderer.blockentity;
 
-import net.industrybase.api.IndustryBaseApi;
-import net.industrybase.api.network.ApiNetworkManager;
-import net.industrybase.api.network.client.SubscribeSpeedPacket;
-import net.industrybase.api.transmit.LayeredTransmissionRodBlock;
-import net.industrybase.api.transmit.TransmissionRodBlock;
-import net.industrybase.api.transmit.TransmissionRodBlockEntity;
-import net.industrybase.api.transmit.TransmitNetwork;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import net.industrybase.api.IndustryBaseApi;
+import net.industrybase.api.network.client.SubscribeSpeedPacket;
+import net.industrybase.api.transmit.LayeredTransmissionRodBlock;
+import net.industrybase.api.transmit.TransmissionRodBlockEntity;
+import net.industrybase.api.transmit.TransmitNetwork;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -18,10 +16,13 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.PacketDistributor;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.phys.AABB;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 public class TransmissionRodRenderer implements BlockEntityRenderer<TransmissionRodBlockEntity> {
 	public static final ModelLayerLocation MAIN = new ModelLayerLocation(new ResourceLocation(IndustryBaseApi.MODID, "transmission_rod"), "main");
@@ -49,6 +50,12 @@ public class TransmissionRodRenderer implements BlockEntityRenderer<Transmission
 	}
 
 	@Override
+	public AABB getRenderBoundingBox(TransmissionRodBlockEntity blockEntity) {
+		BlockPos pos = blockEntity.getBlockPos();
+		return new AABB(pos.offset(-256, -256, -256).getCenter(), pos.offset(256, 256, 256).getCenter());
+	}
+
+	@Override
 	public void render(TransmissionRodBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 		subscribeSpeed(blockEntity);
 		poseStack.pushPose();
@@ -64,15 +71,14 @@ public class TransmissionRodRenderer implements BlockEntityRenderer<Transmission
 
 	public static void subscribeSpeed(TransmissionRodBlockEntity blockEntity) {
 		if (blockEntity.hasLevel() && !blockEntity.isSubscribed()) {
-			ApiNetworkManager.INSTANCE.send(new SubscribeSpeedPacket(blockEntity.getBlockPos()),
-					PacketDistributor.SERVER.noArg());
+			PacketDistributor.sendToServer(new SubscribeSpeedPacket(blockEntity.getBlockPos()));
 			blockEntity.setSubscribed();
 		}
 	}
 
 	public static void rodRotate(TransmissionRodBlockEntity blockEntity, float partialTick, PoseStack poseStack) {
 		// 按照轴旋转模型
-		switch (blockEntity.getBlockState().getValue(TransmissionRodBlock.AXIS)) {
+		switch (blockEntity.getBlockState().getValue(BlockStateProperties.AXIS)) {
 			case X -> poseStack.mulPose(Axis.ZP.rotationDegrees(90.0F));
 			case Z -> poseStack.mulPose(Axis.XP.rotationDegrees(-90.0F));
 		}

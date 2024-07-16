@@ -1,14 +1,9 @@
 package net.industrybase.api.pipe;
 
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import org.jetbrains.annotations.NotNull;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 public class PipeConnectedHandler implements IFluidHandler {
-	public final LazyOptional<IFluidHandler> lazyOptional = LazyOptional.of(() -> this);
 
 	public void register() {
 		// TODO
@@ -18,20 +13,13 @@ public class PipeConnectedHandler implements IFluidHandler {
 		// TODO
 	}
 
-	public <X> LazyOptional<X> cast(Capability<X> cap, LazyOptional<X> defaultCap) {
-		if (cap == ForgeCapabilities.FLUID_HANDLER) {
-			return this.lazyOptional.cast();
-		}
-		return defaultCap;
-	}
-
 	@Override
 	public int getTanks() {
 		return 0;
 	}
 
 	@Override
-	public @NotNull FluidStack getFluidInTank(int tank) {
+	public FluidStack getFluidInTank(int tank) {
 		return null;
 	}
 
@@ -41,7 +29,7 @@ public class PipeConnectedHandler implements IFluidHandler {
 	}
 
 	@Override
-	public boolean isFluidValid(int tank, @NotNull FluidStack stack) {
+	public boolean isFluidValid(int tank, FluidStack stack) {
 		return false;
 	}
 
@@ -51,12 +39,12 @@ public class PipeConnectedHandler implements IFluidHandler {
 	}
 
 	@Override
-	public @NotNull FluidStack drain(FluidStack resource, FluidAction action) {
+	public FluidStack drain(FluidStack resource, FluidAction action) {
 		return null;
 	}
 
 	@Override
-	public @NotNull FluidStack drain(int maxDrain, FluidAction action) {
+	public FluidStack drain(int maxDrain, FluidAction action) {
 		return null;
 	}
 }

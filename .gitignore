@@ -20,9 +20,7 @@ build
 # other
 eclipse
 run
+runs
 run-data
-ModRelease
+repo
 hot-seconds.xml
-
-# Files from Forge MDK
-forge*changelog.txt

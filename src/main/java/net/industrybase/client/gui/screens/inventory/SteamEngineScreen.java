@@ -25,8 +25,6 @@ public class SteamEngineScreen extends AbstractContainerScreen<SteamEngineMenu> 
 
 	@Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-		// 先渲染默认背景，即使屏幕变暗
-		this.renderBackground(graphics, mouseX, mouseY, partialTicks);
 		super.render(graphics, mouseX, mouseY, partialTicks);
 		// 渲染水量的文字
 		graphics.drawString(this.font, Component.translatable("label.steam_engine.water_amount", this.menu.getData().get(4)), this.leftPos + 8, this.topPos + 39, 0x006ee4, false);

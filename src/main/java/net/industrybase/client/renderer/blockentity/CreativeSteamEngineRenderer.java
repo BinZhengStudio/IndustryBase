@@ -1,8 +1,8 @@
 package net.industrybase.client.renderer.blockentity;
 
-import net.industrybase.world.level.block.entity.CreativeSteamEngineBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.industrybase.world.level.block.entity.CreativeSteamEngineBlockEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -15,7 +15,7 @@ public class CreativeSteamEngineRenderer implements BlockEntityRenderer<Creative
 	@Override
 	public void render(CreativeSteamEngineBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 		poseStack.pushPose();
-		SteamEngineRenderer.renderWater(1.0F, blockEntity, poseStack, bufferSource, packedLight);
+		SteamEngineRenderer.renderWater(this, 1.0F, blockEntity, poseStack, bufferSource, packedLight);
 		poseStack.popPose();
 	}
 

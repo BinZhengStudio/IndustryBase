@@ -1,16 +1,19 @@
 package net.industrybase.api.network.client;
 
+import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.api.electric.ElectricNetwork;
-import net.industrybase.api.network.ApiNetworkManager;
 import net.industrybase.api.network.server.ReturnWireConnPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.event.network.CustomPayloadEvent;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public class SubscribeWireConnPacket {
+public class SubscribeWireConnPacket implements CustomPacketPayload {
+	public static final Type<SubscribeWireConnPacket> TYPE = new Type<>(new ResourceLocation(IndustryBaseApi.MODID, "subscribe_wire_conn"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, SubscribeWireConnPacket> STREAM_CODEC =
 			StreamCodec.ofMember(SubscribeWireConnPacket::encode, SubscribeWireConnPacket::new);
 	private final BlockPos target;
@@ -28,19 +31,19 @@ public class SubscribeWireConnPacket {
 	}
 
 	@SuppressWarnings("deprecation")
-	public static void handler(SubscribeWireConnPacket msg, CustomPayloadEvent.Context context) {
+	public static void handler(SubscribeWireConnPacket msg, IPayloadContext context) {
 		context.enqueueWork(() -> {
-			ServerPlayer player = context.getSender();
-			if (player != null) {
-				if (player.level().isAreaLoaded(msg.target, 0)) {
-					ElectricNetwork network = ElectricNetwork.Manager.get(player.level());
-					ApiNetworkManager.INSTANCE.send(
-							new ReturnWireConnPacket(msg.target, network.subscribeWire(msg.target, player)),
-							PacketDistributor.PLAYER.with(player)
-					);
-				}
+			ServerPlayer player = (ServerPlayer) context.player();
+			if (player.level().isAreaLoaded(msg.target, 0)) {
+				ElectricNetwork network = ElectricNetwork.Manager.get(player.level());
+				PacketDistributor.sendToPlayer(player, new ReturnWireConnPacket(msg.target, network.subscribeWire(msg.target, player)));
 			}
 		});
-		context.setPacketHandled(true);
+//		context.setPacketHandled(true);
+	}
+
+	@Override
+	public Type<? extends CustomPacketPayload> type() {
+		return TYPE;
 	}
 }

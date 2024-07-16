@@ -16,8 +16,9 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.client.ForgeHooksClient;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.textures.FluidSpriteCache;
+
 
 public class FluidRenderer {
 	private TextureAtlasSprite waterOverlay;
@@ -120,7 +121,7 @@ public class FluidRenderer {
 	}
 
 	public void render(BlockAndTintGetter level, BlockPos pos, VertexConsumer vertexConsumer, BlockState blockState, FluidState fluidState, boolean applyBiomeColor) {
-		TextureAtlasSprite[] textureAtlasSprites = ForgeHooksClient.getFluidSprites(level, pos, fluidState); // 第一个值是静止材质，第二个是流动材质
+		TextureAtlasSprite[] textureAtlasSprites = FluidSpriteCache.getFluidSprites(level, pos, fluidState); // 第一个值是静止材质，第二个是流动材质
 		int fluidColor;
 
 		if (applyBiomeColor) {

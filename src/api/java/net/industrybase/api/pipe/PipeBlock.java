@@ -1,4 +1,4 @@
-package net.industrybase.world.level.block;
+package net.industrybase.api.pipe;
 
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.core.BlockPos;
@@ -18,7 +18,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumMap;
@@ -94,25 +94,21 @@ public abstract class PipeBlock extends BaseEntityBlock {
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
 		return SHAPES.get(state);
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
 		return COLLISION_SHAPES.get(state);
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public VoxelShape getOcclusionShape(BlockState state, BlockGetter level, BlockPos pos) {
 		return COLLISION_SHAPES.get(state);
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos currentPos, BlockPos neighborPos) {
 		return state.setValue(PROPERTIES.get(direction), this.canConnect(level, direction.getOpposite(), neighborPos, neighborState));
 	}
@@ -120,8 +116,12 @@ public abstract class PipeBlock extends BaseEntityBlock {
 	private boolean canConnect(LevelAccessor level, Direction facing, BlockPos pos, BlockState state) {
 		if (!state.is(this)) {
 			BlockEntity blockEntity = level.getBlockEntity(pos);
-			return blockEntity != null && (blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER, facing).isPresent() ||
-					blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER, facing).isPresent());
+			if (blockEntity != null) {
+				Level level1 = blockEntity.getLevel();
+				if (level1 != null) {
+					return level1.getCapability(Capabilities.FluidHandler.BLOCK, pos, null, blockEntity, facing) != null;
+				}
+			}
 		}
 		return true;
 	}

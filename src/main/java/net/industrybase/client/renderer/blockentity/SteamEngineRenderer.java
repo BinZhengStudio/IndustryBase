@@ -1,8 +1,8 @@
 package net.industrybase.client.renderer.blockentity;
 
-import net.industrybase.world.level.block.entity.SteamEngineBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.industrybase.world.level.block.entity.SteamEngineBlockEntity;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -13,9 +13,9 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.client.ForgeHooksClient;
-import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.minecraftforge.common.ForgeMod;
+import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.textures.FluidSpriteCache;
+import net.neoforged.neoforge.common.NeoForgeMod;
 import org.joml.Matrix4f;
 
 public class SteamEngineRenderer implements BlockEntityRenderer<SteamEngineBlockEntity> {
@@ -27,13 +27,13 @@ public class SteamEngineRenderer implements BlockEntityRenderer<SteamEngineBlock
 		int waterAmount = blockEntity.getWaterAmount();
 		if (waterAmount <= 0) return; // 如果没水就没有渲染的必要了
 		poseStack.pushPose();
-		renderWater((float) waterAmount / SteamEngineBlockEntity.MAX_WATER, blockEntity, poseStack, bufferSource, packedLight);
+		renderWater(this, (float) waterAmount / SteamEngineBlockEntity.MAX_WATER, blockEntity, poseStack, bufferSource, packedLight);
 		poseStack.popPose();
 	}
 
-	public static void renderWater(float waterAmount, BlockEntity blockEntity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+	public static <T extends BlockEntity> void renderWater(BlockEntityRenderer<T> renderer, float waterAmount, T blockEntity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
 		BlockPos pos = blockEntity.getBlockPos();
-		AABB box = blockEntity.getRenderBoundingBox();
+		AABB box = renderer.getRenderBoundingBox(blockEntity);
 		poseStack.translate(-pos.getX(), -pos.getY(), -pos.getZ());
 		Matrix4f matrix4f = poseStack.last().pose();
 
@@ -45,17 +45,17 @@ public class SteamEngineRenderer implements BlockEntityRenderer<SteamEngineBlock
 		float maxZ = (float) box.maxZ - 0.0626F;
 
 		FlowingFluid fluid = Fluids.WATER;
-		TextureAtlasSprite[] sprites = ForgeHooksClient.getFluidSprites(blockEntity.getLevel(), pos, fluid.defaultFluidState());
+		TextureAtlasSprite[] sprites = FluidSpriteCache.getFluidSprites(blockEntity.getLevel(), pos, fluid.defaultFluidState());
 		VertexConsumer buffer = bufferSource.getBuffer(ItemBlockRenderTypes.getRenderLayer(fluid.defaultFluidState()));
-		float u0 = sprites[0].getU(1.0F);
-		float u1 = sprites[0].getU(15.0F);
-		float v0 = sprites[0].getV(1.0F);
-		float v1 = sprites[0].getV(15.0F);
-		float u01 = sprites[1].getU(1.0F);
-		float u11 = sprites[1].getU(8.0F);
-		float v01 = sprites[1].getV(8.0F - 7.0F * waterAmount);
-		float v11 = sprites[1].getV(8.0F);
-		int fluidColor = IClientFluidTypeExtensions.of(ForgeMod.WATER_TYPE.get()).getTintColor(); // 获取水的颜色
+		float u0 = sprites[0].getU(1.0F / 16.0F);
+		float u1 = sprites[0].getU(15.0F / 16.0F);
+		float v0 = sprites[0].getV(1.0F / 16.0F);
+		float v1 = sprites[0].getV(15.0F / 16.0F);
+		float u01 = sprites[1].getU(1.0F / 16.0F);
+		float u11 = sprites[1].getU(8.0F / 16.0F);
+		float v01 = sprites[1].getV((8.0F - 7.0F * waterAmount) / 16.0F);
+		float v11 = sprites[1].getV(8.0F / 16.0F);
+		int fluidColor = IClientFluidTypeExtensions.of(NeoForgeMod.WATER_TYPE.value()).getTintColor(); // 获取水的颜色
 		float red = (float)(fluidColor >> 16 & 255) / 255.0F;
 		float green = (float)(fluidColor >> 8 & 255) / 255.0F;
 		float blue = (float)(fluidColor & 255) / 255.0F;

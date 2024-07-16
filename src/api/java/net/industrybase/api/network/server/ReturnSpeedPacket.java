@@ -1,14 +1,16 @@
 package net.industrybase.api.network.server;
 
+import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.api.transmit.TransmitNetwork;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.event.network.CustomPayloadEvent;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public class ReturnSpeedPacket {
+public class ReturnSpeedPacket implements CustomPacketPayload {
+	public static final Type<ReturnSpeedPacket> TYPE = new Type<>(new ResourceLocation(IndustryBaseApi.MODID, "return_speed"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReturnSpeedPacket> STREAM_CODEC =
 			StreamCodec.ofMember(ReturnSpeedPacket::encode, ReturnSpeedPacket::new);
 	private final BlockPos target;
@@ -33,12 +35,14 @@ public class ReturnSpeedPacket {
 		buf.writeFloat(this.speed);
 	}
 
-	public static void handler(ReturnSpeedPacket msg, CustomPayloadEvent.Context context) {
-		context.enqueueWork(() -> {
-			Level level = Minecraft.getInstance().level;
-			if (level != null) TransmitNetwork.Manager.get(level).addClientSpeed(msg.target, msg.root, msg.speed);
-		});
-		context.setPacketHandled(true);
+	public static void handler(ReturnSpeedPacket msg, IPayloadContext context) {
+		context.enqueueWork(() ->
+				TransmitNetwork.Manager.get(context.player().level()).addClientSpeed(msg.target, msg.root, msg.speed));
+//		context.setPacketHandled(true);
 	}
 
+	@Override
+	public Type<? extends CustomPacketPayload> type() {
+		return TYPE;
+	}
 }

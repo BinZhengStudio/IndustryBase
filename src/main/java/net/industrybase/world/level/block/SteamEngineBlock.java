@@ -2,13 +2,11 @@ package net.industrybase.world.level.block;
 
 import com.mojang.serialization.MapCodec;
 import net.industrybase.api.util.TransmitHelper;
-import net.industrybase.network.NetworkManager;
-import net.industrybase.network.server.WaterAmountPacket;
+import net.industrybase.network.server.WaterAmountPayload;
 import net.industrybase.world.level.block.entity.BlockEntityTypeList;
 import net.industrybase.world.level.block.entity.SteamEngineBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
@@ -30,29 +28,22 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.level.material.WaterFluid;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.common.ForgeMod;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidType;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
 public class SteamEngineBlock extends BaseEntityBlock {
 	public static final MapCodec<SteamEngineBlock> CODEC = simpleCodec((properties) -> new SteamEngineBlock());
-	public static final EnumProperty<Direction.Axis> AXIS = BlockStateProperties.AXIS;
 	public static final BooleanProperty LIT = BlockStateProperties.LIT;
 
 	protected SteamEngineBlock() {
 		super(Properties.ofFullCopy(Blocks.IRON_BLOCK).noOcclusion().lightLevel(state -> state.getValue(LIT) ? 13 : 0));
-		this.registerDefaultState(this.stateDefinition.any().setValue(AXIS, Direction.Axis.X).setValue(LIT, false));
+		this.registerDefaultState(this.stateDefinition.any().setValue(BlockStateProperties.AXIS, Direction.Axis.X).setValue(LIT, false));
 	}
 
 	@Override
@@ -63,15 +54,13 @@ public class SteamEngineBlock extends BaseEntityBlock {
 			if (level.getBlockEntity(pos) instanceof SteamEngineBlockEntity blockEntity) {
 				if (stack.is(Items.WATER_BUCKET)) {
 					if (!player.getAbilities().instabuild) player.setItemInHand(hand, new ItemStack(Items.BUCKET));
-					LazyOptional<IFluidHandler> engineTank = blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER, hitResult.getDirection());
-					engineTank.ifPresent(engineCapability -> {
-						engineCapability.fill(new FluidStack(Fluids.WATER, FluidType.BUCKET_VOLUME), IFluidHandler.FluidAction.EXECUTE);
+					IFluidHandler engineTank = level.getCapability(Capabilities.FluidHandler.BLOCK, pos, state, blockEntity, hitResult.getDirection());
+					if (engineTank != null) {
+						engineTank.fill(new FluidStack(Fluids.WATER, FluidType.BUCKET_VOLUME), IFluidHandler.FluidAction.EXECUTE);
 						// 发包同步
-						((ServerLevel) level).getPlayers(playerIn -> true).forEach(playerIn -> NetworkManager.INSTANCE.send(
-								new WaterAmountPacket(pos, engineCapability.getFluidInTank(0).getAmount()),
-								PacketDistributor.PLAYER.with(playerIn)));
+						PacketDistributor.sendToAllPlayers(new WaterAmountPayload(pos, engineTank.getFluidInTank(0).getAmount()));
 						if (!player.isCreative()) player.setItemInHand(hand, new ItemStack(Items.BUCKET));
-					});
+					}
 					return ItemInteractionResult.CONSUME;
 				} else {
 					player.openMenu(blockEntity);
@@ -93,7 +82,6 @@ public class SteamEngineBlock extends BaseEntityBlock {
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
 		if (!state.is(newState.getBlock())) {
@@ -111,13 +99,13 @@ public class SteamEngineBlock extends BaseEntityBlock {
 
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-		builder.add(AXIS, LIT);
+		builder.add(BlockStateProperties.AXIS, LIT);
 	}
 
 	@Nullable
 	@Override
 	public BlockState getStateForPlacement(BlockPlaceContext context) {
-		return this.defaultBlockState().setValue(AXIS, context.getClickedFace().getAxis());
+		return this.defaultBlockState().setValue(BlockStateProperties.AXIS, context.getClickedFace().getAxis());
 	}
 
 	@Override
@@ -125,6 +113,7 @@ public class SteamEngineBlock extends BaseEntityBlock {
 		return CODEC;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public RenderShape getRenderShape(BlockState state) {
 		return RenderShape.MODEL;

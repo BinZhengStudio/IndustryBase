@@ -1,14 +1,16 @@
 package net.industrybase.api.network.server;
 
+import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.api.transmit.TransmitNetwork;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.event.network.CustomPayloadEvent;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public class SpeedSyncPacket {
+public class SpeedSyncPacket implements CustomPacketPayload {
+	public static final Type<SpeedSyncPacket> TYPE = new Type<>(new ResourceLocation(IndustryBaseApi.MODID, "speed_sync"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, SpeedSyncPacket> STREAM_CODEC =
 			StreamCodec.ofMember(SpeedSyncPacket::encode, SpeedSyncPacket::new);
 	private final BlockPos root;
@@ -29,13 +31,14 @@ public class SpeedSyncPacket {
 		buf.writeFloat(this.speed);
 	}
 
-	public static void handler(SpeedSyncPacket msg, CustomPayloadEvent.Context context) {
-		context.enqueueWork(() -> {
-			Level level = Minecraft.getInstance().level;
-			if (level != null) {
-				TransmitNetwork.Manager.get(level).updateClientSpeed(msg.root, msg.speed);
-			}
-		});
-		context.setPacketHandled(true);
+	public static void handler(SpeedSyncPacket msg, IPayloadContext context) {
+		context.enqueueWork(() ->
+				TransmitNetwork.Manager.get(context.player().level()).updateClientSpeed(msg.root, msg.speed));
+//		context.setPacketHandled(true);
+	}
+
+	@Override
+	public Type<? extends CustomPacketPayload> type() {
+		return TYPE;
 	}
 }

@@ -1,21 +1,23 @@
 package net.industrybase.api.electric;
 
+import com.google.common.collect.*;
 import net.industrybase.api.CapabilityList;
-import net.industrybase.api.network.ApiNetworkManager;
+import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.api.network.server.RemoveWiresPacket;
 import net.industrybase.api.network.server.WireConnSyncPacket;
-import com.google.common.collect.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.*;
 
@@ -53,7 +55,7 @@ public class ElectricNetwork {
 	}
 
 	public BlockPos root(BlockPos pos) {
-		return this.components.containsKey(pos) ? this.components.get(pos).iterator().next() : pos;
+		return this.components.containsKey(pos) ? this.components.get(pos).getFirst() : pos;
 	}
 
 	public double getTotalOutput(BlockPos pos) {
@@ -170,7 +172,6 @@ public class ElectricNetwork {
 		return extract;
 	}
 
-	@SuppressWarnings("deprecation")
 	public void removeBlock(BlockPos pos, Runnable callback) {
 		this.tasks.offer(() -> {
 			this.totalEnergy.shrink(this.root(pos), this.machineEnergy.remove(pos));
@@ -189,8 +190,7 @@ public class ElectricNetwork {
 						this.level.getChunk(another).setUnsaved(true);
 					}
 				}
-				this.subscribes.get(pos).forEach(player -> ApiNetworkManager.INSTANCE.send(new RemoveWiresPacket(pos),
-						PacketDistributor.PLAYER.with(player)));
+				this.subscribes.get(pos).forEach(player -> PacketDistributor.sendToPlayer(player, new RemoveWiresPacket(pos)));
 				this.subscribes.removeAll(pos);
 			}
 			callback.run();
@@ -217,10 +217,10 @@ public class ElectricNetwork {
 		if (this.wireConn.remove(from, to)) {
 			this.wireConn.remove(to, from);
 			this.spilt(from, to);
-			this.subscribes.get(from).forEach(player -> ApiNetworkManager.INSTANCE.send(
-					new WireConnSyncPacket(from, to, true), PacketDistributor.PLAYER.with(player)));
-			this.subscribes.get(to).forEach(player -> ApiNetworkManager.INSTANCE.send(
-					new WireConnSyncPacket(to, from, true), PacketDistributor.PLAYER.with(player)));
+			this.subscribes.get(from).forEach(player ->
+					PacketDistributor.sendToPlayer(player, new WireConnSyncPacket(from, to, true)));
+			this.subscribes.get(to).forEach(player ->
+					PacketDistributor.sendToPlayer(player, new WireConnSyncPacket(to, from, true)));
 		}
 	}
 
@@ -241,7 +241,7 @@ public class ElectricNetwork {
 
 		LinkedHashSet<BlockPos> primaryComponent = this.components.get(node);
 		LinkedHashSet<BlockPos> secondaryComponent;
-		BlockPos primaryNode = primaryComponent.iterator().next();
+		BlockPos primaryNode = primaryComponent.getFirst();
 		LinkedHashSet<BlockPos> searched = nodeIterator.getSearched();
 
 		if (searched.contains(primaryNode)) {
@@ -252,7 +252,7 @@ public class ElectricNetwork {
 			primaryComponent.removeAll(searched);
 		}
 
-		BlockPos secondaryNode = secondaryComponent.iterator().next();
+		BlockPos secondaryNode = secondaryComponent.getFirst();
 		if (secondaryComponent.size() <= 1) {
 			this.components.remove(secondaryNode);
 
@@ -311,20 +311,28 @@ public class ElectricNetwork {
 		return false;
 	}
 
-	@SuppressWarnings("deprecation")
 	private boolean hasElectricalCapability(BlockPos pos, Direction side) {
 		if (this.level.isAreaLoaded(pos, 0)) {
 			BlockEntity blockEntity = this.level.getBlockEntity(pos);
-			return blockEntity != null && blockEntity.getCapability(CapabilityList.ELECTRIC_POWER, side).isPresent();
+			if (blockEntity != null) {
+				Level level = blockEntity.getLevel();
+				if (level != null) {
+					return level.getCapability(CapabilityList.ELECTRIC_POWER, pos, null, blockEntity, side) != null;
+				}
+			}
 		}
 		return false;
 	}
 
-	@SuppressWarnings("deprecation")
 	private boolean hasFECapability(BlockPos pos, Direction side) {
 		if (this.level.isAreaLoaded(pos, 0)) {
 			BlockEntity blockEntity = this.level.getBlockEntity(pos);
-			return blockEntity != null && blockEntity.getCapability(ForgeCapabilities.ENERGY, side).isPresent();
+			if (blockEntity != null) {
+				Level level = blockEntity.getLevel();
+				if (level != null) {
+					return level.getCapability(Capabilities.EnergyStorage.BLOCK, pos, null, blockEntity, side) != null;
+				}
+			}
 		}
 		return false;
 	}
@@ -344,10 +352,10 @@ public class ElectricNetwork {
 		if (this.wireConn.put(secondary, primary)) {
 			this.wireConn.put(primary, secondary);
 			this.link(primary, secondary);
-			this.subscribes.get(from).forEach(player -> ApiNetworkManager.INSTANCE.send(
-					new WireConnSyncPacket(from, to, false), PacketDistributor.PLAYER.with(player)));
-			this.subscribes.get(to).forEach(player -> ApiNetworkManager.INSTANCE.send(
-					new WireConnSyncPacket(to, from, false), PacketDistributor.PLAYER.with(player)));
+			this.subscribes.get(from).forEach(player ->
+					PacketDistributor.sendToPlayer(player, new WireConnSyncPacket(from, to, false)));
+			this.subscribes.get(to).forEach(player ->
+					PacketDistributor.sendToPlayer(player, new WireConnSyncPacket(to, from, false)));
 		}
 	}
 
@@ -369,7 +377,7 @@ public class ElectricNetwork {
 			this.totalEnergy.remove(primary);
 			this.mergeFE(secondary, primary);
 		} else if (primaryComponent == null) {
-			BlockPos secondaryNode = secondaryComponent.iterator().next();
+			BlockPos secondaryNode = secondaryComponent.getFirst();
 			this.components.put(primary, secondaryComponent);
 			secondaryComponent.add(primary);
 
@@ -377,7 +385,7 @@ public class ElectricNetwork {
 			this.totalEnergy.remove(primary);
 			this.mergeFE(secondaryNode, primary);
 		} else if (secondaryComponent == null) {
-			BlockPos primaryNode = primaryComponent.iterator().next();
+			BlockPos primaryNode = primaryComponent.getFirst();
 			this.components.put(secondary, primaryComponent);
 			primaryComponent.add(secondary);
 
@@ -385,8 +393,8 @@ public class ElectricNetwork {
 			this.totalEnergy.remove(secondary);
 			this.mergeFE(primaryNode, secondary);
 		} else if (primaryComponent != secondaryComponent) {
-			BlockPos primaryNode = primaryComponent.iterator().next();
-			BlockPos secondaryNode = secondaryComponent.iterator().next();
+			BlockPos primaryNode = primaryComponent.getFirst();
+			BlockPos secondaryNode = secondaryComponent.getFirst();
 			LinkedHashSet<BlockPos> union = new LinkedHashSet<>(Sets.union(primaryComponent, secondaryComponent));
 			union.forEach(pos -> this.components.put(pos, union));
 
@@ -407,7 +415,6 @@ public class ElectricNetwork {
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	private void tickEnd() {
 		HashSet<BlockPos> updated = new HashSet<>();
 		Multiset<BlockPos> forgeEnergy = HashMultiset.create();
@@ -428,16 +435,23 @@ public class ElectricNetwork {
 				}
 
 				// 向 FE 方块输出能量
-				Optional.ofNullable(this.level.getBlockEntity(target)).ifPresent(blockEntity -> blockEntity.getCapability(ForgeCapabilities.ENERGY, direction.getOpposite()).ifPresent(capability -> {
-					if (capability.canReceive()) {
-						int diff = forgeEnergy.count(root);
-						int FEDiff = this.FEEnergy.count(root);
-						forgeEnergy.remove(root, capability.receiveEnergy(diff, false));
-						if (forgeEnergy.count(root) <= 0) { // 先将 EP 转化的 FE 分配完
-							this.FEEnergy.remove(root, capability.receiveEnergy(FEDiff, false));
+				BlockEntity blockEntity = this.level.getBlockEntity(target);
+				if (blockEntity != null) {
+					Level level = blockEntity.getLevel();
+					if (level != null) {
+						IEnergyStorage capability = level.getCapability(Capabilities.EnergyStorage.BLOCK, target, null, blockEntity, direction.getOpposite());
+						if (capability != null) {
+							if (capability.canReceive()) {
+								int diff = forgeEnergy.count(root);
+								int FEDiff = this.FEEnergy.count(root);
+								forgeEnergy.remove(root, capability.receiveEnergy(diff, false));
+								if (forgeEnergy.count(root) <= 0) { // 先将 EP 转化的 FE 分配完
+									this.FEEnergy.remove(root, capability.receiveEnergy(FEDiff, false));
+								}
+							}
 						}
 					}
-				}));
+				}
 			}
 		}
 		// 将未使用 FE 转化为 EP
@@ -469,7 +483,7 @@ public class ElectricNetwork {
 		}
 
 		public boolean hasNext() {
-			return this.queue.size() > 0;
+			return !this.queue.isEmpty();
 		}
 
 		@Override
@@ -494,7 +508,7 @@ public class ElectricNetwork {
 		}
 	}
 
-	@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
+	@EventBusSubscriber(modid = IndustryBaseApi.MODID)
 	public static class Manager {
 		private static final Map<LevelAccessor, ElectricNetwork> INSTANCES = new IdentityHashMap<>();
 
@@ -508,14 +522,16 @@ public class ElectricNetwork {
 		}
 
 		@SubscribeEvent
-		public static void onLevelTick(TickEvent.LevelTickEvent event) {
-			if (event.side.isServer()) {
-				ElectricNetwork network = get(event.level);
-				if (event.phase == TickEvent.Phase.START) {
-					network.tickStart();
-				} else {
-					network.tickEnd();
-				}
+		public static void onLevelTick(LevelTickEvent.Pre event) {
+			if (!event.getLevel().isClientSide) {
+				get(event.getLevel()).tickStart();
+			}
+		}
+
+		@SubscribeEvent
+		public static void onLevelTick(LevelTickEvent.Post event) {
+			if (!event.getLevel().isClientSide) {
+				get(event.getLevel()).tickEnd();
 			}
 		}
 	}

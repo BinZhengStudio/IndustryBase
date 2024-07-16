@@ -1,13 +1,22 @@
 plugins {
+	id 'java-library'
 	id 'eclipse'
 	id 'idea'
 	id 'maven-publish'
-	id 'net.minecraftforge.gradle' version '[6.0.24,6.2)'
-	id 'org.parchmentmc.librarian.forgegradle' version '1.+'
+	id 'net.neoforged.gradle.userdev' version '7.0.145'
+}
+
+tasks.named('wrapper', Wrapper).configure {
+	distributionType = Wrapper.DistributionType.BIN
 }
 
 version = mod_version
 group = mod_group_id
+
+repositories {
+	mavenLocal()
+}
+
 base {
 	archivesName = "${mod_id}-${minecraft_version}"
 }
@@ -25,84 +34,88 @@ sourceSets {
 		resources {
 			srcDir 'src/generated/resources'
 		}
-		java {
-			srcDir 'src/api/java'
-		}
+//		java {
+//			srcDir 'src/api/java'
+//		}
+		compileClasspath += api.output
+		runtimeClasspath += api.output
 	}
 }
 
-minecraft {
-	mappings channel: mapping_channel, version: "${mapping_version}-${minecraft_version}"
+//minecraft.accessTransformers.file rootProject.file('src/main/resources/META-INF/accesstransformer.cfg')
+//minecraft.accessTransformers.entry public net.minecraft.client.Minecraft textureManager # textureManager
 
-	reobf = false
+runs {
+	configureEach {
+		// Recommended logging data for a userdev environment
+		// The markers can be added/remove as needed separated by commas.
+		// "SCAN": For mods scan.
+		// "REGISTRIES": For firing of registry events.
+		// "REGISTRYDUMP": For getting the contents of all registries.
+		systemProperty 'forge.logging.markers', 'REGISTRIES'
 
-	// This property allows configuring Gradle's ProcessResources task(s) to run on IDE output locations before launching the game.
-	// It is REQUIRED to be set to true for this template to function.
-	// See https://docs.gradle.org/current/dsl/org.gradle.language.jvm.tasks.ProcessResources.html
-	copyIdeResources = true
+		systemProperty 'forge.logging.console.level', 'info'
 
-	// accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
+		modSource project.sourceSets.api
+		modSource project.sourceSets.main
+	}
 
-	runs {
-		configureEach {
-			workingDirectory project.file('run')
+	client {
+		systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
+	}
 
-			property 'forge.logging.markers', 'REGISTRIES'
+	server {
+		systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
+	}
 
-			property 'forge.logging.console.level', 'info'
-		}
+	// This run config launches GameTestServer and runs all registered gametests, then exits.
+	// By default, the server will crash when no gametests are provided.
+	// The gametest system is also enabled by default for other run configs under the /test command.
+	gameTestServer {
+		systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
+	}
 
-		client {
-			property 'forge.enabledGameTestNamespaces', mod_id
-		}
+	data {
+		// example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
+		// workingDirectory project.file('run-data')
 
-		server {
-			property 'forge.enabledGameTestNamespaces', mod_id
-		}
-
-		gameTestServer {
-			property 'forge.enabledGameTestNamespaces', mod_id
-		}
-
-		data {
-			workingDirectory project.file('run-data')
-
-			// Specify the mod_id for data generation, where to output the resulting resource, and where to look for existing resources.
-			args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
-		}
+		// Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
+		programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
 	}
 }
 
-repositories {
-//	maven {
-//		name = "forge"
-//		url = "${maven_mirror}"
-//	}
+// Sets up a dependency configuration called 'localRuntime'.
+// This configuration should be used instead of 'runtimeOnly' to declare
+// a dependency that will be present for runtime testing but that is
+// "optional", meaning it will not be pulled by dependents of this mod.
+configurations {
+	runtimeClasspath.extendsFrom localRuntime
 }
 
 dependencies {
-	minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-	implementation('net.sf.jopt-simple:jopt-simple:5.0.4') { version { strictly '5.0.4' } }
+	implementation "net.neoforged:neoforge:${neo_version}"
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
 // A missing property will result in an error. Properties are expanded using ${} Groovy notation.
-// When "copyIdeResources" is enabled, this will also run before the game launches in IDE environments.
-// See https://docs.gradle.org/current/dsl/org.gradle.language.jvm.tasks.ProcessResources.html
-def resourceTargets = ['META-INF/mods.toml', 'pack.mcmeta']
-def replaceProperties = [
-		minecraft_version: minecraft_version, minecraft_version_range: minecraft_version_range,
-		forge_version: forge_version, forge_version_range: forge_version_range,
-		loader_version_range: loader_version_range,
-		mod_id: mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
-		mod_authors: mod_authors, mod_description: mod_description
-]
-
-tasks.named('processResources', ProcessResources).configure {
+tasks.withType(ProcessResources).configureEach {
+	var replaceProperties = [
+			minecraft_version      : minecraft_version,
+			minecraft_version_range: minecraft_version_range,
+			neo_version            : neo_version,
+			neo_version_range      : neo_version_range,
+			loader_version_range   : loader_version_range,
+			mod_id                 : mod_id,
+			mod_name               : mod_name,
+			mod_license            : mod_license,
+			mod_version            : mod_version,
+			mod_authors            : mod_authors,
+			mod_description        : mod_description
+	]
 	inputs.properties replaceProperties
 
-	filesMatching(resourceTargets) {
-		expand replaceProperties + [project: project]
+	filesMatching(['META-INF/neoforge.mods.toml']) {
+		expand replaceProperties
 	}
 }
 
@@ -145,17 +158,18 @@ artifacts {
 }
 
 publishing {
-	repositories {
-		maven {
-			url "file://${project.projectDir}/ModRelease"
-		}
-	}
 	publications {
-		mavenJava(MavenPublication) {
+		register('mavenJava', MavenPublication) {
+			from components.java
 			artifactId = archivesBaseName
 			artifact jar
 			artifact sourcesJar
 			artifact apiJar
+		}
+	}
+	repositories {
+		maven {
+			url "file://${project.projectDir}/repo"
 		}
 	}
 }
@@ -164,12 +178,9 @@ tasks.withType(JavaCompile).configureEach {
 	options.encoding = 'UTF-8'
 }
 
-// Merge the resources and classes into the same directory.
-// This is done because java expects modules to be in a single directory.
-// And if we have it in multiple we have to do performance intensive hacks like having the UnionFileSystem
-// This will eventually be migrated to ForgeGradle so modders don't need to manually do it. But that is later.
-sourceSets.each {
-	def dir = layout.buildDirectory.dir("sourcesSets/$it.name")
-	it.output.resourcesDir = dir
-	it.java.destinationDirectory = dir
+idea {
+	module {
+		downloadSources = true
+		downloadJavadoc = true
+	}
 }

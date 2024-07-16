@@ -20,12 +20,14 @@ public class TransmitHelper {
 	 * @param pos      BlockPos
 	 */
 	@SuppressWarnings("deprecation")
-	public static void updateOnRemove(LevelAccessor level, BlockState state, BlockState newState, BlockPos pos) {
+	public static boolean updateOnRemove(LevelAccessor level, BlockState state, BlockState newState, BlockPos pos) {
 		if (!level.isClientSide()) {
 			if (state.is(newState.getBlock())) { // 确保是同种方块，防止重复更新
 				TransmitNetwork.Manager.get(level).addOrChangeBlock(pos, () -> {
 				});
+				return true;
 			}
 		}
+		return false;
 	}
 }

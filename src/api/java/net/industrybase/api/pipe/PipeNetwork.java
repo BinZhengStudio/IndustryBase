@@ -3,14 +3,14 @@ package net.industrybase.api.pipe;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Sets;
 import net.industrybase.api.electric.EnergyMap;
-import net.industrybase.world.level.block.BlockList;
-import net.industrybase.world.level.block.PipeBlock;
+import net.industrybase.api.tags.BlockTagList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.neoforged.neoforge.capabilities.Capabilities;
 
 import java.util.ArrayDeque;
 import java.util.HashMap;
@@ -54,7 +54,12 @@ public class PipeNetwork {
 	private boolean canConnect(BlockPos pos, Direction side) {
 		if (this.level.isAreaLoaded(pos, 0)) {
 			BlockEntity blockEntity = this.level.getBlockEntity(pos);
-			return blockEntity != null && blockEntity.getCapability(ForgeCapabilities.FLUID_HANDLER, side).isPresent();
+			if (blockEntity != null) {
+				Level level = blockEntity.getLevel();
+				if (level != null) {
+					return level.getCapability(Capabilities.FluidHandler.BLOCK, pos, null, blockEntity, side) != null;
+				}
+			}
 		}
 		return false;
 	}
@@ -63,7 +68,7 @@ public class PipeNetwork {
 	private boolean pipeConnected(BlockPos pos, Direction side) {
 		if (this.level.isAreaLoaded(pos, 0)) {
 			BlockState state = this.level.getBlockState(pos);
-			if (state.is(BlockList.IRON_PIPE.get())) { // TODO
+			if (state.is(BlockTagList.PIPE)) { // TODO
 				return state.getValue(PipeBlock.PROPERTIES.get(side));
 			}
 		}

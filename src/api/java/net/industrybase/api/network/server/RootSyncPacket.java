@@ -1,15 +1,16 @@
 package net.industrybase.api.network.server;
 
-import net.industrybase.api.network.client.SubscribeSpeedPacket;
+import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.api.transmit.TransmitNetwork;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.event.network.CustomPayloadEvent;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public class RootSyncPacket {
+public class RootSyncPacket implements CustomPacketPayload {
+	public static final Type<RootSyncPacket> TYPE = new Type<>(new ResourceLocation(IndustryBaseApi.MODID, "root_sync"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, RootSyncPacket> STREAM_CODEC =
 			StreamCodec.ofMember(RootSyncPacket::encode, RootSyncPacket::new);
 	private final BlockPos targets;
@@ -30,11 +31,14 @@ public class RootSyncPacket {
 		buf.writeBlockPos(this.root);
 	}
 
-	public static void handler(RootSyncPacket msg, CustomPayloadEvent.Context context) {
-		context.enqueueWork(() -> {
-			Level level = Minecraft.getInstance().level;
-			if (level != null) TransmitNetwork.Manager.get(level).updateClientRoot(msg.targets, msg.root);
-		});
-		context.setPacketHandled(true);
+	public static void handler(RootSyncPacket msg, IPayloadContext context) {
+		context.enqueueWork(() ->
+				TransmitNetwork.Manager.get(context.player().level()).updateClientRoot(msg.targets, msg.root));
+//		context.setPacketHandled(true);
+	}
+
+	@Override
+	public Type<? extends CustomPacketPayload> type() {
+		return TYPE;
 	}
 }

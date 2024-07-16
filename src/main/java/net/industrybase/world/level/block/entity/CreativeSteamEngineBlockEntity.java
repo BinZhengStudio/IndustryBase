@@ -1,10 +1,8 @@
 package net.industrybase.world.level.block.entity;
 
-import net.industrybase.api.CapabilityList;
 import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.api.transmit.MechanicalTransmit;
 import net.industrybase.world.inventory.CreativeSteamEngineMenu;
-import net.industrybase.world.level.block.SteamEngineBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -21,9 +19,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.jetbrains.annotations.Nullable;
 
 public class CreativeSteamEngineBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
@@ -77,14 +73,12 @@ public class CreativeSteamEngineBlockEntity extends BaseContainerBlockEntity imp
 		return new CreativeSteamEngineMenu(id, inventory, this, this.data);
 	}
 
-	@Override
-	public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-		if (side != null) {
-			if (side.getAxis() == this.getBlockState().getValue(SteamEngineBlock.AXIS)) {
-				return cap == CapabilityList.MECHANICAL_TRANSMIT ? this.transmit.cast() : super.getCapability(cap, side);
-			}
+	@Nullable
+	public MechanicalTransmit getTransmit(Direction side) {
+		if (side.getAxis() == this.getBlockState().getValue(BlockStateProperties.AXIS)) {
+			return this.transmit;
 		}
-		return super.getCapability(cap, null);
+		return null;
 	}
 
 	@Override

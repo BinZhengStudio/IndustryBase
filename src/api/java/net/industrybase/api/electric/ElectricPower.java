@@ -1,52 +1,37 @@
 package net.industrybase.api.electric;
 
-import net.industrybase.api.CapabilityList;
-import net.industrybase.api.energy.IElectricPower;
-import net.industrybase.api.network.ApiNetworkManager;
-import net.industrybase.api.network.client.UnsubscribeWireConnPacket;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
+import net.industrybase.api.energy.IElectricPower;
+import net.industrybase.api.network.client.UnsubscribeWireConnPacket;
 import net.industrybase.api.util.NbtHelper;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.*;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.IEnergyStorage;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.network.PacketDistributor;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
-public class ElectricPower implements IElectricPower {
+public class ElectricPower implements IElectricPower, IEnergyStorage, INBTSerializable<CompoundTag> {
 	private double tmpOutputPower;
 	private double tmpInputPower;
 	private final Set<BlockPos> tmpConn;
-	private final BlockEntity blockEntity;
+	@Nullable
+	private Level level;
 	private final BlockPos pos;
+	private final BlockEntity blockEntity;
 	@Nullable
 	private ElectricNetwork network;
-	private final LazyOptional<IElectricPower> EPOptional;
-	private final LazyOptional<IEnergyStorage> FEOptional;
 
 	public ElectricPower(BlockEntity blockEntity) {
 		this.blockEntity = blockEntity;
 		this.pos = blockEntity.getBlockPos();
 		this.tmpConn = new HashSet<>();
-		this.EPOptional = LazyOptional.of(() -> this);
-		this.FEOptional = LazyOptional.of(ForgeEnergy::new);
-	}
-
-	public <X> LazyOptional<X> cast(Capability<X> cap, LazyOptional<X> defaultCap) {
-		if (cap == CapabilityList.ELECTRIC_POWER) {
-			return this.EPOptional.cast();
-		} else if (cap == ForgeCapabilities.ENERGY) {
-			return this.FEOptional.cast();
-		} else {
-			return defaultCap;
-		}
 	}
 
 	/**
@@ -54,16 +39,17 @@ public class ElectricPower implements IElectricPower {
 	 * 需要在 {@link BlockEntity#onLoad()} 中执行一次。
 	 */
 	public void register() {
-		Optional.ofNullable(this.blockEntity.getLevel()).ifPresent(level -> {
-			this.network = ElectricNetwork.Manager.get(level);
-			if (!level.isClientSide) {
+		this.level = this.blockEntity.getLevel();
+		if (this.level != null) {
+			this.network = ElectricNetwork.Manager.get(this.level);
+			if (!this.level.isClientSide) {
 				this.setOutputPower(this.tmpOutputPower);
 				this.setInputPower(this.tmpInputPower);
 				this.network.addOrChangeBlock(this.pos, this.blockEntity::setChanged);
 				this.tmpConn.forEach(toPos -> this.network.addWire(this.pos, toPos, () -> {
 				}));
 			}
-		});
+		}
 	}
 
 	/**
@@ -71,17 +57,16 @@ public class ElectricPower implements IElectricPower {
 	 * 在 {@link BlockEntity#setRemoved()} 中执行。
 	 */
 	public void remove() {
-		Optional.ofNullable(this.blockEntity.getLevel()).ifPresent(level -> {
+		if (this.level != null) {
 			if (this.network != null) {
 				if (level.isClientSide) {
-					ApiNetworkManager.INSTANCE.send(new UnsubscribeWireConnPacket(this.pos),
-							PacketDistributor.SERVER.noArg());
+					PacketDistributor.sendToServer(new UnsubscribeWireConnPacket(this.pos));
 					this.network.removeClientWires(this.pos);
 				} else {
 					this.network.removeBlock(this.pos, this.blockEntity::setChanged);
 				}
 			}
-		});
+		}
 	}
 
 	@Nullable
@@ -102,7 +87,7 @@ public class ElectricPower implements IElectricPower {
 	 */
 	@Override
 	public double setOutputPower(double power) {
-		if (!this.blockEntity.getLevel().isClientSide) {
+		if (!this.level.isClientSide) {
 			double diff = this.network.setMachineOutput(this.pos, power);
 			if (diff != 0) this.blockEntity.setChanged();
 			return diff;
@@ -122,7 +107,7 @@ public class ElectricPower implements IElectricPower {
 
 	@Override
 	public double setInputPower(double power) {
-		if (!this.blockEntity.getLevel().isClientSide) {
+		if (!this.level.isClientSide) {
 			double diff = this.network.setMachineInput(this.pos, power);
 			if (diff != 0) this.blockEntity.setChanged();
 			return diff;
@@ -140,67 +125,71 @@ public class ElectricPower implements IElectricPower {
 		return this.network.getRealInput(this.pos);
 	}
 
-	@CanIgnoreReturnValue
-	public ElectricPower readFromNBT(CompoundTag tag) {
-		CompoundTag nbt = tag.getCompound("ElectricPower");
+	@Override
+	public CompoundTag serializeNBT(@Nullable HolderLookup.Provider provider) {
+		CompoundTag nbt = new CompoundTag();
+		ListTag listTag = new ListTag();
+		nbt.putDouble("Output", this.getOutputPower());
+		nbt.putDouble("Input", this.getInputPower());
+		this.network.getWireConn(this.pos).forEach(pos -> listTag.add(NbtUtils.writeBlockPos(pos)));
+		nbt.put("Connections", listTag);
+		return nbt;
+	}
+
+	@Override
+	public void deserializeNBT(@Nullable HolderLookup.Provider provider, CompoundTag nbt) {
 		this.tmpOutputPower = nbt.getDouble("Output");
 		this.tmpInputPower = nbt.getDouble("Input");
 		nbt.getList("Connections", Tag.TAG_INT_ARRAY).forEach(entry ->
 				NbtHelper.readBlockPos((IntArrayTag) entry).ifPresent(this.tmpConn::add));
-		return this;
+	}
+
+	public void readFromNBT(CompoundTag tag) {
+		CompoundTag nbt = tag.getCompound("ElectricPower");
+		this.deserializeNBT(null, nbt);
 	}
 
 	@CanIgnoreReturnValue
 	public CompoundTag writeToNBT(CompoundTag tag) {
 		CompoundTag nbt = new CompoundTag();
 		ListTag listTag = new ListTag();
-		if (this.network != null) { // TODO 1.19.3 可能不用
+		if (this.network != null) {
 			nbt.putDouble("Output", this.getOutputPower());
 			nbt.putDouble("Input", this.getInputPower());
 			this.network.getWireConn(this.pos).forEach(pos -> listTag.add(NbtUtils.writeBlockPos(pos)));
-			nbt.put("Connections", listTag);
-		} else {
-			nbt.putDouble("Output", this.tmpOutputPower);
-			nbt.putDouble("Input", this.tmpInputPower);
-			this.tmpConn.forEach(pos -> listTag.add(NbtUtils.writeBlockPos(pos)));
 			nbt.put("Connections", listTag);
 		}
 		tag.put("ElectricPower", nbt);
 		return tag;
 	}
 
-	private class ForgeEnergy implements IEnergyStorage {
-		private final ElectricNetwork network = ElectricPower.this.network;
-		private final BlockPos pos = ElectricPower.this.pos;
+	@Override
+	public int receiveEnergy(int maxReceive, boolean simulate) {
+		return this.network.receiveFEEnergy(this.pos, maxReceive, simulate);
+	}
 
-		@Override
-		public int receiveEnergy(int maxReceive, boolean simulate) {
-			return this.network.receiveFEEnergy(this.pos, maxReceive, simulate);
-		}
+	@Override
+	public int extractEnergy(int maxExtract, boolean simulate) {
+		return this.network.extractFEEnergy(this.pos, maxExtract, simulate);
+	}
 
-		@Override
-		public int extractEnergy(int maxExtract, boolean simulate) {
-			return this.network.extractFEEnergy(this.pos, maxExtract, simulate);
-		}
+	@Override
+	public int getEnergyStored() {
+		return this.network.getFEEnergy(this.pos);
+	}
 
-		@Override
-		public int getEnergyStored() {
-			return this.network.getFEEnergy(this.pos);
-		}
+	@Override
+	public int getMaxEnergyStored() {
+		return this.network.getMaxFEStored(this.pos);
+	}
 
-		@Override
-		public int getMaxEnergyStored() {
-			return this.network.getMaxFEStored(this.pos);
-		}
+	@Override
+	public boolean canExtract() {
+		return this.network.getFEEnergy(this.pos) > 0;
+	}
 
-		@Override
-		public boolean canExtract() {
-			return this.network.getFEEnergy(this.pos) > 0;
-		}
-
-		@Override
-		public boolean canReceive() {
-			return this.network.getFEEnergy(this.pos) < this.getMaxEnergyStored();
-		}
+	@Override
+	public boolean canReceive() {
+		return this.network.getFEEnergy(this.pos) < this.getMaxEnergyStored();
 	}
 }

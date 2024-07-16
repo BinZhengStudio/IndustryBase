@@ -1,6 +1,5 @@
 package net.industrybase.world.level.block.entity;
 
-import net.industrybase.api.CapabilityList;
 import net.industrybase.api.electric.ElectricPower;
 import net.industrybase.api.transmit.MechanicalTransmit;
 import net.industrybase.api.util.ElectricHelper;
@@ -12,10 +11,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.util.LazyOptional;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import javax.annotation.Nullable;
 
 public class DynamoBlockEntity extends BlockEntity {
 	private double oldPower;
@@ -43,14 +40,20 @@ public class DynamoBlockEntity extends BlockEntity {
 		}
 	}
 
-	@Override
-	public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
+	@Nullable
+	public MechanicalTransmit getTransmit(Direction side) {
 		if (side == this.getBlockState().getValue(DynamoBlock.FACING)) {
-			return cap == CapabilityList.MECHANICAL_TRANSMIT ? this.transmit.cast() : super.getCapability(cap, side);
-		} else if (side == this.getBlockState().getValue(DynamoBlock.FACING).getOpposite()) {
-			return this.electricPower.cast(cap, super.getCapability(cap, side));
+			return this.transmit;
 		}
-		return super.getCapability(cap, side);
+		return null;
+	}
+
+	@Nullable
+	public ElectricPower getElectricPower(Direction side) {
+		if (side == this.getBlockState().getValue(DynamoBlock.FACING).getOpposite()) {
+			return this.electricPower;
+		}
+		return null;
 	}
 
 	@Override

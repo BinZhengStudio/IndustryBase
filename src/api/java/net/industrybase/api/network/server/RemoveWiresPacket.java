@@ -1,14 +1,16 @@
 package net.industrybase.api.network.server;
 
+import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.api.electric.ElectricNetwork;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.event.network.CustomPayloadEvent;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public class RemoveWiresPacket {
+public class RemoveWiresPacket implements CustomPacketPayload {
+	public static final Type<RemoveWiresPacket> TYPE = new Type<>(new ResourceLocation(IndustryBaseApi.MODID, "remove_wires"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, RemoveWiresPacket> STREAM_CODEC =
 			StreamCodec.ofMember(RemoveWiresPacket::encode, RemoveWiresPacket::new);
 	private final BlockPos from;
@@ -25,11 +27,13 @@ public class RemoveWiresPacket {
 		buf.writeBlockPos(this.from);
 	}
 
-	public static void handler(RemoveWiresPacket msg, CustomPayloadEvent.Context context) {
-		context.enqueueWork(() -> {
-			Level level = Minecraft.getInstance().level;
-			if (level != null) ElectricNetwork.Manager.get(level).removeClientWires(msg.from);
-		});
-		context.setPacketHandled(true);
+	public static void handler(RemoveWiresPacket msg, IPayloadContext context) {
+		context.enqueueWork(() -> ElectricNetwork.Manager.get(context.player().level()).removeClientWires(msg.from));
+//		context.setPacketHandled(true);
+	}
+
+	@Override
+	public Type<? extends CustomPacketPayload> type() {
+		return TYPE;
 	}
 }

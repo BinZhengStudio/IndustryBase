@@ -2,21 +2,22 @@ package net.industrybase.api.transmit;
 
 import com.google.common.collect.*;
 import net.industrybase.api.CapabilityList;
-import net.industrybase.api.network.ApiNetworkManager;
+import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.api.network.server.RootSyncPacket;
 import net.industrybase.api.network.server.RootsSyncPacket;
 import net.industrybase.api.network.server.SpeedSyncPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.*;
 
@@ -216,9 +217,7 @@ public class TransmitNetwork {
 		} else {
 			this.speeds.remove(root);
 		}
-		this.subscribes.get(root).forEach(player ->
-				ApiNetworkManager.INSTANCE.send(new SpeedSyncPacket(root, finalSpeed),
-						PacketDistributor.PLAYER.with(player)));
+		this.subscribes.get(root).forEach(player -> PacketDistributor.sendToPlayer(player, new SpeedSyncPacket(root, finalSpeed)));
 	}
 
 	public void removeBlock(BlockPos pos, Runnable callback) {
@@ -274,8 +273,7 @@ public class TransmitNetwork {
 				this.totalPower.remove(primaryNode, powerDiff);
 				this.totalResistance.remove(primaryNode, resistanceDiff);
 				this.subscribes.get(primaryNode).forEach(player -> {
-					ApiNetworkManager.INSTANCE.send(new RootSyncPacket(secondaryNode, secondaryNode),
-							PacketDistributor.PLAYER.with(player));
+					PacketDistributor.sendToPlayer(player, new RootSyncPacket(secondaryNode, secondaryNode));
 					this.subscribes.put(secondaryNode, player);
 					this.subscribesReverse.put(player, secondaryNode);
 				});
@@ -289,8 +287,7 @@ public class TransmitNetwork {
 					resistanceDiff += this.machineResistance.count(pos);
 				}
 				this.subscribes.get(primaryNode).forEach(player -> {
-					ApiNetworkManager.INSTANCE.send(new RootsSyncPacket(secondaryComponent, secondaryNode),
-							PacketDistributor.PLAYER.with(player));
+					PacketDistributor.sendToPlayer(player, new RootsSyncPacket(secondaryComponent, secondaryNode));
 					this.subscribes.put(secondaryNode, player);
 					this.subscribesReverse.put(player, secondaryNode);
 				});
@@ -305,10 +302,8 @@ public class TransmitNetwork {
 
 				this.totalPower.setCount(primaryNode, 0);
 				this.totalResistance.setCount(primaryNode, 0);
-				this.subscribes.get(primaryNode).forEach(player -> {
-					ApiNetworkManager.INSTANCE.send(new RootSyncPacket(primaryNode, primaryNode),
-							PacketDistributor.PLAYER.with(player));
-				});
+				this.subscribes.get(primaryNode).forEach(player ->
+						PacketDistributor.sendToPlayer(player, new RootSyncPacket(primaryNode, primaryNode)));
 			}
 
 			this.updateSpeed(primaryNode);
@@ -329,14 +324,18 @@ public class TransmitNetwork {
 		});
 	}
 
-	@SuppressWarnings("deprecation")
 	private boolean hasMechanicalConnection(BlockPos pos, Direction side) {
 		if (this.level.isAreaLoaded(pos, 0)) {
 			BlockEntity blockEntity = this.level.getBlockEntity(pos);
-			boolean flag = blockEntity != null && blockEntity.getCapability(CapabilityList.MECHANICAL_TRANSMIT, side).isPresent();
-			BlockEntity opposite = this.level.getBlockEntity(pos.relative(side));
-			boolean flag1 = opposite != null && opposite.getCapability(CapabilityList.MECHANICAL_TRANSMIT, side.getOpposite()).isPresent();
-			return flag && flag1;
+			if (blockEntity != null) {
+				Level level = blockEntity.getLevel();
+				if (level != null) {
+					boolean flag = level.getCapability(CapabilityList.MECHANICAL_TRANSMIT, pos, null, blockEntity, side) != null;
+					BlockEntity opposite = this.level.getBlockEntity(pos.relative(side));
+					boolean flag1 = opposite != null && level.getCapability(CapabilityList.MECHANICAL_TRANSMIT, pos, null, opposite, side.getOpposite()) != null;
+					return flag && flag1;
+				}
+			}
 		}
 		return false;
 	}
@@ -366,8 +365,7 @@ public class TransmitNetwork {
 				this.updateSpeed(secondary);
 
 				this.subscribes.removeAll(primary).forEach(player -> {
-					ApiNetworkManager.INSTANCE.send(new RootSyncPacket(primary, secondary),
-							PacketDistributor.PLAYER.with(player));
+					PacketDistributor.sendToPlayer(player, new RootSyncPacket(primary, secondary));
 					this.subscribes.put(secondary, player);
 					this.subscribesReverse.remove(player, primary);
 					this.subscribesReverse.put(player, secondary);
@@ -382,8 +380,7 @@ public class TransmitNetwork {
 				this.updateSpeed(secondaryNode);
 
 				this.subscribes.removeAll(primary).forEach(player -> {
-					ApiNetworkManager.INSTANCE.send(new RootSyncPacket(primary, secondaryNode),
-							PacketDistributor.PLAYER.with(player));
+					PacketDistributor.sendToPlayer(player, new RootSyncPacket(primary, secondaryNode));
 					this.subscribes.put(secondaryNode, player);
 					this.subscribesReverse.remove(player, primary);
 					this.subscribesReverse.put(player, secondaryNode);
@@ -398,8 +395,7 @@ public class TransmitNetwork {
 				this.updateSpeed(primaryNode);
 
 				this.subscribes.removeAll(secondary).forEach(player -> {
-					ApiNetworkManager.INSTANCE.send(new RootSyncPacket(secondary, primaryNode),
-							PacketDistributor.PLAYER.with(player));
+					PacketDistributor.sendToPlayer(player, new RootSyncPacket(secondary, primaryNode));
 					this.subscribes.put(primaryNode, player);
 					this.subscribesReverse.remove(player, secondary);
 					this.subscribesReverse.put(player, primaryNode);
@@ -413,10 +409,8 @@ public class TransmitNetwork {
 					this.components.put(pos, primaryComponent);
 				});
 				this.subscribes.removeAll(secondaryNode).forEach(player -> {
-					ApiNetworkManager.INSTANCE.send(new RootsSyncPacket(secondaryComponent, primaryNode),
-							PacketDistributor.PLAYER.with(player));
-					ApiNetworkManager.INSTANCE.send(new SpeedSyncPacket(secondaryNode, 0.0F),
-							PacketDistributor.PLAYER.with(player));
+					PacketDistributor.sendToPlayer(player, new RootsSyncPacket(secondaryComponent, primaryNode),
+							new SpeedSyncPacket(secondaryNode, 0.0F));
 					this.subscribes.put(primaryNode, player);
 					this.subscribesReverse.remove(player, secondaryNode);
 					this.subscribesReverse.put(player, primaryNode);
@@ -505,7 +499,7 @@ public class TransmitNetwork {
 		}
 	}
 
-	@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
+	@EventBusSubscriber(modid = IndustryBaseApi.MODID)
 	public static class Manager {
 		private static final Map<LevelAccessor, TransmitNetwork> INSTANCES = new IdentityHashMap<>();
 
@@ -517,9 +511,12 @@ public class TransmitNetwork {
 		public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
 			ServerPlayer player = (ServerPlayer) event.getEntity();
 			TransmitNetwork network = INSTANCES.get(player.level());
-			network.subscribesReverse.get(player).forEach(pos -> {
-				network.unsubscribe(pos, player);
-			});
+			Iterator<BlockPos> iterator = network.subscribesReverse.get(player).iterator();
+			while (iterator.hasNext()) {
+				BlockPos pos = iterator.next();
+				network.subscribes.remove(pos, player);
+				iterator.remove();
+			}
 		}
 
 		@SubscribeEvent
@@ -528,13 +525,11 @@ public class TransmitNetwork {
 		}
 
 		@SubscribeEvent
-		public static void onLevelTick(TickEvent.LevelTickEvent event) {
-			if (event.phase == TickEvent.Phase.START) {
-				if (event.side.isClient()) {
-					get(event.level).clientTick();
-				} else {
-					get(event.level).serverTick();
-				}
+		public static void onLevelTick(LevelTickEvent.Pre event) {
+			if (event.getLevel().isClientSide) {
+				get(event.getLevel()).clientTick();
+			} else {
+				get(event.getLevel()).serverTick();
 			}
 		}
 	}

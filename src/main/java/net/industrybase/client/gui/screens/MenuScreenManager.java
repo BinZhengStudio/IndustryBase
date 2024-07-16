@@ -1,13 +1,18 @@
 package net.industrybase.client.gui.screens;
 
+import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.client.gui.screens.inventory.CreativeSteamEngineScreen;
 import net.industrybase.client.gui.screens.inventory.SteamEngineScreen;
 import net.industrybase.world.inventory.MenuTypeList;
-import net.minecraft.client.gui.screens.MenuScreens;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
+@EventBusSubscriber(modid = IndustryBaseApi.MODID, bus = EventBusSubscriber.Bus.MOD)
 public class MenuScreenManager {
-	public static void register() { // 将 Menu 与 Screen 进行绑定
-		MenuScreens.register(MenuTypeList.STEAM_ENGINE.get(), SteamEngineScreen::new);
-		MenuScreens.register(MenuTypeList.CREATIVE_STEAM_ENGINE.get(), CreativeSteamEngineScreen::new);
+	@SubscribeEvent
+	public static void registerScreens(RegisterMenuScreensEvent event) {
+		event.register(MenuTypeList.STEAM_ENGINE.get(), SteamEngineScreen::new);
+		event.register(MenuTypeList.CREATIVE_STEAM_ENGINE.get(), CreativeSteamEngineScreen::new);
 	}
 }

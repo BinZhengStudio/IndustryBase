@@ -1,10 +1,10 @@
 package net.industrybase.world.level.block;
 
+import com.google.common.collect.ImmutableMap;
 import com.mojang.serialization.MapCodec;
 import net.industrybase.api.CapabilityList;
 import net.industrybase.api.electric.ElectricNetwork;
 import net.industrybase.world.level.block.entity.WireBlockEntity;
-import com.google.common.collect.ImmutableMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -23,7 +23,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumMap;
@@ -87,7 +87,6 @@ public class WireBlock extends BaseEntityBlock {
 		return shape;
 	}
 
-	@SuppressWarnings("deprecation")
 	@Override
 	public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
 		super.neighborChanged(state, level, pos, block, fromPos, isMoving);
@@ -107,40 +106,43 @@ public class WireBlock extends BaseEntityBlock {
 			Level level = context.getLevel();
 			BlockPos facingPos = context.getClickedPos().relative(direction);
 			BlockState facingState = level.getBlockState(facingPos);
-			state = state.setValue(PROPERTIES.get(direction), this.canConnect(level, direction.getOpposite(), facingPos, facingState));
+			state = state.setValue(PROPERTIES.get(direction), this.hasCapability(level, direction.getOpposite(), facingPos, facingState));
 		}
 		return state;
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
 		return SHAPES.get(state);
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
 		return COLLISION_SHAPES.get(state);
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public VoxelShape getOcclusionShape(BlockState state, BlockGetter level, BlockPos pos) {
 		return COLLISION_SHAPES.get(state);
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos currentPos, BlockPos neighborPos) {
-		return state.setValue(PROPERTIES.get(direction), this.canConnect(level, direction.getOpposite(), neighborPos, neighborState));
+		return state.setValue(PROPERTIES.get(direction), this.hasCapability(level, direction.getOpposite(), neighborPos, neighborState));
 	}
 
-	private boolean canConnect(LevelAccessor level, Direction facing, BlockPos pos, BlockState state) {
+	private boolean hasCapability(LevelAccessor level, Direction side, BlockPos pos, BlockState state) {
 		if (!state.is(this)) {
 			BlockEntity blockEntity = level.getBlockEntity(pos);
-			return blockEntity != null && (blockEntity.getCapability(ForgeCapabilities.ENERGY, facing).isPresent() ||
-					blockEntity.getCapability(CapabilityList.ELECTRIC_POWER, facing).isPresent());
+			if (blockEntity != null) {
+				Level level1 = blockEntity.getLevel();
+				if (level1 != null) {
+					boolean flag1 = level1.getCapability(Capabilities.EnergyStorage.BLOCK, pos, state, blockEntity, side) != null;
+					boolean flag2 = level1.getCapability(CapabilityList.ELECTRIC_POWER, pos, state, blockEntity, side) != null;
+					return flag1 || flag2;
+				}
+			}
+			return false;
 		}
 		return true;
 	}

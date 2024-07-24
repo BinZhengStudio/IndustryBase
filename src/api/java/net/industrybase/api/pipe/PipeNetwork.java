@@ -1,8 +1,6 @@
 package net.industrybase.api.pipe;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Sets;
-import net.industrybase.api.electric.EnergyMap;
 import net.industrybase.api.tags.BlockTagList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -14,12 +12,11 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 
 import java.util.ArrayDeque;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 
 public class PipeNetwork {
-	private final HashMap<BlockPos, LinkedHashSet<BlockPos>> components = new HashMap<>();
+	private final HashMap<BlockPos, IPipeUnit> components = new HashMap<>();
 	private final HashMap<BlockPos, PipeUnit> units = new HashMap<>();
+	private final HashMap<BlockPos, PipeRouter> routers = new HashMap<>();
 	private final HashMultimap<BlockPos, Direction> connections = HashMultimap.create();
 	private final ArrayDeque<Runnable> tasks = new ArrayDeque<>();
 	private final LevelAccessor level;
@@ -33,24 +30,23 @@ public class PipeNetwork {
 			for (Direction side : Direction.values()) {
 				if (this.pipeConnected(pos, side)) {
 					if (this.pipeConnected(pos.relative(side), side.getOpposite())) {
-						this.link(pos, side);
+						this.linkPipe(pos, side);
 					} else if (this.canConnect(pos.relative(side), side.getOpposite())) {
 //						this.FEMachines.put(pos.immutable(), side);
-						this.spilt(pos, side);
+						this.spiltPipe(pos, side);
 					} else {
 //						this.FEMachines.remove(pos.immutable(), side);
-						this.spilt(pos, side);
+						this.spiltPipe(pos, side);
 					}
 				} else {
 //					this.FEMachines.remove(pos.immutable(), side);
-					this.spilt(pos, side);
+					this.spiltPipe(pos, side);
 				}
 			}
 			callback.run();
 		});
 	}
 
-	@SuppressWarnings("deprecation")
 	private boolean canConnect(BlockPos pos, Direction side) {
 		if (this.level.isAreaLoaded(pos, 0)) {
 			BlockEntity blockEntity = this.level.getBlockEntity(pos);
@@ -64,7 +60,6 @@ public class PipeNetwork {
 		return false;
 	}
 
-	@SuppressWarnings("deprecation")
 	private boolean pipeConnected(BlockPos pos, Direction side) {
 		if (this.level.isAreaLoaded(pos, 0)) {
 			BlockState state = this.level.getBlockState(pos);
@@ -75,60 +70,150 @@ public class PipeNetwork {
 		return false;
 	}
 
-	@SuppressWarnings("deprecation")
 	public void removePipe(BlockPos pos, Runnable callback) {
 		this.tasks.offer(() -> {
 //			this.totalEnergy.shrink(this.root(pos), this.machineEnergy.remove(pos));
 			for (Direction side : Direction.values()) {
-				this.spilt(pos, side);
+				this.spiltPipe(pos, side);
 			}
 //			this.FEMachines.removeAll(pos); // 移除相应的 FE 机器
 			callback.run();
 		});
 	}
 
-	private void link(BlockPos node, Direction direction) {
+	private void linkPipe(BlockPos node, Direction direction) {
 		BlockPos secondary = node.immutable();
+		Direction.Axis axis = direction.getAxis();
 		if (this.connections.put(secondary, direction)) {
 			BlockPos primary = secondary.relative(direction);
 			this.connections.put(primary, direction.getOpposite());
-			LinkedHashSet<BlockPos> primaryComponent = this.components.get(primary);
-			LinkedHashSet<BlockPos> secondaryComponent = this.components.get(secondary);
+			IPipeUnit primaryUnit = this.components.get(primary);
+			IPipeUnit secondaryUnit = this.components.get(secondary);
 
 //			EnergyMap.Energy primaryEnergy = this.machineEnergy.get(primary);
 //			EnergyMap.Energy secondaryEnergy = this.machineEnergy.get(secondary);
 
-			if (primaryComponent == null && secondaryComponent == null) {
-				LinkedHashSet<BlockPos> union = new LinkedHashSet<>();
-				this.components.put(secondary, union);
-				this.components.put(primary, union);
-				union.add(secondary);
-				union.add(primary);
+			if (primaryUnit == null && secondaryUnit == null) {
+				PipeUnit unit = new PipeUnit(secondary, axis);
+				unit.addPipe(primary);
+				this.components.put(secondary, unit);
+				this.components.put(primary, unit);
 
 //				this.totalEnergy.put(secondary, EnergyMap.Energy.union(primaryEnergy, secondaryEnergy));
 //				this.totalEnergy.remove(primary);
 //				this.mergeFE(secondary, primary);
-			} else if (primaryComponent == null) {
-				BlockPos secondaryNode = secondaryComponent.iterator().next();
-				this.components.put(primary, secondaryComponent);
-				secondaryComponent.add(primary);
+			} else if (primaryUnit == null || primaryUnit.isSingle()) {
+				Direction.Axis secondaryAxis = secondaryUnit.getAxis();
+				if (!secondaryUnit.isRouter()) {
+					if (secondaryAxis == axis) {
+						secondaryUnit.addPipe(primary);
+						this.components.put(primary, secondaryUnit);
+					} else {
+						PipeRouter router = new PipeRouter(secondary);
+						this.components.put(secondary, router);
+						PipeUnit unit = secondaryUnit.cut(secondary);
+						if (unit != null) unit.forEach((pos) -> this.components.put(pos, unit));
+						Direction positive = Direction.get(Direction.AxisDirection.POSITIVE, secondaryAxis);
+						Direction negative = Direction.get(Direction.AxisDirection.NEGATIVE, secondaryAxis);
+						IPipeUnit positiveUnit = this.components.get(secondary.relative(positive));
+						IPipeUnit negativeUnit = this.components.get(secondary.relative(negative));
+						if (positiveUnit != null) {
+							positiveUnit.setNeighbor(negative, router);
+							router.setNeighbor(positive, positiveUnit);
+						}
+						if (negativeUnit != null) {
+							negativeUnit.setNeighbor(positive, router);
+							router.setNeighbor(negative, negativeUnit);
+						}
+					}
+				} else {
+					if (primaryUnit == null) {
+						primaryUnit = new PipeUnit(primary, axis);
+					}
+					primaryUnit.setNeighbor(direction.getOpposite(), secondaryUnit);
+					secondaryUnit.setNeighbor(direction, primaryUnit);
+					this.components.put(primary, primaryUnit);
+				}
 
 //				this.totalEnergy.add(secondaryNode, primaryEnergy);
 //				this.totalEnergy.remove(primary);
 //				this.mergeFE(secondaryNode, primary);
-			} else if (secondaryComponent == null) {
-				BlockPos primaryNode = primaryComponent.iterator().next();
-				this.components.put(secondary, primaryComponent);
-				primaryComponent.add(secondary);
+			} else if (secondaryUnit == null || secondaryUnit.isSingle()) {
+				Direction.Axis primaryAxis = primaryUnit.getAxis();
+				if (!primaryUnit.isRouter()) {
+					if (primaryAxis == axis) {
+						primaryUnit.addPipe(secondary);
+						this.components.put(secondary, primaryUnit);
+					} else {
+						PipeRouter router = new PipeRouter(primary);
+						this.components.put(primary, router);
+						PipeUnit unit = primaryUnit.cut(primary);
+						if (unit != null) unit.forEach((pos) -> this.components.put(pos, unit));
+						Direction positive = Direction.get(Direction.AxisDirection.POSITIVE, primaryAxis);
+						Direction negative = Direction.get(Direction.AxisDirection.NEGATIVE, primaryAxis);
+						IPipeUnit positiveUnit = this.components.get(primary.relative(positive));
+						IPipeUnit negativeUnit = this.components.get(primary.relative(negative));
+						if (positiveUnit != null) {
+							positiveUnit.setNeighbor(negative, router);
+							router.setNeighbor(positive, positiveUnit);
+						}
+						if (negativeUnit != null) {
+							negativeUnit.setNeighbor(positive, router);
+							router.setNeighbor(negative, negativeUnit);
+						}
+					}
+				} else {
+					if (secondaryUnit == null) {
+						secondaryUnit = new PipeUnit(secondary, axis);
+					}
+					primaryUnit.setNeighbor(direction.getOpposite(), secondaryUnit);
+					secondaryUnit.setNeighbor(direction, primaryUnit);
+					this.components.put(secondary, secondaryUnit);
+				}
 
 //				this.totalEnergy.add(primaryNode, secondaryEnergy);
 //				this.totalEnergy.remove(secondary);
 //				this.mergeFE(primaryNode, secondary);
-			} else if (primaryComponent != secondaryComponent) {
-				BlockPos primaryNode = primaryComponent.iterator().next();
-				BlockPos secondaryNode = secondaryComponent.iterator().next();
-				LinkedHashSet<BlockPos> union = new LinkedHashSet<>(Sets.union(primaryComponent, secondaryComponent));
-				union.forEach(pos -> this.components.put(pos, union));
+			} else if (primaryUnit != secondaryUnit) {
+				if (primaryUnit.isRouter() || secondaryUnit.isRouter()) {
+					secondaryUnit.setNeighbor(direction, primaryUnit);
+					primaryUnit.setNeighbor(direction.getOpposite(), secondaryUnit);
+				} else {
+					Direction.Axis primaryAxis = primaryUnit.getAxis();
+					Direction.Axis secondaryAxis = secondaryUnit.getAxis();
+					if (primaryAxis == secondaryAxis) {
+						if (axis == primaryAxis) {
+							PipeUnit unit = primaryUnit.link(secondaryUnit);
+							if (unit != null) {
+								for (BlockPos pos : unit) {
+									this.components.put(pos, primaryUnit);
+								}
+							}
+						} else {
+							PipeRouter primaryRouter = new PipeRouter(primary);
+							PipeRouter secondaryRouter = new PipeRouter(secondary);
+
+							PipeUnit unit1 = primaryUnit.cut(primary);
+							if (unit1 != null) {
+								unit1.forEach((pos) -> this.components.put(pos, unit1));
+								unit1.link(primaryRouter);
+							}
+							primaryUnit.link(primaryRouter);
+							this.components.put(primary, primaryRouter);
+
+							PipeUnit unit2 = secondaryUnit.cut(secondary);
+							if (unit2 != null) {
+								unit2.forEach((pos) -> this.components.put(pos, unit2));
+								unit2.link(secondaryRouter);
+							}
+							secondaryUnit.link(secondaryRouter);
+							this.components.put(secondary, secondaryRouter);
+
+							primaryRouter.setNeighbor(direction.getOpposite(), secondaryRouter);
+							secondaryRouter.setNeighbor(direction, primaryRouter);
+						}
+					}
+				}
 
 //				this.totalEnergy.add(primaryNode, this.totalEnergy.remove(secondaryNode));
 //				this.mergeFE(primaryNode, secondaryNode);
@@ -136,92 +221,22 @@ public class PipeNetwork {
 		}
 	}
 
-	private void spilt(BlockPos node, Direction direction) {
+	private void spiltPipe(BlockPos node, Direction direction) {
 		if (this.connections.remove(node, direction)) {
 			BlockPos another = node.relative(direction);
 			this.connections.remove(another, direction.getOpposite());
-			BFSIterator nodeIterator = new BFSIterator(node);
-			BFSIterator anotherIterator = new BFSIterator(another);
 
-			while (nodeIterator.hasNext()) {
-				BlockPos next = nodeIterator.next();
-				if (!anotherIterator.getSearched().contains(next)) {
-					BFSIterator iterator = anotherIterator;
-					anotherIterator = nodeIterator;
-					nodeIterator = iterator;
-					continue;
-				}
-				return;
+			IPipeUnit primaryUnit = this.components.get(node);
+			if (primaryUnit != null) {
+				PipeUnit unit = primaryUnit.spilt(node, direction);
+				if (unit != null) unit.forEach((pos) -> this.components.put(pos, unit));
 			}
 
-			LinkedHashSet<BlockPos> primaryComponent = this.components.get(node);
-			LinkedHashSet<BlockPos> secondaryComponent;
-			BlockPos primaryNode = primaryComponent.getFirst();
-			LinkedHashSet<BlockPos> searched = nodeIterator.getSearched();
-
-			if (searched.contains(primaryNode)) {
-				secondaryComponent = new LinkedHashSet<>(Sets.difference(primaryComponent, searched));
-				primaryComponent.retainAll(searched);
-			} else {
-				secondaryComponent = searched;
-				primaryComponent.removeAll(searched);
-			}
-
-			BlockPos secondaryNode = secondaryComponent.getFirst();
-			if (secondaryComponent.size() <= 1) {
-				this.components.remove(secondaryNode);
-
-//				EnergyMap.Energy diff = this.machineEnergy.get(secondaryNode);
-//				this.totalEnergy.shrink(primaryNode, diff);
-			} else {
-				EnergyMap.TempEnergy diff = new EnergyMap.TempEnergy();
-				for (BlockPos pos : secondaryComponent) {
-					this.components.put(pos, secondaryComponent);
-//					diff.add(this.machineEnergy.get(pos));
-				}
-//				this.totalEnergy.shrink(primaryNode, diff);
-//				this.totalEnergy.put(secondaryNode, diff);
-			}
-			if (primaryComponent.size() <= 1) {
-				this.components.remove(primaryNode);
-				// 已在 shrink 中完成对 primaryNode 的能量的检查和清除
-			}
 			// 分配 FE 能量
 //			int primarySize = this.size(primaryNode), secondarySize = this.size(secondaryNode);
 //			int diff = this.FEEnergy.count(primaryNode) * secondarySize / (primarySize + secondarySize);
 //			this.FEEnergy.remove(primaryNode, diff);
 //			this.FEEnergy.add(secondaryNode, diff);
-		}
-	}
-
-	public class BFSIterator implements Iterator<BlockPos> {
-		private final LinkedHashSet<BlockPos> searched = new LinkedHashSet<>();
-		private final ArrayDeque<BlockPos> queue = new ArrayDeque<>();
-
-		public BFSIterator(BlockPos node) {
-			node = node.immutable();
-			this.searched.add(node);
-			this.queue.offer(node);
-		}
-
-		public boolean hasNext() {
-			return !this.queue.isEmpty();
-		}
-
-		@Override
-		public BlockPos next() {
-			BlockPos node = this.queue.remove();
-			for (Direction direction : PipeNetwork.this.connections.get(node)) {
-				BlockPos another = node.relative(direction);
-				if (this.searched.add(another)) {
-					this.queue.offer(another);
-				}
-			}
-			return node;
-		}
-
-		public LinkedHashSet<BlockPos> getSearched() {
-			return this.searched;
 		}
 	}
 }

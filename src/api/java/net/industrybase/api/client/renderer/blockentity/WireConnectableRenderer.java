@@ -14,11 +14,14 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Matrix4f;
 
 public class WireConnectableRenderer<T extends BlockEntity> implements BlockEntityRenderer<T> {
+	private AABB aabb = null;
+
 	public WireConnectableRenderer(BlockEntityRendererProvider.Context context) {
 	}
 
@@ -30,6 +33,16 @@ public class WireConnectableRenderer<T extends BlockEntity> implements BlockEnti
 	@Override
 	public int getViewDistance() {
 		return 256;
+	}
+
+	@Override
+	public AABB getRenderBoundingBox(T blockEntity) {
+//		return AABB.INFINITE;
+		if (this.aabb == null) {
+			BlockPos pos = blockEntity.getBlockPos();
+			this.aabb = new AABB(pos.offset(-256, -256, -256).getCenter(), pos.offset(256, 256, 256).getCenter());
+		}
+		return this.aabb;
 	}
 
 	@Override

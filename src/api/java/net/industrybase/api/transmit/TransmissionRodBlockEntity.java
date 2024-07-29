@@ -45,7 +45,7 @@ public abstract class TransmissionRodBlockEntity extends BlockEntity {
 	}
 
 	public TransmitNetwork.RotateContext getRotate() {
-		if (this.transmit != null) {
+		if (this.transmit.getNetwork() != null) {
 			return this.transmit.getNetwork().getRotateContext(this.worldPosition);
 		}
 		return TransmitNetwork.RotateContext.NULL;

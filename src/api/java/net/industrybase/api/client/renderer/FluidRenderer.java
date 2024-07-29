@@ -358,6 +358,6 @@ public class FluidRenderer {
 	}
 
 	private void vertex(VertexConsumer consumer, double x, double y, double z, float red, float green, float blue, float alpha, float u, float v, int packedLight) {
-		consumer.vertex(x, y, z).color(red, green, blue, alpha).uv(u, v).uv2(packedLight).normal(0.0F, 1.0F, 0.0F).endVertex();
+		consumer.addVertex((float) x, (float) y, (float) z).setColor(red, green, blue, alpha).setUv(u, v).setLight(packedLight).setNormal(0.0F, 1.0F, 0.0F);
 	}
 }

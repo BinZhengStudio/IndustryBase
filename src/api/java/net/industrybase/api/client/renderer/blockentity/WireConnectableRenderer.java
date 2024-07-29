@@ -103,7 +103,7 @@ public class WireConnectableRenderer<T extends BlockEntity> implements BlockEnti
 		y -= horizonDistance * f * 0.5F * 0.5F;
 		float x = totalX * delta;
 		float z = totalZ * delta;
-		consumer.vertex(matrix4f, x - widthX, y + widthY, z + widthZ).color(red, green, blue, 1.0F).uv2(packedLight).endVertex();
-		consumer.vertex(matrix4f, x + widthX, y - widthY, z - widthZ).color(red, green, blue, 1.0F).uv2(packedLight).endVertex();
+		consumer.addVertex(matrix4f, x - widthX, y + widthY, z + widthZ).setColor(red, green, blue, 1.0F).setLight(packedLight);
+		consumer.addVertex(matrix4f, x + widthX, y - widthY, z - widthZ).setColor(red, green, blue, 1.0F).setLight(packedLight);
 	}
 }

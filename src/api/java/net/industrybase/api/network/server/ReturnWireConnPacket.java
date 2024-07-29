@@ -13,7 +13,7 @@ import java.util.Collection;
 import java.util.HashSet;
 
 public class ReturnWireConnPacket implements CustomPacketPayload {
-	public static final Type<ReturnWireConnPacket> TYPE = new Type<>(new ResourceLocation(IndustryBaseApi.MODID, "return_wire_conn"));
+	public static final Type<ReturnWireConnPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "return_wire_conn"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReturnWireConnPacket> STREAM_CODEC =
 			StreamCodec.ofMember(ReturnWireConnPacket::encode, ReturnWireConnPacket::new);
 	private final BlockPos target;

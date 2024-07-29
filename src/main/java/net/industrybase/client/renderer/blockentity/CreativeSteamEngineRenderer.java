@@ -20,7 +20,7 @@ public class CreativeSteamEngineRenderer implements BlockEntityRenderer<Creative
 	}
 
 	private void vertex(VertexConsumer consumer, Matrix4f matrix4f, float pX, float pY, float pZ, float pRed, float pGreen, float pBlue, float alpha, float pU, float pV, int pPackedLight) {
-		consumer.vertex(matrix4f, pX, pY, pZ).color(pRed, pGreen, pBlue, alpha).uv(pU, pV).uv2(pPackedLight).normal(0.0F, 1.0F, 0.0F).endVertex();
+		consumer.addVertex(matrix4f, pX, pY, pZ).setColor(pRed, pGreen, pBlue, alpha).setUv(pU, pV).setLight(pPackedLight).setNormal(0.0F, 1.0F, 0.0F);
 	}
 
 }

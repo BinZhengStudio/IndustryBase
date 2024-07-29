@@ -11,7 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class UnsubscribeSpeedPacket implements CustomPacketPayload {
-	public static final Type<UnsubscribeSpeedPacket> TYPE = new Type<>(new ResourceLocation(IndustryBaseApi.MODID, "unsubscribe_speed"));
+	public static final Type<UnsubscribeSpeedPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "unsubscribe_speed"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, UnsubscribeSpeedPacket> STREAM_CODEC = StreamCodec.ofMember(UnsubscribeSpeedPacket::encode, UnsubscribeSpeedPacket::new);
 	private final BlockPos target;
 

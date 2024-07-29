@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
 public class SteamEngineScreen extends AbstractContainerScreen<SteamEngineMenu> {
-	private static final ResourceLocation TEXTURE = new ResourceLocation(IndustryBaseApi.MODID, "textures/gui/container/steam_engine.png");
+	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "textures/gui/container/steam_engine.png");
 
 	public SteamEngineScreen(SteamEngineMenu pMenu, Inventory pPlayerInventory, Component pTitle) {
 		super(pMenu, pPlayerInventory, pTitle);

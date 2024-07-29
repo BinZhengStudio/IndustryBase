@@ -13,7 +13,7 @@ import java.util.Collection;
 import java.util.HashSet;
 
 public class RootsSyncPacket implements CustomPacketPayload {
-	public static final Type<RootsSyncPacket> TYPE = new Type<>(new ResourceLocation(IndustryBaseApi.MODID, "roots_sync"));
+	public static final Type<RootsSyncPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "roots_sync"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, RootsSyncPacket> STREAM_CODEC =
 			StreamCodec.ofMember(RootsSyncPacket::encode, RootsSyncPacket::new);
 	private final Collection<BlockPos> targets;

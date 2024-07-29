@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class RootSyncPacket implements CustomPacketPayload {
-	public static final Type<RootSyncPacket> TYPE = new Type<>(new ResourceLocation(IndustryBaseApi.MODID, "root_sync"));
+	public static final Type<RootSyncPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "root_sync"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, RootSyncPacket> STREAM_CODEC =
 			StreamCodec.ofMember(RootSyncPacket::encode, RootSyncPacket::new);
 	private final BlockPos targets;

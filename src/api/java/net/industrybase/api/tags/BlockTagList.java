@@ -16,6 +16,6 @@ public class BlockTagList {
 	}
 
 	private static TagKey<Block> create(String name) {
-		return BlockTags.create(new ResourceLocation(IndustryBaseApi.MODID, name));
+		return BlockTags.create(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, name));
 	}
 }

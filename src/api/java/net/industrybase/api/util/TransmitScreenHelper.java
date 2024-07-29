@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 public class TransmitScreenHelper {
 	public static final int PANEL_WIDTH = 80;
 	public static final int PANEL_HEIGHT = 90;
-	private static final ResourceLocation PANEL_TEXTURE = new ResourceLocation(IndustryBaseApi.MODID, "textures/gui/container/transmit_panel.png");
+	private static final ResourceLocation PANEL_TEXTURE = ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "textures/gui/container/transmit_panel.png");
 
 	public static void renderTransmitPanel(GuiGraphics graphics, int leftPos, int topPos, int imageWidth) {
 		graphics.blit(PANEL_TEXTURE, leftPos + imageWidth, topPos, 0, 0, PANEL_WIDTH, PANEL_HEIGHT);

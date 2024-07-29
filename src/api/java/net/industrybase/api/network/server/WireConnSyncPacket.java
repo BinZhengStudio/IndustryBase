@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class WireConnSyncPacket implements CustomPacketPayload {
-	public static final Type<WireConnSyncPacket> TYPE = new Type<>(new ResourceLocation(IndustryBaseApi.MODID, "wire_conn_sync"));
+	public static final Type<WireConnSyncPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "wire_conn_sync"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, WireConnSyncPacket> STREAM_CODEC =
 			StreamCodec.ofMember(WireConnSyncPacket::encode, WireConnSyncPacket::new);
 	private final BlockPos from;

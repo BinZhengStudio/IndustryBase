@@ -11,7 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class UnsubscribeWireConnPacket implements CustomPacketPayload {
-	public static final Type<UnsubscribeWireConnPacket> TYPE = new Type<>(new ResourceLocation(IndustryBaseApi.MODID, "unsubscribe_wire_conn"));
+	public static final Type<UnsubscribeWireConnPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "unsubscribe_wire_conn"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, UnsubscribeWireConnPacket> STREAM_CODEC =
 			StreamCodec.ofMember(UnsubscribeWireConnPacket::encode, UnsubscribeWireConnPacket::new);
 	private final BlockPos target;

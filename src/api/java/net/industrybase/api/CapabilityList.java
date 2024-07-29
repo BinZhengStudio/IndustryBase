@@ -12,7 +12,7 @@ public class CapabilityList {
 	public static final BlockCapability<IElectricPower, @Nullable Direction> ELECTRIC_POWER = BlockCapability.createSided(create("electric_power"), IElectricPower.class);
 
 	private static ResourceLocation create(String path) {
-		return new ResourceLocation(IndustryBaseApi.MODID, path);
+		return ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, path);
 	}
 
 	private CapabilityList() {

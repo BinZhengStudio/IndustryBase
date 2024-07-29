@@ -12,15 +12,15 @@ public abstract class LayeredTransmissionRodBlock extends TransmissionRodBlock {
 		this.blue = blue;
 	}
 
-	public float getRed() {
-		return red / 255.0F;
+	public int getRed() {
+		return this.red;
 	}
 
-	public float getGreen() {
-		return green / 255.0F;
+	public int getGreen() {
+		return this.green;
 	}
 
-	public float getBlue() {
-		return blue / 255.0F;
+	public int getBlue() {
+		return this.blue;
 	}
 }

@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class SpeedSyncPacket implements CustomPacketPayload {
-	public static final Type<SpeedSyncPacket> TYPE = new Type<>(new ResourceLocation(IndustryBaseApi.MODID, "speed_sync"));
+	public static final Type<SpeedSyncPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "speed_sync"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, SpeedSyncPacket> STREAM_CODEC =
 			StreamCodec.ofMember(SpeedSyncPacket::encode, SpeedSyncPacket::new);
 	private final BlockPos root;

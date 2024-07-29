@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class RemoveWiresPacket implements CustomPacketPayload {
-	public static final Type<RemoveWiresPacket> TYPE = new Type<>(new ResourceLocation(IndustryBaseApi.MODID, "remove_wires"));
+	public static final Type<RemoveWiresPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "remove_wires"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, RemoveWiresPacket> STREAM_CODEC =
 			StreamCodec.ofMember(RemoveWiresPacket::encode, RemoveWiresPacket::new);
 	private final BlockPos from;

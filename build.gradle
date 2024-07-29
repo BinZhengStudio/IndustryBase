@@ -31,9 +31,9 @@ sourceSets {
 		runtimeClasspath = main.runtimeClasspath
 	}
 	main {
-		resources {
-			srcDir 'src/generated/resources'
-		}
+//		resources {
+//			srcDir 'src/generated/resources'
+//		}
 //		java {
 //			srcDir 'src/api/java'
 //		}
@@ -129,6 +129,7 @@ var manifest_info = [
 ]
 
 tasks.named('jar', Jar).configure {
+	from sourceSets.api.output
 	manifest {
 		attributes(manifest_info)
 	}
@@ -147,6 +148,7 @@ tasks.register('sourcesJar', Jar) {
 	dependsOn classes
 	archiveClassifier = 'sources'
 	from sourceSets.main.allSource
+	from sourceSets.api.allSource
 	manifest {
 		attributes(manifest_info)
 	}
@@ -160,8 +162,8 @@ artifacts {
 publishing {
 	publications {
 		register('mavenJava', MavenPublication) {
-			from components.java
-			artifactId = archivesBaseName
+//			from components.java
+//			artifactId = archivesBaseName
 			artifact jar
 			artifact sourcesJar
 			artifact apiJar

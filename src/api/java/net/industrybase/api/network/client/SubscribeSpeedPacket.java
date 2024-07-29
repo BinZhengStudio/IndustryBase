@@ -14,7 +14,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 
 public class SubscribeSpeedPacket implements CustomPacketPayload {
-	public static final Type<SubscribeSpeedPacket> TYPE = new Type<>(new ResourceLocation(IndustryBaseApi.MODID, "subscribe_speed"));
+	public static final Type<SubscribeSpeedPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "subscribe_speed"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, SubscribeSpeedPacket> STREAM_CODEC =
 			StreamCodec.ofMember(SubscribeSpeedPacket::encode, SubscribeSpeedPacket::new);
 	private final BlockPos target;

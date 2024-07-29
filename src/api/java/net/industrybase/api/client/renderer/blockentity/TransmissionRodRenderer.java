@@ -18,6 +18,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -25,9 +26,9 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 public class TransmissionRodRenderer implements BlockEntityRenderer<TransmissionRodBlockEntity> {
-	public static final ModelLayerLocation MAIN = new ModelLayerLocation(new ResourceLocation(IndustryBaseApi.MODID, "transmission_rod"), "main");
-	private static final ResourceLocation LAYER_1 = new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/layer_1.png");
-	private static final ResourceLocation LAYER_2 = new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/layer_2.png");
+	public static final ModelLayerLocation MAIN = new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "transmission_rod"), "main");
+	private static final ResourceLocation LAYER_1 = ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "textures/entity/transmission_rod/layer_1.png");
+	private static final ResourceLocation LAYER_2 = ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "textures/entity/transmission_rod/layer_2.png");
 	private final ModelPart main;
 
 	public TransmissionRodRenderer(BlockEntityRendererProvider.Context context) {
@@ -64,7 +65,7 @@ public class TransmissionRodRenderer implements BlockEntityRenderer<Transmission
 		if (blockEntity.getBlockState().getBlock() instanceof LayeredTransmissionRodBlock block) {
 			main.render(poseStack, bufferSource.getBuffer(RenderType.entityCutout(LAYER_1)), packedLight, packedOverlay);
 			// 发光部分渲染
-			main.render(poseStack, bufferSource.getBuffer(RenderType.entityCutout(LAYER_2)), LightTexture.pack(15, 15), packedOverlay, block.getRed(), block.getGreen(), block.getBlue(), 1.0F);
+			main.render(poseStack, bufferSource.getBuffer(RenderType.entityCutout(LAYER_2)), LightTexture.pack(15, 15), packedOverlay, FastColor.ARGB32.color(block.getRed(), block.getGreen(), block.getBlue()));
 		}
 		poseStack.popPose();
 	}

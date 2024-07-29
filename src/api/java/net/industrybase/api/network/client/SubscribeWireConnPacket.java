@@ -13,7 +13,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class SubscribeWireConnPacket implements CustomPacketPayload {
-	public static final Type<SubscribeWireConnPacket> TYPE = new Type<>(new ResourceLocation(IndustryBaseApi.MODID, "subscribe_wire_conn"));
+	public static final Type<SubscribeWireConnPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "subscribe_wire_conn"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, SubscribeWireConnPacket> STREAM_CODEC =
 			StreamCodec.ofMember(SubscribeWireConnPacket::encode, SubscribeWireConnPacket::new);
 	private final BlockPos target;

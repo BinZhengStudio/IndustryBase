@@ -12,7 +12,7 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class WaterAmountPayload implements CustomPacketPayload { // 蒸汽机水量的数据包，用于将服务端的蒸汽机水量同步到本地
-	public static final Type<WaterAmountPayload> TYPE = new Type<>(new ResourceLocation(IndustryBaseApi.MODID, "auxiliary_light_data"));
+	public static final Type<WaterAmountPayload> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "auxiliary_light_data"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, WaterAmountPayload> STREAM_CODEC =
 			StreamCodec.ofMember(WaterAmountPayload::encode, WaterAmountPayload::new);
 	private final BlockPos pos;

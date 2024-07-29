@@ -62,133 +62,113 @@ public class SteamEngineRenderer implements BlockEntityRenderer<SteamEngineBlock
 		float alpha = (float)(fluidColor >> 24 & 255) / 255.0F;
 
 		// Up
-		buffer.vertex(matrix4f, minX, maxY, minZ)
-				.color(red, green, blue, alpha)
-				.uv(u0, v0)
-				.uv2(packedLight)
-				.normal(0.0F, 1.0F, 0.0F)
-				.endVertex();
-		buffer.vertex(matrix4f, minX, maxY, maxZ)
-				.color(red, green, blue, alpha)
-				.uv(u0, v1)
-				.uv2(packedLight)
-				.normal(0.0F, 1.0F, 0.0F)
-				.endVertex();
-		buffer.vertex(matrix4f, maxX, maxY, maxZ)
-				.color(red, green, blue, alpha)
-				.uv(u1, v1)
-				.uv2(packedLight)
-				.normal(0.0F, 1.0F, 0.0F)
-				.endVertex();
-		buffer.vertex(matrix4f, maxX, maxY, minZ)
-				.color(red, green, blue, alpha)
-				.uv(u1, v0)
-				.uv2(packedLight)
-				.normal(0.0F, 1.0F, 0.0F)
-				.endVertex();
+		buffer.addVertex(matrix4f, minX, maxY, minZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u0, v0)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
+		buffer.addVertex(matrix4f, minX, maxY, maxZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u0, v1)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
+		buffer.addVertex(matrix4f, maxX, maxY, maxZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u1, v1)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
+		buffer.addVertex(matrix4f, maxX, maxY, minZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u1, v0)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
 
 		// West
-		buffer.vertex(matrix4f, minX, maxY, minZ)
-				.color(red, green, blue, alpha)
-				.uv(u01, v01)
-				.uv2(packedLight)
-				.normal(0.0F, 1.0F, 0.0F)
-				.endVertex();
-		buffer.vertex(matrix4f, minX, minY, minZ)
-				.color(red, green, blue, alpha)
-				.uv(u01, v11)
-				.uv2(packedLight)
-				.normal(0.0F, 1.0F, 0.0F)
-				.endVertex();
-		buffer.vertex(matrix4f, minX, minY, maxZ)
-				.color(red, green, blue, alpha)
-				.uv(u11, v11)
-				.uv2(packedLight)
-				.normal(0.0F, 1.0F, 0.0F)
-				.endVertex();
-		buffer.vertex(matrix4f, minX, maxY, maxZ)
-				.color(red, green, blue, alpha)
-				.uv(u11, v01)
-				.uv2(packedLight)
-				.normal(0.0F, 1.0F, 0.0F)
-				.endVertex();
+		buffer.addVertex(matrix4f, minX, maxY, minZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u01, v01)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
+		buffer.addVertex(matrix4f, minX, minY, minZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u01, v11)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
+		buffer.addVertex(matrix4f, minX, minY, maxZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u11, v11)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
+		buffer.addVertex(matrix4f, minX, maxY, maxZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u11, v01)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
 
 		// North
-		buffer.vertex(matrix4f, maxX, maxY, minZ)
-				.color(red, green, blue, alpha)
-				.uv(u01, v01)
-				.uv2(packedLight)
-				.normal(0.0F, 1.0F, 0.0F)
-				.endVertex();
-		buffer.vertex(matrix4f, maxX, minY, minZ)
-				.color(red, green, blue, alpha)
-				.uv(u01, v11)
-				.uv2(packedLight)
-				.normal(0.0F, 1.0F, 0.0F)
-				.endVertex();
-		buffer.vertex(matrix4f, minX, minY, minZ)
-				.color(red, green, blue, alpha)
-				.uv(u11, v11)
-				.uv2(packedLight)
-				.normal(0.0F, 1.0F, 0.0F)
-				.endVertex();
-		buffer.vertex(matrix4f, minX, maxY, minZ)
-				.color(red, green, blue, alpha)
-				.uv(u11, v01)
-				.uv2(packedLight)
-				.normal(0.0F, 1.0F, 0.0F)
-				.endVertex();
+		buffer.addVertex(matrix4f, maxX, maxY, minZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u01, v01)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
+		buffer.addVertex(matrix4f, maxX, minY, minZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u01, v11)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
+		buffer.addVertex(matrix4f, minX, minY, minZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u11, v11)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
+		buffer.addVertex(matrix4f, minX, maxY, minZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u11, v01)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
 
 		// South
-		buffer.vertex(matrix4f, minX, maxY, maxZ)
-				.color(red, green, blue, alpha)
-				.uv(u01, v01)
-				.uv2(packedLight)
-				.normal(0.0F, 1.0F, 0.0F)
-				.endVertex();
-		buffer.vertex(matrix4f, minX, minY, maxZ)
-				.color(red, green, blue, alpha)
-				.uv(u01, v11)
-				.uv2(packedLight)
-				.normal(0.0F, 1.0F, 0.0F)
-				.endVertex();
-		buffer.vertex(matrix4f, maxX, minY, maxZ)
-				.color(red, green, blue, alpha)
-				.uv(u11, v11)
-				.uv2(packedLight)
-				.normal(0.0F, 1.0F, 0.0F)
-				.endVertex();
-		buffer.vertex(matrix4f, maxX, maxY, maxZ)
-				.color(red, green, blue, alpha)
-				.uv(u11, v01)
-				.uv2(packedLight)
-				.normal(0.0F, 1.0F, 0.0F)
-				.endVertex();
+		buffer.addVertex(matrix4f, minX, maxY, maxZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u01, v01)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
+		buffer.addVertex(matrix4f, minX, minY, maxZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u01, v11)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
+		buffer.addVertex(matrix4f, maxX, minY, maxZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u11, v11)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
+		buffer.addVertex(matrix4f, maxX, maxY, maxZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u11, v01)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
 
 		// East
-		buffer.vertex(matrix4f, maxX, maxY, maxZ)
-				.color(red, green, blue, alpha)
-				.uv(u01, v01)
-				.uv2(packedLight)
-				.normal(0.0F, 1.0F, 0.0F)
-				.endVertex();
-		buffer.vertex(matrix4f, maxX, minY, maxZ)
-				.color(red, green, blue, alpha)
-				.uv(u01, v11)
-				.uv2(packedLight)
-				.normal(0.0F, 1.0F, 0.0F)
-				.endVertex();
-		buffer.vertex(matrix4f, maxX, minY, minZ)
-				.color(red, green, blue, alpha)
-				.uv(u11, v11)
-				.uv2(packedLight)
-				.normal(0.0F, 1.0F, 0.0F)
-				.endVertex();
-		buffer.vertex(matrix4f, maxX, maxY, minZ)
-				.color(red, green, blue, alpha)
-				.uv(u11, v01)
-				.uv2(packedLight)
-				.normal(0.0F, 1.0F, 0.0F)
-				.endVertex();
+		buffer.addVertex(matrix4f, maxX, maxY, maxZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u01, v01)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
+		buffer.addVertex(matrix4f, maxX, minY, maxZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u01, v11)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
+		buffer.addVertex(matrix4f, maxX, minY, minZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u11, v11)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
+		buffer.addVertex(matrix4f, maxX, maxY, minZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u11, v01)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
 	}
 }

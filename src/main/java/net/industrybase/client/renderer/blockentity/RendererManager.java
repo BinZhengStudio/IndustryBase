@@ -18,73 +18,73 @@ public class RendererManager {
 		event.registerBlockEntityRenderer(BlockEntityTypeList.OAK_TRANSMISSION_ROD.get(), ctx -> new TextureTransmissionRodRenderer(ctx) {
 			@Override
 			protected ResourceLocation getTexture() {
-				return new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/oak.png");
+				return ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "textures/entity/transmission_rod/oak.png");
 			}
 		});
 		event.registerBlockEntityRenderer(BlockEntityTypeList.SPRUCE_TRANSMISSION_ROD.get(), ctx -> new TextureTransmissionRodRenderer(ctx) {
 			@Override
 			protected ResourceLocation getTexture() {
-				return new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/spruce.png");
+				return ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "textures/entity/transmission_rod/spruce.png");
 			}
 		});
 		event.registerBlockEntityRenderer(BlockEntityTypeList.BIRCH_TRANSMISSION_ROD.get(), ctx -> new TextureTransmissionRodRenderer(ctx) {
 			@Override
 			protected ResourceLocation getTexture() {
-				return new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/birch.png");
+				return ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "textures/entity/transmission_rod/birch.png");
 			}
 		});
 		event.registerBlockEntityRenderer(BlockEntityTypeList.JUNGLE_TRANSMISSION_ROD.get(), ctx -> new TextureTransmissionRodRenderer(ctx) {
 			@Override
 			protected ResourceLocation getTexture() {
-				return new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/jungle.png");
+				return ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "textures/entity/transmission_rod/jungle.png");
 			}
 		});
 		event.registerBlockEntityRenderer(BlockEntityTypeList.ACACIA_TRANSMISSION_ROD.get(), ctx -> new TextureTransmissionRodRenderer(ctx) {
 			@Override
 			protected ResourceLocation getTexture() {
-				return new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/acacia.png");
+				return ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "textures/entity/transmission_rod/acacia.png");
 			}
 		});
 		event.registerBlockEntityRenderer(BlockEntityTypeList.DARK_OAK_TRANSMISSION_ROD.get(), ctx -> new TextureTransmissionRodRenderer(ctx) {
 			@Override
 			protected ResourceLocation getTexture() {
-				return new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/dark_oak.png");
+				return ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "textures/entity/transmission_rod/dark_oak.png");
 			}
 		});
 		event.registerBlockEntityRenderer(BlockEntityTypeList.MANGROVE_TRANSMISSION_ROD.get(), ctx -> new TextureTransmissionRodRenderer(ctx) {
 			@Override
 			protected ResourceLocation getTexture() {
-				return new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/mangrove.png");
+				return ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "textures/entity/transmission_rod/mangrove.png");
 			}
 		});
 		event.registerBlockEntityRenderer(BlockEntityTypeList.STONE_TRANSMISSION_ROD.get(), ctx -> new TextureTransmissionRodRenderer(ctx) {
 			@Override
 			protected ResourceLocation getTexture() {
-				return new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/stone.png");
+				return ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "textures/entity/transmission_rod/stone.png");
 			}
 		});
 		event.registerBlockEntityRenderer(BlockEntityTypeList.IRON_TRANSMISSION_ROD.get(), ctx -> new TextureTransmissionRodRenderer(ctx) {
 			@Override
 			protected ResourceLocation getTexture() {
-				return new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/iron.png");
+				return ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "textures/entity/transmission_rod/iron.png");
 			}
 		});
 		event.registerBlockEntityRenderer(BlockEntityTypeList.CHERRY_TRANSMISSION_ROD.get(), ctx -> new TextureTransmissionRodRenderer(ctx) {
 			@Override
 			protected ResourceLocation getTexture() {
-				return new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/cherry.png");
+				return ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "textures/entity/transmission_rod/cherry.png");
 			}
 		});
 		event.registerBlockEntityRenderer(BlockEntityTypeList.CRIMSON_TRANSMISSION_ROD.get(), ctx -> new TextureTransmissionRodRenderer(ctx) {
 			@Override
 			protected ResourceLocation getTexture() {
-				return new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/crimson.png");
+				return ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "textures/entity/transmission_rod/crimson.png");
 			}
 		});
 		event.registerBlockEntityRenderer(BlockEntityTypeList.WARPED_TRANSMISSION_ROD.get(), ctx -> new TextureTransmissionRodRenderer(ctx) {
 			@Override
 			protected ResourceLocation getTexture() {
-				return new ResourceLocation(IndustryBaseApi.MODID, "textures/entity/transmission_rod/warped.png");
+				return ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "textures/entity/transmission_rod/warped.png");
 			}
 		});
 		event.registerBlockEntityRenderer(BlockEntityTypeList.GOLD_TRANSMISSION_ROD.get(), TransmissionRodRenderer::new);

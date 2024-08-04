@@ -35,11 +35,8 @@ public class WaterAmountPayload implements CustomPacketPayload { // 蒸汽机水
 
 	public static void handler(WaterAmountPayload msg, IPayloadContext context) {
 		context.enqueueWork(() -> {
-			Level level = Minecraft.getInstance().level;
-			if (level != null) {
-				if (level.getBlockEntity(msg.pos) instanceof SteamEngineBlockEntity blockEntity) {
-					blockEntity.setClientWaterAmount(msg.waterAmount);
-				}
+			if (context.player().level().getBlockEntity(msg.pos) instanceof SteamEngineBlockEntity blockEntity) {
+				blockEntity.setClientWaterAmount(msg.waterAmount);
 			}
 		});
 //		context.setPacketHandled(true);

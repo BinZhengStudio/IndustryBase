@@ -1,6 +1,10 @@
 package net.industrybase.api.pipe;
 
 import com.google.common.collect.HashMultimap;
+import net.industrybase.api.IndustryBaseApi;
+import net.industrybase.api.pipe.unit.IPipeUnit;
+import net.industrybase.api.pipe.unit.PipeRouter;
+import net.industrybase.api.pipe.unit.PipeUnit;
 import net.industrybase.api.tags.BlockTagList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -8,21 +12,46 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
-import java.util.ArrayDeque;
-import java.util.HashMap;
+import java.util.*;
 
 public class PipeNetwork {
 	private final HashMap<BlockPos, IPipeUnit> components = new HashMap<>();
-	private final HashMap<BlockPos, PipeUnit> units = new HashMap<>();
-	private final HashMap<BlockPos, PipeRouter> routers = new HashMap<>();
 	private final HashMultimap<BlockPos, Direction> connections = HashMultimap.create();
 	private final ArrayDeque<Runnable> tasks = new ArrayDeque<>();
+	private ArrayDeque<Runnable> fluidTasks = new ArrayDeque<>();
+	private ArrayDeque<Runnable> nextFluidTasks = new ArrayDeque<>();
 	private final LevelAccessor level;
 
 	public PipeNetwork(LevelAccessor level) {
 		this.level = level;
+	}
+
+	public void setPressure(BlockPos pos, Direction direction, double pressure) {
+		IPipeUnit unit = this.components.get(pos);
+		if (unit != null) {
+			unit.setPressure(this.fluidTasks, this.nextFluidTasks, direction, pressure);
+		}
+	}
+
+	public static double square(Direction.Axis axis, AABB aabb1, AABB aabb2) {
+		double x = Math.max(aabb1.minX, aabb2.minX) - Math.min(aabb1.maxX, aabb2.maxX);
+		double y = Math.max(aabb1.minY, aabb2.minY) - Math.min(aabb1.maxY, aabb2.maxY);
+		double z = Math.max(aabb1.minZ, aabb2.minZ) - Math.min(aabb1.maxZ, aabb2.maxZ);
+		if (x < 0.0D) x = 0.0D;
+		if (y < 0.0D) y = 0.0D;
+		if (z < 0.0D) z = 0.0D;
+		return switch (axis) {
+			case X -> y * z;
+			case Y -> x * z;
+			case Z -> x * y;
+		};
 	}
 
 	public void registerPipe(BlockPos pos, Runnable callback) {
@@ -94,7 +123,7 @@ public class PipeNetwork {
 //			EnergyMap.Energy secondaryEnergy = this.machineEnergy.get(secondary);
 
 			if (primaryUnit == null && secondaryUnit == null) {
-				PipeUnit unit = new PipeUnit(secondary, axis);
+				PipeUnit unit = PipeUnit.newInstance(secondary, axis);
 				unit.addPipe(primary);
 				this.components.put(secondary, unit);
 				this.components.put(primary, unit);
@@ -104,7 +133,7 @@ public class PipeNetwork {
 //				this.mergeFE(secondary, primary);
 			} else if (primaryUnit == null || primaryUnit.isSingle()) {
 				Direction.Axis secondaryAxis = secondaryUnit.getAxis();
-				if (!secondaryUnit.isRouter()) {
+				if (secondaryUnit.isUnit()) {
 					if (secondaryAxis == axis) {
 						secondaryUnit.addPipe(primary);
 						this.components.put(primary, secondaryUnit);
@@ -128,7 +157,7 @@ public class PipeNetwork {
 					}
 				} else {
 					if (primaryUnit == null) {
-						primaryUnit = new PipeUnit(primary, axis);
+						primaryUnit = PipeUnit.newInstance(primary, axis);
 					}
 					primaryUnit.setNeighbor(direction.getOpposite(), secondaryUnit);
 					secondaryUnit.setNeighbor(direction, primaryUnit);
@@ -140,7 +169,7 @@ public class PipeNetwork {
 //				this.mergeFE(secondaryNode, primary);
 			} else if (secondaryUnit == null || secondaryUnit.isSingle()) {
 				Direction.Axis primaryAxis = primaryUnit.getAxis();
-				if (!primaryUnit.isRouter()) {
+				if (primaryUnit.isUnit()) {
 					if (primaryAxis == axis) {
 						primaryUnit.addPipe(secondary);
 						this.components.put(secondary, primaryUnit);
@@ -164,7 +193,7 @@ public class PipeNetwork {
 					}
 				} else {
 					if (secondaryUnit == null) {
-						secondaryUnit = new PipeUnit(secondary, axis);
+						secondaryUnit = PipeUnit.newInstance(secondary, axis);
 					}
 					primaryUnit.setNeighbor(direction.getOpposite(), secondaryUnit);
 					secondaryUnit.setNeighbor(direction, primaryUnit);
@@ -237,6 +266,49 @@ public class PipeNetwork {
 //			int diff = this.FEEnergy.count(primaryNode) * secondarySize / (primarySize + secondarySize);
 //			this.FEEnergy.remove(primaryNode, diff);
 //			this.FEEnergy.add(secondaryNode, diff);
+		}
+	}
+
+	private void serverTickStart() {
+		for (Runnable runnable = this.tasks.pollFirst(); runnable != null; runnable = this.tasks.poll()) {
+			runnable.run();
+		}
+	}
+
+	private void serverTickEnd() {
+		ArrayDeque<Runnable> tasks = this.fluidTasks;
+		this.fluidTasks = this.nextFluidTasks;
+		this.nextFluidTasks = tasks;
+		for (Runnable runnable = this.nextFluidTasks.pollFirst(); runnable != null; runnable = this.nextFluidTasks.pollFirst()) {
+			runnable.run();
+		}
+	}
+
+	@EventBusSubscriber(modid = IndustryBaseApi.MODID)
+	public static class Manager {
+		private static final Map<LevelAccessor, PipeNetwork> INSTANCES = new IdentityHashMap<>();
+
+		public static PipeNetwork get(LevelAccessor level) {
+			return INSTANCES.computeIfAbsent(Objects.requireNonNull(level, "Level can't be null!"), PipeNetwork::new);
+		}
+
+		@SubscribeEvent
+		public static void onUnload(LevelEvent.Unload event) {
+			INSTANCES.remove(event.getLevel());
+		}
+
+		@SubscribeEvent
+		public static void onLevelTick(LevelTickEvent.Pre event) {
+			if (!event.getLevel().isClientSide) {
+				get(event.getLevel()).serverTickStart();
+			}
+		}
+
+		@SubscribeEvent
+		public static void onLevelTick(LevelTickEvent.Post event) {
+			if (!event.getLevel().isClientSide) {
+//				get(event.getLevel()).tickEnd();
+			}
 		}
 	}
 }

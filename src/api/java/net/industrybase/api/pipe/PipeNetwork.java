@@ -2,6 +2,7 @@ package net.industrybase.api.pipe;
 
 import com.google.common.collect.HashMultimap;
 import net.industrybase.api.IndustryBaseApi;
+import net.industrybase.api.pipe.unit.FluidStorage;
 import net.industrybase.api.pipe.unit.IPipeUnit;
 import net.industrybase.api.pipe.unit.PipeRouter;
 import net.industrybase.api.pipe.unit.PipeUnit;
@@ -40,18 +41,24 @@ public class PipeNetwork {
 		}
 	}
 
-	public static double square(Direction.Axis axis, AABB aabb1, AABB aabb2) {
-		double x = Math.max(aabb1.minX, aabb2.minX) - Math.min(aabb1.maxX, aabb2.maxX);
-		double y = Math.max(aabb1.minY, aabb2.minY) - Math.min(aabb1.maxY, aabb2.maxY);
-		double z = Math.max(aabb1.minZ, aabb2.minZ) - Math.min(aabb1.maxZ, aabb2.maxZ);
-		if (x < 0.0D) x = 0.0D;
-		if (y < 0.0D) y = 0.0D;
-		if (z < 0.0D) z = 0.0D;
-		return switch (axis) {
-			case X -> y * z;
-			case Y -> x * z;
-			case Z -> x * y;
-		};
+	public void registerHandler(BlockPos pos, int capacity, Runnable callback) {
+		this.tasks.addLast(() -> {
+			FluidStorage storage = new FluidStorage(pos, capacity);
+			this.components.put(pos.immutable(), storage);
+
+			for (Direction side : Direction.values()) {
+				if (this.canConnect(pos, side)) {
+					if (this.pipeConnected(pos.relative(side), side.getOpposite())) {
+						this.link(pos, side);
+					} else {
+						this.spilt(pos, side);
+					}
+				} else {
+					this.spilt(pos, side);
+				}
+			}
+			callback.run();
+		});
 	}
 
 	public void registerPipe(BlockPos pos, Runnable callback) {
@@ -110,7 +117,7 @@ public class PipeNetwork {
 		});
 	}
 
-	private void linkPipe(BlockPos node, Direction direction) {
+	private void link(BlockPos node, Direction direction) {
 		BlockPos secondary = node.immutable();
 		Direction.Axis axis = direction.getAxis();
 		if (this.connections.put(secondary, direction)) {
@@ -122,16 +129,7 @@ public class PipeNetwork {
 //			EnergyMap.Energy primaryEnergy = this.machineEnergy.get(primary);
 //			EnergyMap.Energy secondaryEnergy = this.machineEnergy.get(secondary);
 
-			if (primaryUnit == null && secondaryUnit == null) {
-				PipeUnit unit = PipeUnit.newInstance(secondary, axis);
-				unit.addPipe(primary);
-				this.components.put(secondary, unit);
-				this.components.put(primary, unit);
-
-//				this.totalEnergy.put(secondary, EnergyMap.Energy.union(primaryEnergy, secondaryEnergy));
-//				this.totalEnergy.remove(primary);
-//				this.mergeFE(secondary, primary);
-			} else if (primaryUnit == null || primaryUnit.isSingle()) {
+			if (primaryUnit == null || primaryUnit.isSingle()) {
 				Direction.Axis secondaryAxis = secondaryUnit.getAxis();
 				if (secondaryUnit.isUnit()) {
 					if (secondaryAxis == axis) {
@@ -250,6 +248,146 @@ public class PipeNetwork {
 		}
 	}
 
+	private void linkPipe(BlockPos node, Direction direction) {
+		BlockPos secondary = node.immutable();
+		Direction.Axis axis = direction.getAxis();
+		if (this.connections.put(secondary, direction)) {
+			BlockPos primary = secondary.relative(direction);
+			this.connections.put(primary, direction.getOpposite());
+			IPipeUnit primaryUnit = this.components.get(primary);
+			IPipeUnit secondaryUnit = this.components.get(secondary);
+
+//			EnergyMap.Energy primaryEnergy = this.machineEnergy.get(primary);
+//			EnergyMap.Energy secondaryEnergy = this.machineEnergy.get(secondary);
+
+			if (primaryUnit == null && secondaryUnit == null) {
+				PipeUnit unit = PipeUnit.newInstance(secondary, axis);
+				unit.addPipe(primary);
+				this.components.put(secondary, unit);
+				this.components.put(primary, unit);
+
+//				this.totalEnergy.put(secondary, EnergyMap.Energy.union(primaryEnergy, secondaryEnergy));
+//				this.totalEnergy.remove(primary);
+//				this.mergeFE(secondary, primary);
+			} else if (primaryUnit == null || primaryUnit.isSingle()) {
+				if (secondaryUnit.isUnit()) {
+					Direction.Axis secondaryAxis = secondaryUnit.getAxis();
+					if (secondaryAxis == axis) {
+						secondaryUnit.addPipe(primary);
+						this.components.put(primary, secondaryUnit);
+					} else {
+						PipeRouter router = new PipeRouter(secondary);
+						this.components.put(secondary, router);
+						PipeUnit unit = secondaryUnit.cut(secondary);
+						if (unit != null) unit.forEach((pos) -> this.components.put(pos, unit));
+						Direction positive = Direction.get(Direction.AxisDirection.POSITIVE, secondaryAxis);
+						Direction negative = Direction.get(Direction.AxisDirection.NEGATIVE, secondaryAxis);
+						IPipeUnit positiveUnit = this.components.get(secondary.relative(positive));
+						IPipeUnit negativeUnit = this.components.get(secondary.relative(negative));
+						if (positiveUnit != null) {
+							positiveUnit.setNeighbor(negative, router);
+							router.setNeighbor(positive, positiveUnit);
+						}
+						if (negativeUnit != null) {
+							negativeUnit.setNeighbor(positive, router);
+							router.setNeighbor(negative, negativeUnit);
+						}
+					}
+				} else {
+					if (primaryUnit == null) {
+						primaryUnit = PipeUnit.newInstance(primary, axis);
+					}
+					primaryUnit.setNeighbor(direction.getOpposite(), secondaryUnit);
+					secondaryUnit.setNeighbor(direction, primaryUnit);
+					this.components.put(primary, primaryUnit);
+				}
+
+//				this.totalEnergy.add(secondaryNode, primaryEnergy);
+//				this.totalEnergy.remove(primary);
+//				this.mergeFE(secondaryNode, primary);
+			} else if (secondaryUnit == null || secondaryUnit.isSingle()) {
+				if (primaryUnit.isUnit()) {
+					Direction.Axis primaryAxis = primaryUnit.getAxis();
+					if (primaryAxis == axis) {
+						primaryUnit.addPipe(secondary);
+						this.components.put(secondary, primaryUnit);
+					} else {
+						PipeRouter router = new PipeRouter(primary);
+						this.components.put(primary, router);
+						PipeUnit unit = primaryUnit.cut(primary);
+						if (unit != null) unit.forEach((pos) -> this.components.put(pos, unit));
+						Direction positive = Direction.get(Direction.AxisDirection.POSITIVE, primaryAxis);
+						Direction negative = Direction.get(Direction.AxisDirection.NEGATIVE, primaryAxis);
+						IPipeUnit positiveUnit = this.components.get(primary.relative(positive));
+						IPipeUnit negativeUnit = this.components.get(primary.relative(negative));
+						if (positiveUnit != null) {
+							positiveUnit.setNeighbor(negative, router);
+							router.setNeighbor(positive, positiveUnit);
+						}
+						if (negativeUnit != null) {
+							negativeUnit.setNeighbor(positive, router);
+							router.setNeighbor(negative, negativeUnit);
+						}
+					}
+				} else {
+					if (secondaryUnit == null) {
+						secondaryUnit = PipeUnit.newInstance(secondary, axis);
+					}
+					primaryUnit.setNeighbor(direction.getOpposite(), secondaryUnit);
+					secondaryUnit.setNeighbor(direction, primaryUnit);
+					this.components.put(secondary, secondaryUnit);
+				}
+
+//				this.totalEnergy.add(primaryNode, secondaryEnergy);
+//				this.totalEnergy.remove(secondary);
+//				this.mergeFE(primaryNode, secondary);
+			} else if (primaryUnit != secondaryUnit) {
+				if (primaryUnit.isRouter() || secondaryUnit.isRouter()) {
+					secondaryUnit.setNeighbor(direction, primaryUnit);
+					primaryUnit.setNeighbor(direction.getOpposite(), secondaryUnit);
+				} else {
+					Direction.Axis primaryAxis = primaryUnit.getAxis();
+					Direction.Axis secondaryAxis = secondaryUnit.getAxis();
+					if (primaryAxis == secondaryAxis) {
+						if (axis == primaryAxis) {
+							PipeUnit unit = primaryUnit.link(secondaryUnit);
+							if (unit != null) {
+								for (BlockPos pos : unit) {
+									this.components.put(pos, primaryUnit);
+								}
+							}
+						} else {
+							PipeRouter primaryRouter = new PipeRouter(primary);
+							PipeRouter secondaryRouter = new PipeRouter(secondary);
+
+							PipeUnit unit1 = primaryUnit.cut(primary);
+							if (unit1 != null) {
+								unit1.forEach((pos) -> this.components.put(pos, unit1));
+								unit1.link(primaryRouter);
+							}
+							primaryUnit.link(primaryRouter);
+							this.components.put(primary, primaryRouter);
+
+							PipeUnit unit2 = secondaryUnit.cut(secondary);
+							if (unit2 != null) {
+								unit2.forEach((pos) -> this.components.put(pos, unit2));
+								unit2.link(secondaryRouter);
+							}
+							secondaryUnit.link(secondaryRouter);
+							this.components.put(secondary, secondaryRouter);
+
+							primaryRouter.setNeighbor(direction.getOpposite(), secondaryRouter);
+							secondaryRouter.setNeighbor(direction, primaryRouter);
+						}
+					}
+				}
+
+//				this.totalEnergy.add(primaryNode, this.totalEnergy.remove(secondaryNode));
+//				this.mergeFE(primaryNode, secondaryNode);
+			}
+		}
+	}
+
 	private void spiltPipe(BlockPos node, Direction direction) {
 		if (this.connections.remove(node, direction)) {
 			BlockPos another = node.relative(direction);
@@ -267,6 +405,20 @@ public class PipeNetwork {
 //			this.FEEnergy.remove(primaryNode, diff);
 //			this.FEEnergy.add(secondaryNode, diff);
 		}
+	}
+
+	public static double square(Direction.Axis axis, AABB aabb1, AABB aabb2) {
+		double x = Math.max(aabb1.minX, aabb2.minX) - Math.min(aabb1.maxX, aabb2.maxX);
+		double y = Math.max(aabb1.minY, aabb2.minY) - Math.min(aabb1.maxY, aabb2.maxY);
+		double z = Math.max(aabb1.minZ, aabb2.minZ) - Math.min(aabb1.maxZ, aabb2.maxZ);
+		if (x < 0.0D) x = 0.0D;
+		if (y < 0.0D) y = 0.0D;
+		if (z < 0.0D) z = 0.0D;
+		return switch (axis) {
+			case X -> y * z;
+			case Y -> x * z;
+			case Z -> x * y;
+		};
 	}
 
 	private void serverTickStart() {

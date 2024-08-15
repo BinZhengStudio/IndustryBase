@@ -144,6 +144,15 @@ tasks.register('apiJar', Jar) {
 	}
 }
 
+tasks.register('apiSourceJar', Jar) {
+	dependsOn apiClasses
+	archiveClassifier = 'api-source'
+	from sourceSets.api.allSource
+	manifest {
+		attributes(manifest_info)
+	}
+}
+
 tasks.register('sourcesJar', Jar) {
 	dependsOn classes
 	archiveClassifier = 'sources'
@@ -157,6 +166,7 @@ tasks.register('sourcesJar', Jar) {
 artifacts {
 	archives sourcesJar
 	archives apiJar
+	archives apiSourceJar
 }
 
 publishing {
@@ -167,6 +177,7 @@ publishing {
 			artifact jar
 			artifact sourcesJar
 			artifact apiJar
+			artifact apiSourceJar
 		}
 	}
 	repositories {

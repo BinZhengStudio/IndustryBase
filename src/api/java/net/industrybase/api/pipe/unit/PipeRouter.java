@@ -3,10 +3,12 @@ package net.industrybase.api.pipe.unit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.function.BiConsumer;
 
 public class PipeRouter implements IPipeUnit {
@@ -163,64 +165,52 @@ public class PipeRouter implements IPipeUnit {
 		throw new UnsupportedOperationException();
 	}
 
-	@Nullable
-	@Override
-	@Deprecated
-	public PipeUnit link(IPipeUnit neighbor) {
-		if (neighbor.isUnit()) {
-			PipeUnit unit = (PipeUnit) neighbor;
-			Direction.Axis axis = unit.getAxis();
-			int posAxis = this.core.get(axis);
-			if (posAxis == unit.start - 1) {
-				Direction direction = Direction.fromAxisAndDirection(axis, Direction.AxisDirection.POSITIVE);
-				this.setNeighbor(direction, neighbor);
-				neighbor.setNeighbor(direction.getOpposite(), this);
-			} else if (posAxis == unit.end + 1) {
-				Direction direction = Direction.fromAxisAndDirection(axis, Direction.AxisDirection.NEGATIVE);
-				this.setNeighbor(direction, neighbor);
-				neighbor.setNeighbor(direction.getOpposite(), this);
-			}
-		} else {
-			for (Direction direction : Direction.values()) {
-				if (this.core.relative(direction).equals(neighbor.getCore())) {
-					this.setNeighbor(direction, neighbor);
-					neighbor.setNeighbor(direction.getOpposite(), this);
+	public IPipeUnit toStraightPipe() {
+		Direction direction = null;
+		boolean flag = false;
+		for (Direction value : Direction.values()) {
+			if (this.neighbors[value.ordinal()] != null) {
+				if (!flag) {
+					direction = value;
+					flag = true;
+				} else if (value.getAxis() != direction.getAxis()) {
+					return EmptyUnit.INSTANCE;
 				}
 			}
 		}
-		return null;
+		if (direction != null) {
+			StraightPipe pipe = StraightPipe.newInstance(this.core, direction.getAxis());
+
+			IPipeUnit neighbor = this.neighbors[direction.ordinal()];
+			IPipeUnit oppositeNeighbor = this.neighbors[direction.getOpposite().ordinal()];
+			pipe.setNeighbor(direction, neighbor);
+			neighbor.setNeighbor(direction.getOpposite(), pipe);
+			pipe.setNeighbor(direction.getOpposite(), oppositeNeighbor);
+			oppositeNeighbor.setNeighbor(direction, pipe);
+
+			return pipe;
+		}
+		return EmptyUnit.INSTANCE;
 	}
 
-	@Nullable
 	@Override
-	public PipeUnit cut(BlockPos pos) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Nullable
-	@Override
-	public PipeUnit spilt(BlockPos pos, Direction direction) {
+	public IPipeUnit spilt(BlockPos pos, Direction direction) {
 		IPipeUnit neighbor = this.neighbors[direction.ordinal()];
 		if (neighbor != null) {
 			neighbor.setNeighbor(direction.getOpposite(), null);
 			this.setNeighbor(direction, null);
 		}
-		return null;
+		return EmptyUnit.INSTANCE;
 	}
 
 	@Override
 	public Direction.Axis getAxis() {
-		throw new UnsupportedOperationException();
+		return null;
 	}
 
 	@Override
 	public BlockPos getCore() {
 		return this.core;
-	}
-
-	@Override
-	public boolean contains(BlockPos pos) {
-		return pos.equals(this.core);
 	}
 
 	@Override
@@ -243,18 +233,14 @@ public class PipeRouter implements IPipeUnit {
 	@Override
 	public void forEachNeighbor(BiConsumer<? super Direction, ? super IPipeUnit> action) {
 		for (Direction direction : Direction.values()) {
-			action.accept(direction, this.neighbors[direction.ordinal()]);
+			IPipeUnit unit = this.neighbors[direction.ordinal()];
+			if (unit != null) action.accept(direction, unit);
 		}
 	}
 
 	@Override
-	public boolean isUnit() {
-		return false;
-	}
-
-	@Override
-	public boolean isRouter() {
-		return true;
+	public UnitType getType() {
+		return UnitType.ROUTER;
 	}
 
 	@Override
@@ -263,7 +249,38 @@ public class PipeRouter implements IPipeUnit {
 	}
 
 	@Override
-	public boolean isStorage() {
-		return false;
+	public boolean canMergeWith(Direction direction) {
+		for (Direction side : Direction.values()) {
+			if (this.neighbors[side.ordinal()] != null && side.getAxis() != direction.getAxis()) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	@NotNull
+	@Override
+	public Iterator<BlockPos> iterator() {
+		return new SingleUnitIterator(this.core);
+	}
+
+	protected static class SingleUnitIterator implements Iterator<BlockPos> {
+		public boolean iterated;
+		public BlockPos core;
+
+		protected SingleUnitIterator(BlockPos core) {
+			this.iterated = false;
+			this.core = core;
+		}
+
+		@Override
+		public boolean hasNext() {
+			return !this.iterated;
+		}
+
+		@Override
+		public BlockPos next() {
+			return this.core;
+		}
 	}
 }

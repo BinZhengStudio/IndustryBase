@@ -1,5 +1,6 @@
 package net.industrybase.api.pipe.unit;
 
+import it.unimi.dsi.fastutil.objects.ObjectIterators;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
@@ -10,23 +11,17 @@ import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.function.BiConsumer;
 
-public class FluidStorage implements IPipeUnit {
-	protected final int capacity;
-	protected final BlockPos core;
-	protected final AABB aabb; // TODO
-	protected final IPipeUnit[] neighbors = new IPipeUnit[6];
-	protected final double[] pressure = new double[6];
-	protected int amount;
+public class EmptyUnit implements IPipeUnit {
+	protected static final EmptyUnit INSTANCE = new EmptyUnit();
+	protected static final EmptyUnit[] INSTANCES = new EmptyUnit[]{INSTANCE};
+	private final AABB aabb = new AABB(0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D);
 
-	public FluidStorage(BlockPos pos, int capacity) {
-		this.core = pos.immutable();
-		this.capacity = capacity;
-		this.aabb = new AABB(pos);
+	private EmptyUnit() {
 	}
 
 	@Override
 	public int size() {
-		return 1;
+		return 0;
 	}
 
 	@Override
@@ -36,43 +31,27 @@ public class FluidStorage implements IPipeUnit {
 
 	@Override
 	public double getPressure(Direction direction) {
-		return this.pressure[direction.ordinal()];
+		return 0;
 	}
 
 	@Override
 	public boolean setPressure(ArrayDeque<Runnable> tasks, ArrayDeque<Runnable> next, Direction direction, double pressure) {
-		int index = direction.ordinal();
-		if (pressure < 0.0D) pressure = 0.0D;
-		this.pressure[index] = pressure;
-		IPipeUnit neighbor = this.neighbors[index];
-		if (neighbor != null)
-			neighbor.onNeighborUpdatePressure(tasks, next, this, direction.getOpposite(), pressure);
-		return true;
+		return false;
 	}
 
 	@Override
 	public int getAmount() {
-		return this.amount;
+		return 0;
 	}
 
 	@Override
 	public int addAmount(Direction direction, int amount, boolean simulate) {
-		int diff = this.getCapacity() - this.amount;
-
-		// check if amount over the range
-		if (amount > diff) {
-			amount = diff;
-		} else if (amount < 0 && -amount > this.amount) {
-			amount = -this.amount;
-		}
-
-		if (!simulate) this.amount += amount;
-		return amount;
+		return 0;
 	}
 
 	@Override
 	public int applySpeed(Direction direction, double speed, boolean simulate) {
-		return this.addAmount(direction, (int) (speed * 20), simulate);
+		return 0;
 	}
 
 	@Override
@@ -91,24 +70,20 @@ public class FluidStorage implements IPipeUnit {
 
 	@Override
 	public int getCapacity() {
-		return this.capacity;
+		return 0;
 	}
 
 	@Override
 	public boolean addPipe(BlockPos pos) {
-		throw new UnsupportedOperationException();
+		return false;
 	}
 
 	@Override
 	public IPipeUnit spilt(BlockPos pos, Direction direction) {
-		IPipeUnit neighbor = this.neighbors[direction.ordinal()];
-		if (neighbor != null) {
-			neighbor.setNeighbor(direction.getOpposite(), null);
-			this.setNeighbor(direction, null);
-		}
-		return EmptyUnit.INSTANCE;
+		return this;
 	}
 
+	@Nullable
 	@Override
 	public Direction.Axis getAxis() {
 		return null;
@@ -116,39 +91,33 @@ public class FluidStorage implements IPipeUnit {
 
 	@Override
 	public BlockPos getCore() {
-		return this.core;
+		return BlockPos.ZERO;
 	}
 
 	@Nullable
 	@Override
 	public IPipeUnit getNeighbor(Direction direction) {
-		return this.neighbors[direction.ordinal()];
+		return null;
 	}
 
+	@Nullable
 	@Override
 	public IPipeUnit setNeighbor(Direction direction, @Nullable IPipeUnit neighbor) {
-		int index = direction.ordinal();
-		IPipeUnit old = this.neighbors[index];
-		this.neighbors[index] = neighbor;
-		return old;
+		return null;
 	}
 
 	@Override
 	public void forEachNeighbor(BiConsumer<? super Direction, ? super IPipeUnit> action) {
-		for (Direction direction : Direction.values()) {
-			IPipeUnit unit = this.neighbors[direction.ordinal()];
-			if (unit != null) action.accept(direction, unit);
-		}
 	}
 
 	@Override
 	public UnitType getType() {
-		return UnitType.FLUID_STORAGE;
+		return UnitType.EMPTY;
 	}
 
 	@Override
 	public boolean isSingle() {
-		return true;
+		return false;
 	}
 
 	@Override
@@ -159,6 +128,12 @@ public class FluidStorage implements IPipeUnit {
 	@NotNull
 	@Override
 	public Iterator<BlockPos> iterator() {
-		return new PipeRouter.SingleUnitIterator(this.core);
+		return new EmptyIterator();
+	}
+
+	private static class EmptyIterator extends ObjectIterators.EmptyIterator<BlockPos> {
+		private EmptyIterator() {
+			super();
+		}
 	}
 }

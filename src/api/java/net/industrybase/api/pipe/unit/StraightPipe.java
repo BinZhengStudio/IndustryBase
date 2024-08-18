@@ -5,12 +5,13 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.function.BiConsumer;
 
-public class PipeUnit implements IPipeUnit, Iterable<BlockPos> {
+public class StraightPipe implements IPipeUnit {
 	protected final Direction.Axis axis;
 	protected final BlockPos core;
 	protected final AABB aabb; // TODO
@@ -18,8 +19,8 @@ public class PipeUnit implements IPipeUnit, Iterable<BlockPos> {
 	protected final Direction negativeDirection;
 	protected int start;
 	protected int end;
-	protected double positivePressure;
-	protected double negativePressure;
+	private double positivePressure;
+	private double negativePressure;
 	protected double positiveTick;
 	protected double negativeTick;
 	protected int amount;
@@ -28,11 +29,11 @@ public class PipeUnit implements IPipeUnit, Iterable<BlockPos> {
 	@Nullable
 	protected IPipeUnit negative;
 
-	protected PipeUnit(BlockPos pos, Direction.Axis axis) {
+	protected StraightPipe(BlockPos pos, Direction.Axis axis) {
 		this(pos, pos.get(axis), pos.get(axis), axis);
 	}
 
-	protected PipeUnit(BlockPos pos, int start, int end, Direction.Axis axis) {
+	protected StraightPipe(BlockPos pos, int start, int end, Direction.Axis axis) {
 		this.core = pos.immutable();
 		this.axis = axis;
 		this.aabb = new AABB(pos.getX() + 0.3125D, pos.getY() + 0.3125D, pos.getZ() + 0.3125D,
@@ -48,9 +49,9 @@ public class PipeUnit implements IPipeUnit, Iterable<BlockPos> {
 		}
 	}
 
-	public static PipeUnit newInstance(BlockPos pos, Direction.Axis axis) {
-		if (axis == Direction.Axis.Y) return new PipeUnitY(pos);
-		return new PipeUnit(pos, axis);
+	public static StraightPipe newInstance(BlockPos pos, Direction.Axis axis) {
+		if (axis == Direction.Axis.Y) return new StraightPipeY(pos);
+		return new StraightPipe(pos, axis);
 	}
 
 	@Override
@@ -186,67 +187,85 @@ public class PipeUnit implements IPipeUnit, Iterable<BlockPos> {
 		return false;
 	}
 
-	@Nullable
-	@Override
-	public PipeUnit link(IPipeUnit neighbor) {
-		if (neighbor.isUnit()) {
-			PipeUnit unit = (PipeUnit) neighbor;
-			if (this.end == unit.start - 1) {
+	public IPipeUnit merge(Direction direction, IPipeUnit neighbor) {
+		if (neighbor.getType() == UnitType.STRAIGHT_PIPE) {
+			StraightPipe unit = (StraightPipe) neighbor;
+			if (direction.getAxisDirection() == Direction.AxisDirection.POSITIVE) {
 				this.end = unit.end;
-			} else if (this.start == unit.end + 1) {
+			} else {
 				this.start = unit.start;
 			}
 			return unit;
 		} else {
-			int neighborAxis = neighbor.getCore().get(this.axis);
-			if (neighborAxis > this.end) {
-				this.positive = neighbor;
-				neighbor.setNeighbor(this.negativeDirection, this);
-			} else if (neighborAxis < this.start) {
-				this.negative = neighbor;
-				neighbor.setNeighbor(this.positiveDirection, this);
-			}
+			this.addPipe(neighbor.getCore());
+			return neighbor;
 		}
-		return null;
 	}
 
-	@Nullable
-	@Override
-	public PipeUnit cut(BlockPos pos) {
-		int axis = pos.get(this.axis);
-		if (axis == this.start) {
+	/**
+	 * cut unit and convert pos to router
+	 *
+	 * @param pos the pos want to cut and discard
+	 * @return unit of block that need to be update in components map
+	 */
+	public IPipeUnit[] toRouter(BlockPos pos) {
+		int axisPos = pos.get(this.axis);
+		if (axisPos == this.start) {
 			this.start++;
-			this.negative = null;
-			return null;
-		} else if (axis == this.end) {
+
+			PipeRouter router = new PipeRouter(this.getPos(axisPos));
+			router.setNeighbor(this.negativeDirection, this.negative);
+			router.setNeighbor(this.positiveDirection, this);
+			if (this.negative != null) this.negative.setNeighbor(this.positiveDirection, router);
+			this.negative = router;
+
+			return new IPipeUnit[]{router};
+		} else if (axisPos == this.end) {
 			this.end--;
-			this.positive = null;
-			return null;
-		} else if (axis > this.start && axis < this.end) {
-			PipeUnit unit = new PipeUnit(this.core, this.start, axis - 1, this.axis);
-			this.start = axis + 1;
-			if (this.negative != null) {
-				this.negative.setNeighbor(Direction.get(Direction.AxisDirection.POSITIVE, this.axis), unit);
-				unit.negative = this.negative;
-				this.negative = null;
-			}
-			return unit;
+
+			PipeRouter router = new PipeRouter(this.getPos(axisPos));
+			router.setNeighbor(this.positiveDirection, this.positive);
+			router.setNeighbor(this.negativeDirection, this);
+			if (this.positive != null) this.positive.setNeighbor(this.negativeDirection, router);
+			this.positive = router;
+
+			return new IPipeUnit[]{router};
+		} else if (axisPos > this.start && axisPos < this.end) {
+			PipeRouter router = new PipeRouter(this.getPos(axisPos));
+			StraightPipe unit = new StraightPipe(this.core, this.start, axisPos - 1, this.axis);
+			this.start = axisPos + 1;
+
+			if (this.negative != null) this.negative.setNeighbor(this.positiveDirection, unit);
+			unit.negative = this.negative;
+
+			router.setNeighbor(this.negativeDirection, unit);
+			router.setNeighbor(this.positiveDirection, this);
+
+			this.negative = router;
+			return new IPipeUnit[]{router, unit};
 		}
-		return null;
+		return EmptyUnit.INSTANCES;
 	}
 
-	@Nullable
+	private BlockPos getPos(int axisPos) {
+		return switch (this.axis) {
+			case X -> new BlockPos(axisPos, this.core.getY(), this.core.getZ());
+			case Y -> new BlockPos(this.core.getX(), axisPos, this.core.getZ());
+			case Z -> new BlockPos(this.core.getX(), this.core.getY(), axisPos);
+		};
+	}
+
 	@Override
-	public PipeUnit spilt(BlockPos pos, Direction direction) {
+	public IPipeUnit spilt(BlockPos pos, Direction direction) {
 		int axis = pos.get(this.axis);
 		if (axis == this.start && direction == this.negativeDirection) {
 			if (this.negative != null) this.negative.setNeighbor(direction.getOpposite(), null);
 		} else if (axis == this.end && direction == this.positiveDirection) {
 			if (this.positive != null) this.positive.setNeighbor(direction.getOpposite(), null);
 		} else if (axis >= this.start && axis <= this.end) {
-			PipeUnit unit;
+			StraightPipe unit;
 			if (direction == this.positiveDirection) {
-				unit = new PipeUnit(pos.relative(direction), axis + 1, this.end, this.axis);
+				unit = new StraightPipe(pos.relative(direction), axis + 1, this.end, this.axis);
 				if (this.positive != null) {
 					this.positive.setNeighbor(direction.getOpposite(), unit);
 					unit.positive = this.positive;
@@ -254,7 +273,7 @@ public class PipeUnit implements IPipeUnit, Iterable<BlockPos> {
 				}
 				this.end = axis;
 			} else {
-				unit = new PipeUnit(pos.relative(direction), this.start, axis - 1, this.axis);
+				unit = new StraightPipe(pos.relative(direction), this.start, axis - 1, this.axis);
 				if (this.negative != null) {
 					this.negative.setNeighbor(direction.getOpposite(), unit);
 					unit.negative = this.negative;
@@ -264,9 +283,10 @@ public class PipeUnit implements IPipeUnit, Iterable<BlockPos> {
 			}
 			return unit;
 		}
-		return null;
+		return EmptyUnit.INSTANCE;
 	}
 
+	@Nonnull
 	@Override
 	public Direction.Axis getAxis() {
 		return this.axis;
@@ -275,13 +295,6 @@ public class PipeUnit implements IPipeUnit, Iterable<BlockPos> {
 	@Override
 	public BlockPos getCore() {
 		return this.core;
-	}
-
-	@Override
-	public boolean contains(BlockPos pos) {
-		int posAxis = pos.get(this.axis);
-		int axisDiff = this.core.get(this.axis) - posAxis;
-		return this.start <= posAxis && posAxis <= this.end && pos.distSqr(this.core) == axisDiff * axisDiff;
 	}
 
 	public int getNeighborSize() {
@@ -320,13 +333,8 @@ public class PipeUnit implements IPipeUnit, Iterable<BlockPos> {
 	}
 
 	@Override
-	public boolean isUnit() {
-		return true;
-	}
-
-	@Override
-	public boolean isRouter() {
-		return false;
+	public UnitType getType() {
+		return UnitType.STRAIGHT_PIPE;
 	}
 
 	@Override
@@ -334,8 +342,26 @@ public class PipeUnit implements IPipeUnit, Iterable<BlockPos> {
 		return this.start == this.end;
 	}
 
+	/**
+	 * Check self's (not neighbor's) status can merge or not
+	 *
+	 * @param direction the direction
+	 * @return can merge or not
+	 */
 	@Override
-	public boolean isStorage() {
+	public boolean canMergeWith(Direction direction) {
+		if (this.isSingle()) {
+			return this.negative == null && this.positive == null;
+		}
+		return direction.getAxis() == this.axis;
+	}
+
+	public boolean canMergeWith2(Direction direction, @Nullable IPipeUnit unit) {
+		if (unit != null && this.axis == unit.getAxis()) {
+			return direction.getAxis() == this.axis;
+		} else if (this.isSingle()) {
+			return this.negative == null && this.positive == null;
+		}
 		return false;
 	}
 

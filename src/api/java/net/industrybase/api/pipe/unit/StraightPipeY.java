@@ -5,14 +5,14 @@ import net.minecraft.core.Direction;
 
 import java.util.ArrayDeque;
 
-public class PipeUnitY extends PipeUnit {
+public class StraightPipeY extends StraightPipe {
 	private int bottomAmount;
 
-	protected PipeUnitY(BlockPos pos) {
+	protected StraightPipeY(BlockPos pos) {
 		super(pos, Direction.Axis.Y);
 	}
 
-	protected PipeUnitY(BlockPos pos, int start, int end) {
+	protected StraightPipeY(BlockPos pos, int start, int end) {
 		super(pos, start, end, Direction.Axis.Y);
 	}
 

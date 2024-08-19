@@ -66,9 +66,7 @@ public class PipeNetwork {
 				if (this.pipeConnected(pos, side)) {
 					if (this.pipeConnected(pos.relative(side), side.getOpposite())) {
 						this.link(pos, side);
-					} else if (this.canConnect(pos.relative(side), side.getOpposite())) {
-						this.link(pos, side);
-					} else {
+					} else if (!this.canConnect(pos.relative(side), side.getOpposite())){
 						this.spiltPipe(pos, side);
 					}
 				} else {
@@ -85,7 +83,7 @@ public class PipeNetwork {
 			if (blockEntity != null) {
 				Level level = blockEntity.getLevel();
 				if (level != null) {
-					return level.getCapability(Capabilities.FluidHandler.BLOCK, pos, null, blockEntity, side) != null;
+					return level.getCapability(Capabilities.FluidHandler.BLOCK, pos, null, blockEntity, side) instanceof PipeConnectedHandler;
 				}
 			}
 		}

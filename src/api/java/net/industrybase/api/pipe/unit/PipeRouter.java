@@ -280,6 +280,7 @@ public class PipeRouter implements IPipeUnit {
 
 		@Override
 		public BlockPos next() {
+			this.iterated = true;
 			return this.core;
 		}
 	}

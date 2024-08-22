@@ -10,8 +10,10 @@ import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 public class FluidTankBlockEntity extends BlockEntity {
+	public static final int CAPACITY = 10000;
+	private int waterAmount;
 	private final PipeConnectedHandler handler = new PipeConnectedHandler(this);
-	private final FluidTank tank = new FluidTank(10000, fluidStack -> fluidStack.is(NeoForgeMod.WATER_TYPE.value())) {
+	private final FluidTank tank = new FluidTank(CAPACITY, fluidStack -> fluidStack.is(NeoForgeMod.WATER_TYPE.value())) {
 		@Override
 		protected void onContentsChanged() {
 			for (Direction direction : Direction.values()) {
@@ -32,6 +34,14 @@ public class FluidTankBlockEntity extends BlockEntity {
 
 	public FluidTank getTank(Direction direction) {
 		return this.tank;
+	}
+
+	public int getWaterAmount() {
+		return this.waterAmount;
+	}
+
+	public void setClientWaterAmount(int waterAmount) {
+		this.waterAmount = waterAmount;
 	}
 
 	@Override

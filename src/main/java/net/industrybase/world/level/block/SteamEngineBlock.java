@@ -53,13 +53,10 @@ public class SteamEngineBlock extends BaseEntityBlock {
 		} else {
 			if (level.getBlockEntity(pos) instanceof SteamEngineBlockEntity blockEntity) {
 				if (stack.is(Items.WATER_BUCKET)) {
-					if (!player.getAbilities().instabuild) player.setItemInHand(hand, new ItemStack(Items.BUCKET));
 					IFluidHandler engineTank = level.getCapability(Capabilities.FluidHandler.BLOCK, pos, state, blockEntity, hitResult.getDirection());
 					if (engineTank != null) {
 						engineTank.fill(new FluidStack(Fluids.WATER, FluidType.BUCKET_VOLUME), IFluidHandler.FluidAction.EXECUTE);
-						// 发包同步
-						PacketDistributor.sendToAllPlayers(new WaterAmountPayload(pos, engineTank.getFluidInTank(0).getAmount()));
-						if (!player.isCreative()) player.setItemInHand(hand, new ItemStack(Items.BUCKET));
+						if (!player.getAbilities().instabuild) player.setItemInHand(hand, new ItemStack(Items.BUCKET));
 					}
 					return ItemInteractionResult.CONSUME;
 				} else {

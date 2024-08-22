@@ -24,7 +24,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.WaterFluid;
+import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
@@ -38,7 +40,14 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 	public static final int MAX_POWER = 100;
 	public static final int MAX_WATER = FluidType.BUCKET_VOLUME * 2;
 	private NonNullList<ItemStack> inventory = NonNullList.withSize(1, ItemStack.EMPTY);
-	private final FluidTank tank = new FluidTank(MAX_WATER, fluidStack -> fluidStack.getFluid() instanceof WaterFluid);
+	private final FluidTank tank = new FluidTank(MAX_WATER, fluidStack -> fluidStack.is(NeoForgeMod.WATER_TYPE.value())) {
+		@Override
+		protected void onContentsChanged() {
+			// send packet to sync the fluid amount
+			PacketDistributor.sendToAllPlayers(new WaterAmountPayload(
+					SteamEngineBlockEntity.this.worldPosition, SteamEngineBlockEntity.this.tank.getFluidAmount()));
+		}
+	};
 	private final MechanicalTransmit transmit = new MechanicalTransmit(this);
 	private int waterAmount; // 仅在客户端调用
 	private final ContainerData data = new ContainerData() { // 用于双端同步数据
@@ -84,8 +93,6 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 			if (!blockEntity.tank.isEmpty()) {
 				if (blockEntity.shrinkTick <= 0) { // 消耗水
 					blockEntity.tank.drain(1, IFluidHandler.FluidAction.EXECUTE);
-					// 发包同步
-					PacketDistributor.sendToAllPlayers(new WaterAmountPayload(pos, blockEntity.tank.getFluidAmount()));
 					blockEntity.shrinkTick = 6; // 每 6tick 减一次 waterAmount，这样水不会少的太快
 				} else {
 					--blockEntity.shrinkTick;

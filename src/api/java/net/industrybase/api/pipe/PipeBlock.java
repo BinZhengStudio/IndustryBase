@@ -122,6 +122,7 @@ public abstract class PipeBlock extends BaseEntityBlock {
 					return level1.getCapability(Capabilities.FluidHandler.BLOCK, pos, null, blockEntity, facing) != null;
 				}
 			}
+			return false;
 		}
 		return true;
 	}

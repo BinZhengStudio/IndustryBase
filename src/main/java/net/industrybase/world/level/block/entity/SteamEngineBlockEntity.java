@@ -43,9 +43,10 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 	private final FluidTank tank = new FluidTank(MAX_WATER, fluidStack -> fluidStack.is(NeoForgeMod.WATER_TYPE.value())) {
 		@Override
 		protected void onContentsChanged() {
-			// send packet to sync the fluid amount
-			PacketDistributor.sendToAllPlayers(new WaterAmountPayload(
-					SteamEngineBlockEntity.this.worldPosition, SteamEngineBlockEntity.this.tank.getFluidAmount()));
+			if (level != null && !level.isClientSide) {
+				// send packet to sync the fluid amount
+				PacketDistributor.sendToAllPlayers(new WaterAmountPayload(worldPosition, tank.getFluidAmount()));
+			}
 		}
 	};
 	private final MechanicalTransmit transmit = new MechanicalTransmit(this);

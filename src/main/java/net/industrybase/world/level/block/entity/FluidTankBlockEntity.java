@@ -2,12 +2,14 @@ package net.industrybase.world.level.block.entity;
 
 import net.industrybase.api.pipe.PipeConnectedHandler;
 import net.industrybase.api.pipe.StorageInterface;
+import net.industrybase.network.server.WaterAmountPayload;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 public class FluidTankBlockEntity extends BlockEntity {
 	public static final int CAPACITY = 10000;
@@ -16,8 +18,11 @@ public class FluidTankBlockEntity extends BlockEntity {
 	private final FluidTank tank = new FluidTank(CAPACITY, fluidStack -> fluidStack.is(NeoForgeMod.WATER_TYPE.value())) {
 		@Override
 		protected void onContentsChanged() {
-			for (Direction direction : Direction.values()) {
-				FluidTankBlockEntity.this.handler.setPressure(direction, (double) getFluidAmount() / getCapacity());
+			if (level != null && !level.isClientSide) {
+				PacketDistributor.sendToAllPlayers(new WaterAmountPayload(worldPosition, tank.getFluidAmount()));
+				for (Direction direction : Direction.values()) {
+					handler.setPressure(direction, (double) this.getFluidAmount() / this.getCapacity());
+				}
 			}
 		}
 	};

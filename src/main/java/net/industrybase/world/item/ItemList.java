@@ -37,6 +37,7 @@ public class ItemList {
 	public static final DeferredItem<BlockItem> WARPED_TRANSMISSION_ROD = ITEM.register("warped_transmission_rod", () -> new BlockEntityItem(BlockList.WARPED_TRANSMISSION_ROD.get(), new Item.Properties()));
 	public static final DeferredItem<BlockItem> IRON_PIPE = ITEM.register("iron_pipe", () -> new BlockItem(BlockList.IRON_PIPE.get(), new Item.Properties()));
 	public static final DeferredItem<BlockItem> WATER_PUMP = ITEM.register("water_pump", () -> new BlockItem(BlockList.WATER_PUMP.get(), new Item.Properties()));
+	public static final DeferredItem<BlockItem> FLUID_TANK = ITEM.register("fluid_tank", () -> new BlockItem(BlockList.FLUID_TANK.get(), new Item.Properties()));
 
 
 	private ItemList() {

@@ -39,6 +39,7 @@ public class BlockEntityTypeList {
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CreativeElectricMotorBlockEntity>> CREATIVE_ELECTRIC_MOTOR = register("creative_electric_motor", CreativeElectricMotorBlockEntity::new, BlockList.CREATIVE_ELECTRIC_MOTOR);
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<IronPipeBlockEntity>> IRON_PIPE = register("iron_pipe", IronPipeBlockEntity::new, BlockList.IRON_PIPE);
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WaterPumpBlockEntity>> WATER_PUMP = register("water_pump", WaterPumpBlockEntity::new, BlockList.WATER_PUMP);
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FluidTankBlockEntity>> FLUID_TANK = register("fluid_tank", FluidTankBlockEntity::new, BlockList.FLUID_TANK);
 
 	private BlockEntityTypeList() {
 	}

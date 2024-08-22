@@ -1,5 +1,6 @@
 package net.industrybase.api.pipe.unit;
 
+import net.industrybase.api.pipe.StorageInterface;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
@@ -11,16 +12,15 @@ import java.util.Iterator;
 import java.util.function.BiConsumer;
 
 public class FluidStorage implements IPipeUnit {
-	protected final int capacity;
+	protected final StorageInterface storageInterface;
 	protected final BlockPos core;
 	protected final AABB aabb; // TODO
 	protected final IPipeUnit[] neighbors = new IPipeUnit[6];
 	protected final double[] pressure = new double[6];
-	protected int amount;
 
-	public FluidStorage(BlockPos pos, int capacity) {
+	public FluidStorage(BlockPos pos, StorageInterface storageInterface) {
 		this.core = pos.immutable();
-		this.capacity = capacity;
+		this.storageInterface = storageInterface;
 		this.aabb = new AABB(pos);
 	}
 
@@ -52,22 +52,12 @@ public class FluidStorage implements IPipeUnit {
 
 	@Override
 	public int getAmount() {
-		return this.amount;
+		return this.storageInterface.getAmount();
 	}
 
 	@Override
 	public int addAmount(Direction direction, int amount, boolean simulate) {
-		int diff = this.getCapacity() - this.amount;
-
-		// check if amount over the range
-		if (amount > diff) {
-			amount = diff;
-		} else if (amount < 0 && -amount > this.amount) {
-			amount = -this.amount;
-		}
-
-		if (!simulate) this.amount += amount;
-		return amount;
+		return this.storageInterface.addAmount(amount, simulate);
 	}
 
 	@Override
@@ -91,7 +81,7 @@ public class FluidStorage implements IPipeUnit {
 
 	@Override
 	public int getCapacity() {
-		return this.capacity;
+		return this.storageInterface.getCapacity();
 	}
 
 	@Override

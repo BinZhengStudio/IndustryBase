@@ -259,15 +259,17 @@ public class StraightPipe implements IPipeUnit {
 	public IPipeUnit spilt(BlockPos pos, Direction direction) {
 		int axis = pos.get(this.axis);
 		if (axis == this.start && direction == this.negativeDirection) {
-			if (this.negative != null) this.negative.setNeighbor(direction.getOpposite(), null);
+			if (this.negative != null) this.negative.setNeighbor(this.positiveDirection, null);
+			this.negative = null;
 		} else if (axis == this.end && direction == this.positiveDirection) {
-			if (this.positive != null) this.positive.setNeighbor(direction.getOpposite(), null);
+			if (this.positive != null) this.positive.setNeighbor(this.negativeDirection, null);
+			this.positive = null;
 		} else if (axis >= this.start && axis <= this.end) {
 			StraightPipe unit;
 			if (direction == this.positiveDirection) {
 				unit = new StraightPipe(pos.relative(direction), axis + 1, this.end, this.axis);
 				if (this.positive != null) {
-					this.positive.setNeighbor(direction.getOpposite(), unit);
+					this.positive.setNeighbor(this.negativeDirection, unit);
 					unit.positive = this.positive;
 					this.positive = null;
 				}
@@ -275,7 +277,7 @@ public class StraightPipe implements IPipeUnit {
 			} else {
 				unit = new StraightPipe(pos.relative(direction), this.start, axis - 1, this.axis);
 				if (this.negative != null) {
-					this.negative.setNeighbor(direction.getOpposite(), unit);
+					this.negative.setNeighbor(this.positiveDirection, unit);
 					unit.negative = this.negative;
 					this.negative = null;
 				}

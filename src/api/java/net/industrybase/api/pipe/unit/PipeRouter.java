@@ -182,11 +182,14 @@ public class PipeRouter implements IPipeUnit {
 			StraightPipe pipe = StraightPipe.newInstance(this.core, direction.getAxis());
 
 			IPipeUnit neighbor = this.neighbors[direction.ordinal()];
-			IPipeUnit oppositeNeighbor = this.neighbors[direction.getOpposite().ordinal()];
 			pipe.setNeighbor(direction, neighbor);
 			neighbor.setNeighbor(direction.getOpposite(), pipe);
-			pipe.setNeighbor(direction.getOpposite(), oppositeNeighbor);
-			oppositeNeighbor.setNeighbor(direction, pipe);
+
+			IPipeUnit oppositeNeighbor = this.neighbors[direction.getOpposite().ordinal()];
+			if (oppositeNeighbor != null) {
+				pipe.setNeighbor(direction.getOpposite(), oppositeNeighbor);
+				oppositeNeighbor.setNeighbor(direction, pipe);
+			}
 
 			return pipe;
 		}

@@ -144,8 +144,8 @@ public class PipeNetwork {
 					}
 				} else {
 					if (secondaryUnit.getType() == UnitType.STRAIGHT_PIPE) {
-						IPipeUnit[] primaryCut = ((StraightPipe) secondaryUnit).toRouter(primary);
-						for (IPipeUnit unit : primaryCut) {
+						IPipeUnit[] secondaryCut = ((StraightPipe) secondaryUnit).toRouter(primary);
+						for (IPipeUnit unit : secondaryCut) {
 							unit.forEach(pos -> this.components.put(pos, unit));
 						}
 					}
@@ -157,7 +157,7 @@ public class PipeNetwork {
 			} else if (secondaryUnit == null) {
 				if (primaryUnit.canMergeWith(direction.getOpposite())) {
 					if (primaryUnit.isSingle()) {
-						StraightPipe unit = StraightPipe.newInstance(secondary, connectAxis);
+						StraightPipe unit = StraightPipe.newInstance(primary, connectAxis);
 						unit.addPipe(secondary);
 
 						IPipeUnit primaryNeighbor = primaryUnit.getNeighbor(direction);
@@ -177,7 +177,7 @@ public class PipeNetwork {
 							unit.forEach(pos -> this.components.put(pos, unit));
 						}
 					}
-					IPipeUnit unit = StraightPipe.newInstance(primary, connectAxis);
+					IPipeUnit unit = StraightPipe.newInstance(secondary, connectAxis);
 					this.components.get(primary).setNeighbor(direction.getOpposite(), unit);
 					unit.setNeighbor(direction, primaryUnit);
 					this.components.put(secondary, unit);

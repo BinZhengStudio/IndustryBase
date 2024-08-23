@@ -1,6 +1,7 @@
 package net.industrybase.api.pipe;
 
 import com.google.common.collect.ImmutableMap;
+import net.industrybase.api.tags.BlockTagList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;

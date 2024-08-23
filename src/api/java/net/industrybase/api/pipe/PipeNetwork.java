@@ -83,7 +83,7 @@ public class PipeNetwork {
 			if (blockEntity != null) {
 				Level level = blockEntity.getLevel();
 				if (level != null) {
-					return level.getCapability(Capabilities.FluidHandler.BLOCK, pos, null, blockEntity, side) instanceof PipeConnectedHandler;
+					return level.getCapability(Capabilities.FluidHandler.BLOCK, pos, null, blockEntity, side) != null;
 				}
 			}
 		}
@@ -93,8 +93,10 @@ public class PipeNetwork {
 	private boolean pipeConnected(BlockPos pos, Direction side) {
 		if (this.level.isAreaLoaded(pos, 0)) {
 			BlockState state = this.level.getBlockState(pos);
-			if (state.is(BlockTagList.PIPE)) {
-				return state.getValue(PipeBlock.PROPERTIES.get(side));
+			try {
+				return state.getValue(PipeBlock.PROPERTIES.get(side)); // TODO: different blocks
+			} catch (Exception e) {
+				return false;
 			}
 		}
 		return false;
@@ -141,9 +143,15 @@ public class PipeNetwork {
 						this.components.put(primary, secondaryUnit);
 					}
 				} else {
+					if (secondaryUnit.getType() == UnitType.STRAIGHT_PIPE) {
+						IPipeUnit[] primaryCut = ((StraightPipe) secondaryUnit).toRouter(primary);
+						for (IPipeUnit unit : primaryCut) {
+							unit.forEach(pos -> this.components.put(pos, unit));
+						}
+					}
 					StraightPipe unit = StraightPipe.newInstance(primary, connectAxis);
 					unit.setNeighbor(direction.getOpposite(), secondaryUnit);
-					secondaryUnit.setNeighbor(direction, unit);
+					this.components.get(secondary).setNeighbor(direction, unit);
 					this.components.put(primary, unit);
 				}
 			} else if (secondaryUnit == null) {
@@ -163,10 +171,16 @@ public class PipeNetwork {
 						this.components.put(secondary, primaryUnit);
 					}
 				} else {
+					if (primaryUnit.getType() == UnitType.STRAIGHT_PIPE) {
+						IPipeUnit[] primaryCut = ((StraightPipe) primaryUnit).toRouter(primary);
+						for (IPipeUnit unit : primaryCut) {
+							unit.forEach(pos -> this.components.put(pos, unit));
+						}
+					}
 					IPipeUnit unit = StraightPipe.newInstance(primary, connectAxis);
-					primaryUnit.setNeighbor(direction.getOpposite(), unit);
+					this.components.get(primary).setNeighbor(direction.getOpposite(), unit);
 					unit.setNeighbor(direction, primaryUnit);
-					this.components.put(primary, primaryUnit);
+					this.components.put(secondary, unit);
 				}
 			} else if (primaryUnit != secondaryUnit) {
 				boolean primaryCanMerge = primaryUnit.canMergeWith(direction.getOpposite());
@@ -312,7 +326,7 @@ public class PipeNetwork {
 		@SubscribeEvent
 		public static void onLevelTick(LevelTickEvent.Post event) {
 			if (!event.getLevel().isClientSide) {
-//				get(event.getLevel()).tickEnd();
+				get(event.getLevel()).serverTickEnd();
 			}
 		}
 	}

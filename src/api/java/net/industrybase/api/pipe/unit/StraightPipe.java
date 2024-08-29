@@ -352,10 +352,12 @@ public class StraightPipe implements IPipeUnit {
 	 */
 	@Override
 	public boolean canMergeWith(Direction direction) {
-		if (this.isSingle()) {
+		if (direction.getAxis() == this.axis) {
+			return true;
+		} else if (this.isSingle()) {
 			return this.negative == null && this.positive == null;
 		}
-		return direction.getAxis() == this.axis;
+		return false;
 	}
 
 	public boolean canMergeWith2(Direction direction, @Nullable IPipeUnit unit) {

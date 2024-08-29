@@ -9,14 +9,17 @@ import java.util.function.IntSupplier;
 public class StorageInterface {
 	private final IntSupplier getCapacity;
 	private final IntSupplier getAmount;
-	private final AmountConsumer addAmount;
+	private final FillConsumer fill;
+	private final DrainConsumer drain;
 
 	public StorageInterface(IntSupplier getCapacity,
 							IntSupplier getAmount,
-							AmountConsumer addAmount) {
+							FillConsumer fill,
+							DrainConsumer drain) {
 		this.getCapacity = getCapacity;
 		this.getAmount = getAmount;
-		this.addAmount = addAmount;
+		this.fill = fill;
+		this.drain = drain;
 	}
 
 	public int getCapacity() {
@@ -28,11 +31,22 @@ public class StorageInterface {
 	}
 
 	public int addAmount(int amount, boolean simulate) {
-		return this.addAmount.accept(new FluidStack(Fluids.WATER, amount), simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE);
+		if (amount > 0) {
+			return this.fill.accept(new FluidStack(Fluids.WATER, amount), simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE);
+		} else if (amount < 0) {
+			FluidStack stack = this.drain.accept(new FluidStack(Fluids.WATER, -amount), simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE);
+			return -stack.getAmount();
+		}
+		return 0;
 	}
 
 	@FunctionalInterface
-	public interface AmountConsumer {
+	public interface FillConsumer {
 		int accept(FluidStack resource, IFluidHandler.FluidAction action);
+	}
+
+	@FunctionalInterface
+	public interface DrainConsumer {
+		FluidStack accept(FluidStack resource, IFluidHandler.FluidAction action);
 	}
 }

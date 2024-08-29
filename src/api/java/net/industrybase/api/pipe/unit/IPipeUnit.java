@@ -25,7 +25,7 @@ public interface IPipeUnit extends Iterable<BlockPos> {
 
 		tasks.addLast(() -> {
 			int maxAmount = this.applySpeed(direction, speed, true);
-			int neighborMaxAmount = -neighbor.addAmount(neighborFace, -this.getAmount(), true);
+			int neighborMaxAmount = -neighbor.addAmount(neighborFace, -maxAmount, true);
 			int amount = speed > 0 ? Math.min(maxAmount, neighborMaxAmount) : Math.max(maxAmount, neighborMaxAmount);
 
 			this.addAmount(direction, amount, false);
@@ -91,6 +91,6 @@ public interface IPipeUnit extends Iterable<BlockPos> {
 		double square = PipeNetwork.square(direction.getAxis(), aabb, neighborAABB);
 
 		double pressureDiff = neighborPressure - pressure;
-		return pressureDiff / density * square * 1000.0D;
+		return (pressureDiff / density) * square * 50000.0D;
 	}
 }

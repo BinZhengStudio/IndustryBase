@@ -135,7 +135,7 @@ public class StraightPipe implements IPipeUnit {
 				if (tick > diff) tick = diff;
 				this.negativeTick += tick;
 			}
-			if (this.fullTick()) {
+			if (this.fullTick() || this.full()) {
 				double positiveNeighbor = 0.0D;
 				double negativeNeighbor = 0.0D;
 				if (this.positive != null) positiveNeighbor = this.positive.getPressure(this.negativeDirection);

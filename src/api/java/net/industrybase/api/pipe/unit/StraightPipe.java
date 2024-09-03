@@ -79,13 +79,23 @@ public class StraightPipe implements IPipeUnit {
 		if (pressure < 0.0D) pressure = 0.0D;
 		if (direction == this.positiveDirection) {
 			this.positivePressure = pressure;
-			if (this.positive != null)
+			if (this.positive != null) {
 				this.positive.onNeighborUpdatePressure(tasks, next, this, this.negativeDirection, pressure);
+			} else {
+				this.negativePressure = pressure;
+				if (this.negative != null)
+					this.negative.onNeighborUpdatePressure(tasks, next, this, this.positiveDirection, pressure);
+			}
 			return true;
 		} else if (direction == this.negativeDirection) {
 			this.negativePressure = pressure;
-			if (this.negative != null)
+			if (this.negative != null) {
 				this.negative.onNeighborUpdatePressure(tasks, next, this, this.positiveDirection, pressure);
+			} else {
+				this.positivePressure = pressure;
+				if (this.positive != null)
+					this.positive.onNeighborUpdatePressure(tasks, next, this, this.negativeDirection, pressure);
+			}
 			return true;
 		}
 		return false;
@@ -142,14 +152,26 @@ public class StraightPipe implements IPipeUnit {
 				if (this.negative != null) negativeNeighbor = this.negative.getPressure(this.positiveDirection);
 				double pressure;
 				if (positiveNeighbor > negativeNeighbor) {
-					pressure = (this.negativeTick <= 0.0D ? positiveNeighbor : negativeNeighbor);
-					this.negativeTick = 0.0D; // reset tick
+					if (this.negativeTick <= 0.0D) {
+						pressure = positiveNeighbor;
+						this.setPressure(next, tasks, this.negativeDirection, pressure);
+					} else {
+						pressure = negativeNeighbor;
+						this.negativeTick = 0.0D; // reset tick
+						this.setPressure(next, tasks, this.positiveDirection, pressure);
+						this.setPressure(next, tasks, this.negativeDirection, pressure);
+					}
 				} else {
-					pressure = (this.positiveTick <= 0.0D ? negativeNeighbor : positiveNeighbor);
-					this.positiveTick = 0.0D;
+					if (this.positiveTick <= 0.0D) {
+						pressure = negativeNeighbor;
+						this.setPressure(next, tasks, this.positiveDirection, pressure);
+					} else {
+						pressure = positiveNeighbor;
+						this.positiveTick = 0.0D;
+						this.setPressure(next, tasks, this.positiveDirection, pressure);
+						this.setPressure(next, tasks, this.negativeDirection, pressure);
+					}
 				}
-				this.setPressure(next, tasks, this.positiveDirection, pressure);
-				this.setPressure(next, tasks, this.negativeDirection, pressure);
 			}
 		} else {
 			// TODO

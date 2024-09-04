@@ -61,6 +61,6 @@ public class FluidTankBlock extends BaseEntityBlock {
 
 	@Override
 	protected RenderShape getRenderShape(BlockState pState) {
-		return RenderShape.ENTITYBLOCK_ANIMATED;
+		return RenderShape.MODEL;
 	}
 }

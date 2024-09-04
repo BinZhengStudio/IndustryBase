@@ -26,6 +26,9 @@
   "block.industrybase.axis_connector": "Axis Connector",
   "block.industrybase.electric_motor": "Electric Motor",
   "block.industrybase.creative_electric_motor": "Creative Electric Motor",
+  "block.industrybase.iron_pipe": "Iron Pipe",
+  "block.industrybase.water_pump": "Water Pump",
+  "block.industrybase.fluid_tank": "Fluid Tank",
 
   "container.industrybase.steam_engine": "Mini Steam Engine",
   "container.industrybase.creative_steam_engine": "Creative Mini Steam Engine",

@@ -26,6 +26,9 @@
   "block.industrybase.axis_connector": "軸連器",
   "block.industrybase.electric_motor": "電機",
   "block.industrybase.creative_electric_motor": "創造電機",
+  "block.industrybase.iron_pipe": "鐵管道",
+  "block.industrybase.water_pump": "水泵",
+  "block.industrybase.fluid_tank": "流體儲罐",
 
   "container.industrybase.steam_engine": "小型蒸汽機",
   "container.industrybase.creative_steam_engine": "創造小型蒸汽機",

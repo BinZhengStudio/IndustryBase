@@ -7,6 +7,9 @@
     "industrybase:steam_engine",
     "industrybase:axis_connector",
     "industrybase:wire_connector",
-    "industrybase:electric_motor"
+    "industrybase:electric_motor",
+    "industrybase:iron_pipe",
+    "industrybase:water_pump",
+    "industrybase:fluid_tank"
   ]
 }

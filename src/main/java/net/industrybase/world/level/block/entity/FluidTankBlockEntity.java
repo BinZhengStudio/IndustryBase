@@ -12,7 +12,7 @@ import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 public class FluidTankBlockEntity extends BlockEntity {
-	public static final int CAPACITY = 10000;
+	public static final int CAPACITY = 8000;
 	private int waterAmount;
 	private final PipeConnectedHandler handler = new PipeConnectedHandler(this);
 	private final FluidTank tank = new FluidTank(CAPACITY, fluidStack -> fluidStack.is(NeoForgeMod.WATER_TYPE.value())) {

@@ -37,12 +37,12 @@ public class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlockEnti
 		poseStack.translate(-pos.getX(), -pos.getY(), -pos.getZ());
 		Matrix4f matrix4f = poseStack.last().pose();
 
-		float minX = (float) box.minX;
-		float minY = (float) box.minY;
-		float minZ = (float) box.minZ;
-		float maxX = (float) box.maxX;
-		float maxY = (float) box.minY + waterAmount;
-		float maxZ = (float) box.maxZ;
+		float minX = (float) box.minX + 0.0001F;
+		float minY = (float) box.minY + 0.0001F;
+		float minZ = (float) box.minZ + 0.0001F;
+		float maxX = (float) box.maxX - 0.0001F;
+		float maxY = (float) box.minY + waterAmount - 0.0001F;
+		float maxZ = (float) box.maxZ - 0.0001F;
 
 		FlowingFluid fluid = Fluids.WATER;
 		TextureAtlasSprite[] sprites = FluidSpriteCache.getFluidSprites(blockEntity.getLevel(), pos, fluid.defaultFluidState());

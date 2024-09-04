@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+	"#": {
+	  "item": "minecraft:iron_ingot"
+	}
+  },
+  "pattern": [
+	"###",
+	"   ",
+	"###"
+  ],
+  "result": {
+	"id": "industrybase:iron_pipe",
+	"count": 6
+  }
+}

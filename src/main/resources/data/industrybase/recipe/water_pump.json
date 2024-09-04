@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "key": {
+	"#": {
+	  "item": "minecraft:command_block"
+	}
+  },
+  "pattern": [
+	"   ",
+	" # ",
+	"   "
+  ],
+  "result": {
+	"id": "industrybase:water_pump"
+  }
+}

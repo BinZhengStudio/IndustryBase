@@ -2,7 +2,6 @@ package net.industrybase.world.level.block;
 
 import com.mojang.serialization.MapCodec;
 import net.industrybase.world.level.block.entity.FluidTankBlockEntity;
-import net.industrybase.world.level.block.entity.SteamEngineBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.ItemInteractionResult;
@@ -32,20 +31,16 @@ public class FluidTankBlock extends BaseEntityBlock {
 
 	@Override
 	public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
-		if (level.isClientSide) {
-			return ItemInteractionResult.SUCCESS;
-		} else {
-			if (stack.is(Items.WATER_BUCKET)) {
-				BlockEntity blockEntity = level.getBlockEntity(pos);
-				IFluidHandler tank = level.getCapability(Capabilities.FluidHandler.BLOCK, pos, state, blockEntity, hitResult.getDirection());
-				if (tank != null) {
-					tank.fill(new FluidStack(Fluids.WATER, FluidType.BUCKET_VOLUME), IFluidHandler.FluidAction.EXECUTE);
-					if (!player.getAbilities().instabuild) player.setItemInHand(hand, new ItemStack(Items.BUCKET));
-				}
-				return ItemInteractionResult.CONSUME;
+		if (stack.is(Items.WATER_BUCKET)) {
+			BlockEntity blockEntity = level.getBlockEntity(pos);
+			IFluidHandler tank = level.getCapability(Capabilities.FluidHandler.BLOCK, pos, state, blockEntity, hitResult.getDirection());
+			if (tank != null) {
+				tank.fill(new FluidStack(Fluids.WATER, FluidType.BUCKET_VOLUME), IFluidHandler.FluidAction.EXECUTE);
+				if (!player.getAbilities().instabuild) player.setItemInHand(hand, new ItemStack(Items.BUCKET));
 			}
-			return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+			return ItemInteractionResult.sidedSuccess(level.isClientSide);
 		}
+		return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
 	}
 
 	@Override

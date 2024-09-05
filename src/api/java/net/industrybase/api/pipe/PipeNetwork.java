@@ -3,7 +3,6 @@ package net.industrybase.api.pipe;
 import com.google.common.collect.HashMultimap;
 import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.api.pipe.unit.*;
-import net.industrybase.api.tags.BlockTagList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -290,13 +289,13 @@ public class PipeNetwork {
 		};
 	}
 
-	private void serverTickStart() {
+	private void tickConnectTasks() {
 		for (Runnable runnable = this.tasks.pollFirst(); runnable != null; runnable = this.tasks.poll()) {
 			runnable.run();
 		}
 	}
 
-	private void serverTickEnd() {
+	private void tickFluidTasks() {
 		ArrayDeque<Runnable> tasks = this.fluidTasks;
 		this.fluidTasks = this.nextFluidTasks;
 		this.nextFluidTasks = tasks;
@@ -321,14 +320,9 @@ public class PipeNetwork {
 		@SubscribeEvent
 		public static void onLevelTick(LevelTickEvent.Pre event) {
 			if (!event.getLevel().isClientSide) {
-				get(event.getLevel()).serverTickStart();
-			}
-		}
-
-		@SubscribeEvent
-		public static void onLevelTick(LevelTickEvent.Post event) {
-			if (!event.getLevel().isClientSide) {
-				get(event.getLevel()).serverTickEnd();
+				PipeNetwork network = get(event.getLevel());
+				network.tickConnectTasks();
+				network.tickFluidTasks();
 			}
 		}
 	}

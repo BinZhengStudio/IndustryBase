@@ -22,7 +22,7 @@ public class StraightPipeY extends StraightPipe {
 	}
 
 	@Override
-	public void addTick(ArrayDeque<Runnable> tasks, ArrayDeque<Runnable> next, Direction direction, double tick) {
+	public void addTick(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double tick) {
 		if (tick > 0.0D) {
 			if (direction == Direction.UP) {
 				double diff = this.getMaxTick() - this.positiveTick;

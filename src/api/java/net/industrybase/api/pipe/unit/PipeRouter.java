@@ -11,21 +11,21 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.function.BiConsumer;
 
-public class PipeRouter implements IPipeUnit {
-	private final BlockPos core;
+public class PipeRouter extends PipeUnit {
 	private final AABB aabb; // TODO
-	private final IPipeUnit[] neighbors = new IPipeUnit[6];
+	private final PipeUnit[] neighbors = new PipeUnit[6];
 	private final double[] pressure = new double[6];
 	private final double[] ticks = new double[6];
+	private final Runnable[] tasks = new Runnable[6];
 	private double totalTick;
 	private int amount;
 	private int nonUpAmount;
 	private int horizontalNeighborSize;
 
-	public PipeRouter(BlockPos pos) {
-		this.core = pos.immutable();
-		this.aabb = new AABB(pos.getX() + 0.3125D, pos.getY() + 0.3125D, pos.getZ() + 0.3125D,
-				pos.getX() + 0.6875D, pos.getY() + 0.6875D, pos.getZ() + 0.6875D);
+	public PipeRouter(BlockPos core) {
+		super(core);
+		this.aabb = new AABB(core.getX() + 0.3125D, core.getY() + 0.3125D, core.getZ() + 0.3125D,
+				core.getX() + 0.6875D, core.getY() + 0.6875D, core.getZ() + 0.6875D);
 	}
 
 	@Override
@@ -44,15 +44,16 @@ public class PipeRouter implements IPipeUnit {
 	}
 
 	@Override
-	public void setPressure(ArrayDeque<Runnable> tasks, ArrayDeque<Runnable> next, Direction direction, double newPressure) {
-		tasks.addLast(() -> {
-			int index = direction.ordinal();
+	public void setPressure(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double newPressure) {
+		int index = direction.ordinal();
+		this.tasks[index] = () -> {
 			double pressure = Math.max(newPressure, 0.0D);
 			this.pressure[index] = pressure;
-			IPipeUnit neighbor = this.neighbors[index];
+			PipeUnit neighbor = this.neighbors[index];
 			if (neighbor != null)
 				neighbor.onNeighborUpdatePressure(tasks, next, this, direction.getOpposite(), pressure);
-		});
+		};
+		tasks.addLast(this);
 	}
 
 	@Override
@@ -95,7 +96,7 @@ public class PipeRouter implements IPipeUnit {
 	}
 
 	@Override
-	public void addTick(ArrayDeque<Runnable> tasks, ArrayDeque<Runnable> next, Direction direction, double tick) {
+	public void addTick(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double tick) {
 		if (tick > 0.0D) {
 			int index = direction.ordinal();
 			double diff = this.getMaxTick() - this.ticks[index];
@@ -108,7 +109,7 @@ public class PipeRouter implements IPipeUnit {
 				double minPressure = Double.MAX_VALUE;
 				ArrayList<Direction> minDirections = new ArrayList<>(6);
 				for (Direction value : Direction.values()) {
-					IPipeUnit neighbor = this.neighbors[value.ordinal()];
+					PipeUnit neighbor = this.neighbors[value.ordinal()];
 					if (neighbor != null) {
 						double pressure = neighbor.getPressure(direction.getOpposite());
 						if (pressure < minPressure) {
@@ -126,7 +127,7 @@ public class PipeRouter implements IPipeUnit {
 				for (Direction value : Direction.values()) {
 					if (value != Direction.UP) {
 						this.setPressure(next, tasks, value, minPressure);
-						IPipeUnit neighbor = this.neighbors[value.ordinal()];
+						PipeUnit neighbor = this.neighbors[value.ordinal()];
 						nonUpPressure += neighbor == null ? 0.0D : neighbor.getPressure(value.getOpposite());
 					}
 				}
@@ -166,7 +167,7 @@ public class PipeRouter implements IPipeUnit {
 		throw new UnsupportedOperationException();
 	}
 
-	public IPipeUnit toStraightPipe() {
+	public PipeUnit toStraightPipe() {
 		Direction direction = null;
 		boolean flag = false;
 		for (Direction value : Direction.values()) {
@@ -182,11 +183,11 @@ public class PipeRouter implements IPipeUnit {
 		if (direction != null) {
 			StraightPipe pipe = StraightPipe.newInstance(this.core, direction.getAxis());
 
-			IPipeUnit neighbor = this.neighbors[direction.ordinal()];
+			PipeUnit neighbor = this.neighbors[direction.ordinal()];
 			pipe.setNeighbor(direction, neighbor);
 			neighbor.setNeighbor(direction.getOpposite(), pipe);
 
-			IPipeUnit oppositeNeighbor = this.neighbors[direction.getOpposite().ordinal()];
+			PipeUnit oppositeNeighbor = this.neighbors[direction.getOpposite().ordinal()];
 			if (oppositeNeighbor != null) {
 				pipe.setNeighbor(direction.getOpposite(), oppositeNeighbor);
 				oppositeNeighbor.setNeighbor(direction, pipe);
@@ -198,8 +199,8 @@ public class PipeRouter implements IPipeUnit {
 	}
 
 	@Override
-	public IPipeUnit spilt(BlockPos pos, Direction direction) {
-		IPipeUnit neighbor = this.neighbors[direction.ordinal()];
+	public PipeUnit spilt(BlockPos pos, Direction direction) {
+		PipeUnit neighbor = this.neighbors[direction.ordinal()];
 		if (neighbor != null) {
 			neighbor.setNeighbor(direction.getOpposite(), null);
 			this.setNeighbor(direction, null);
@@ -213,19 +214,14 @@ public class PipeRouter implements IPipeUnit {
 	}
 
 	@Override
-	public BlockPos getCore() {
-		return this.core;
-	}
-
-	@Override
-	public IPipeUnit getNeighbor(Direction direction) {
+	public PipeUnit getNeighbor(Direction direction) {
 		return this.neighbors[direction.ordinal()];
 	}
 
 	@Override
-	public IPipeUnit setNeighbor(Direction direction, @Nullable IPipeUnit neighbor) {
+	public PipeUnit setNeighbor(Direction direction, @Nullable PipeUnit neighbor) {
 		int index = direction.ordinal();
-		IPipeUnit old = this.neighbors[index];
+		PipeUnit old = this.neighbors[index];
 		this.neighbors[index] = neighbor;
 		if (old != neighbor && direction.getAxis().isHorizontal()) {
 			if (old == null) this.horizontalNeighborSize++;
@@ -235,10 +231,17 @@ public class PipeRouter implements IPipeUnit {
 	}
 
 	@Override
-	public void forEachNeighbor(BiConsumer<? super Direction, ? super IPipeUnit> action) {
+	public void forEachNeighbor(BiConsumer<? super Direction, ? super PipeUnit> action) {
 		for (Direction direction : Direction.values()) {
-			IPipeUnit unit = this.neighbors[direction.ordinal()];
+			PipeUnit unit = this.neighbors[direction.ordinal()];
 			if (unit != null) action.accept(direction, unit);
+		}
+	}
+
+	@Override
+	public void tickTasks() {
+		for (Runnable task : this.tasks) {
+			if (task != null) task.run();
 		}
 	}
 

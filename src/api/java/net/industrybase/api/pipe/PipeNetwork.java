@@ -19,11 +19,11 @@ import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import java.util.*;
 
 public class PipeNetwork {
-	private final HashMap<BlockPos, IPipeUnit> components = new HashMap<>();
+	private final HashMap<BlockPos, PipeUnit> components = new HashMap<>();
 	private final HashMultimap<BlockPos, Direction> connections = HashMultimap.create();
 	private final ArrayDeque<Runnable> tasks = new ArrayDeque<>();
-	private ArrayDeque<Runnable> fluidTasks = new ArrayDeque<>();
-	private ArrayDeque<Runnable> nextFluidTasks = new ArrayDeque<>();
+	private ArrayDeque<PipeUnit> fluidTasks = new ArrayDeque<>();
+	private ArrayDeque<PipeUnit> nextFluidTasks = new ArrayDeque<>();
 	private final LevelAccessor level;
 
 	public PipeNetwork(LevelAccessor level) {
@@ -31,7 +31,7 @@ public class PipeNetwork {
 	}
 
 	public void setPressure(BlockPos pos, Direction direction, double pressure) {
-		IPipeUnit unit = this.components.get(pos);
+		PipeUnit unit = this.components.get(pos);
 		if (unit != null) {
 			unit.setPressure(this.fluidTasks, this.nextFluidTasks, direction, pressure);
 		}
@@ -117,8 +117,8 @@ public class PipeNetwork {
 		if (this.connections.put(secondary, direction)) {
 			BlockPos primary = secondary.relative(direction);
 			this.connections.put(primary, direction.getOpposite());
-			IPipeUnit primaryUnit = this.components.get(primary);
-			IPipeUnit secondaryUnit = this.components.get(secondary);
+			PipeUnit primaryUnit = this.components.get(primary);
+			PipeUnit secondaryUnit = this.components.get(secondary);
 
 			if (primaryUnit == null && secondaryUnit == null) {
 				StraightPipe unit = StraightPipe.newInstance(secondary, connectAxis);
@@ -131,7 +131,7 @@ public class PipeNetwork {
 						StraightPipe unit = StraightPipe.newInstance(secondary, connectAxis);
 						unit.addPipe(primary);
 
-						IPipeUnit secondaryNeighbor = secondaryUnit.getNeighbor(direction.getOpposite());
+						PipeUnit secondaryNeighbor = secondaryUnit.getNeighbor(direction.getOpposite());
 						if (secondaryNeighbor != null) secondaryNeighbor.setNeighbor(direction, unit);
 						unit.setNeighbor(direction.getOpposite(), secondaryNeighbor);
 
@@ -143,13 +143,13 @@ public class PipeNetwork {
 					}
 				} else {
 					if (secondaryUnit.getType() == UnitType.STRAIGHT_PIPE) {
-						IPipeUnit[] secondaryCut = ((StraightPipe) secondaryUnit).toRouter(primary);
-						for (IPipeUnit unit : secondaryCut) {
+						PipeUnit[] secondaryCut = ((StraightPipe) secondaryUnit).toRouter(primary);
+						for (PipeUnit unit : secondaryCut) {
 							unit.forEach(pos -> this.components.put(pos, unit));
 						}
 					}
-					IPipeUnit newSecondaryUnit = this.components.get(secondary);
-					IPipeUnit newPrimaryUnit = StraightPipe.newInstance(primary, connectAxis);
+					PipeUnit newSecondaryUnit = this.components.get(secondary);
+					PipeUnit newPrimaryUnit = StraightPipe.newInstance(primary, connectAxis);
 					newPrimaryUnit.setNeighbor(direction.getOpposite(), newSecondaryUnit);
 					newSecondaryUnit.setNeighbor(direction, newPrimaryUnit);
 					this.components.put(primary, newPrimaryUnit);
@@ -160,7 +160,7 @@ public class PipeNetwork {
 						StraightPipe unit = StraightPipe.newInstance(primary, connectAxis);
 						unit.addPipe(secondary);
 
-						IPipeUnit primaryNeighbor = primaryUnit.getNeighbor(direction);
+						PipeUnit primaryNeighbor = primaryUnit.getNeighbor(direction);
 						if (primaryNeighbor != null) primaryNeighbor.setNeighbor(direction.getOpposite(), unit);
 						unit.setNeighbor(direction, primaryNeighbor);
 
@@ -172,13 +172,13 @@ public class PipeNetwork {
 					}
 				} else {
 					if (primaryUnit.getType() == UnitType.STRAIGHT_PIPE) {
-						IPipeUnit[] primaryCut = ((StraightPipe) primaryUnit).toRouter(primary);
-						for (IPipeUnit unit : primaryCut) {
+						PipeUnit[] primaryCut = ((StraightPipe) primaryUnit).toRouter(primary);
+						for (PipeUnit unit : primaryCut) {
 							unit.forEach(pos -> this.components.put(pos, unit));
 						}
 					}
-					IPipeUnit newPrimaryUnit = this.components.get(primary);
-					IPipeUnit newSecondaryUnit = StraightPipe.newInstance(secondary, connectAxis);
+					PipeUnit newPrimaryUnit = this.components.get(primary);
+					PipeUnit newSecondaryUnit = StraightPipe.newInstance(secondary, connectAxis);
 					newPrimaryUnit.setNeighbor(direction.getOpposite(), newSecondaryUnit);
 					newSecondaryUnit.setNeighbor(direction, newPrimaryUnit);
 					this.components.put(secondary, newSecondaryUnit);
@@ -188,28 +188,28 @@ public class PipeNetwork {
 				boolean secondaryCanMerge = secondaryUnit.canMergeWith(direction);
 				if (primaryCanMerge && secondaryCanMerge) {
 					if (!primaryUnit.isSingle()) {
-						IPipeUnit unit = ((StraightPipe) primaryUnit).merge(direction.getOpposite(), secondaryUnit);
+						PipeUnit unit = ((StraightPipe) primaryUnit).merge(direction.getOpposite(), secondaryUnit);
 						unit.forEach(pos -> this.components.put(pos, primaryUnit));
 
-						IPipeUnit secondaryNeighbor = secondaryUnit.getNeighbor(direction.getOpposite());
+						PipeUnit secondaryNeighbor = secondaryUnit.getNeighbor(direction.getOpposite());
 						if (secondaryNeighbor != null) secondaryNeighbor.setNeighbor(direction, primaryUnit);
 						primaryUnit.setNeighbor(direction.getOpposite(), secondaryNeighbor);
 					} else if (!secondaryUnit.isSingle()) {
-						IPipeUnit unit = ((StraightPipe) secondaryUnit).merge(direction, primaryUnit);
+						PipeUnit unit = ((StraightPipe) secondaryUnit).merge(direction, primaryUnit);
 						unit.forEach(pos -> this.components.put(pos, secondaryUnit));
 
-						IPipeUnit primaryNeighbor = primaryUnit.getNeighbor(direction);
+						PipeUnit primaryNeighbor = primaryUnit.getNeighbor(direction);
 						if (primaryNeighbor != null) primaryNeighbor.setNeighbor(direction.getOpposite(), secondaryUnit);
 						secondaryUnit.setNeighbor(direction, primaryNeighbor);
 					} else {
 						StraightPipe unit = StraightPipe.newInstance(secondary, connectAxis);
 						unit.addPipe(secondary);
 
-						IPipeUnit primaryNeighbor = primaryUnit.getNeighbor(direction);
+						PipeUnit primaryNeighbor = primaryUnit.getNeighbor(direction);
 						if (primaryNeighbor != null) primaryNeighbor.setNeighbor(direction.getOpposite(), unit);
 						unit.setNeighbor(direction, primaryNeighbor);
 
-						IPipeUnit secondaryNeighbor = secondaryUnit.getNeighbor(direction.getOpposite());
+						PipeUnit secondaryNeighbor = secondaryUnit.getNeighbor(direction.getOpposite());
 						if (secondaryNeighbor != null) secondaryNeighbor.setNeighbor(direction, unit);
 						unit.setNeighbor(direction.getOpposite(), secondaryNeighbor);
 
@@ -219,28 +219,28 @@ public class PipeNetwork {
 				} else {
 					if (connectAxis == primaryUnit.getAxis()) {
 						if (secondaryUnit.getType() == UnitType.STRAIGHT_PIPE) {
-							IPipeUnit[] secondaryCut = ((StraightPipe) secondaryUnit).toRouter(secondary);
-							for (IPipeUnit unit : secondaryCut) {
+							PipeUnit[] secondaryCut = ((StraightPipe) secondaryUnit).toRouter(secondary);
+							for (PipeUnit unit : secondaryCut) {
 								unit.forEach((pos) -> this.components.put(pos, unit));
 							}
 						}
 					} else if (connectAxis == secondaryUnit.getAxis()) {
 						if (primaryUnit.getType() == UnitType.STRAIGHT_PIPE) {
-							IPipeUnit[] primaryCut = ((StraightPipe) primaryUnit).toRouter(primary);
-							for (IPipeUnit unit : primaryCut) {
+							PipeUnit[] primaryCut = ((StraightPipe) primaryUnit).toRouter(primary);
+							for (PipeUnit unit : primaryCut) {
 								unit.forEach((pos) -> this.components.put(pos, unit));
 							}
 						}
 					} else {
 						if (primaryUnit.getType() == UnitType.STRAIGHT_PIPE) {
-							IPipeUnit[] primaryCut = ((StraightPipe) primaryUnit).toRouter(primary);
-							for (IPipeUnit unit : primaryCut) {
+							PipeUnit[] primaryCut = ((StraightPipe) primaryUnit).toRouter(primary);
+							for (PipeUnit unit : primaryCut) {
 								unit.forEach((pos) -> this.components.put(pos, unit));
 							}
 						}
 						if (secondaryUnit.getType() == UnitType.STRAIGHT_PIPE) {
-							IPipeUnit[] secondaryCut = ((StraightPipe) secondaryUnit).toRouter(secondary);
-							for (IPipeUnit unit : secondaryCut) {
+							PipeUnit[] secondaryCut = ((StraightPipe) secondaryUnit).toRouter(secondary);
+							for (PipeUnit unit : secondaryCut) {
 								unit.forEach((pos) -> this.components.put(pos, unit));
 							}
 						}
@@ -258,17 +258,17 @@ public class PipeNetwork {
 			BlockPos another = node.relative(direction);
 			this.connections.remove(another, direction.getOpposite());
 
-			IPipeUnit primaryUnit = this.components.get(node);
-			IPipeUnit secondaryUnit = this.components.get(another);
+			PipeUnit primaryUnit = this.components.get(node);
+			PipeUnit secondaryUnit = this.components.get(another);
 
-			IPipeUnit unit = primaryUnit.spilt(node, direction);
+			PipeUnit unit = primaryUnit.spilt(node, direction);
 			unit.forEach((pos) -> this.components.put(pos, unit));
 			if (primaryUnit.getType() == UnitType.ROUTER) {
-				IPipeUnit straight = ((PipeRouter) primaryUnit).toStraightPipe();
+				PipeUnit straight = ((PipeRouter) primaryUnit).toStraightPipe();
 				straight.forEach((pos) -> this.components.put(pos, straight)); // prevent empty unit
 			}
 			if (secondaryUnit.getType() == UnitType.ROUTER) {
-				IPipeUnit straight = ((PipeRouter) secondaryUnit).toStraightPipe();
+				PipeUnit straight = ((PipeRouter) secondaryUnit).toStraightPipe();
 				straight.forEach((pos) -> this.components.put(pos, straight));
 			}
 			// TODO: merge
@@ -296,11 +296,23 @@ public class PipeNetwork {
 	}
 
 	private void tickFluidTasks() {
-		ArrayDeque<Runnable> tasks = this.fluidTasks;
+		ArrayDeque<PipeUnit> tasks = this.fluidTasks;
 		this.fluidTasks = this.nextFluidTasks;
 		this.nextFluidTasks = tasks;
-		for (Runnable runnable = this.nextFluidTasks.pollFirst(); runnable != null; runnable = this.nextFluidTasks.pollFirst()) {
-			runnable.run();
+
+		int size = tasks.size();
+		PipeUnit[] units = new PipeUnit[size];
+		for (int i = 0; i < size; i++) {
+			PipeUnit unit = this.nextFluidTasks.pollFirst();
+			if (unit == null) break;
+			units[i] = unit;
+			unit.unsetTicked();
+		}
+		for (PipeUnit unit : units) {
+			if (!unit.ticked()) {
+				unit.tickTasks();
+				unit.setTicked();
+			}
 		}
 	}
 

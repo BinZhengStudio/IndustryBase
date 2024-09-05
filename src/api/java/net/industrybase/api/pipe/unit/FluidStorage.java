@@ -11,17 +11,17 @@ import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.function.BiConsumer;
 
-public class FluidStorage implements IPipeUnit {
+public class FluidStorage extends PipeUnit {
 	protected final StorageInterface storageInterface;
-	protected final BlockPos core;
 	protected final AABB aabb; // TODO
-	protected final IPipeUnit[] neighbors = new IPipeUnit[6];
+	protected final PipeUnit[] neighbors = new PipeUnit[6];
+	private final Runnable[] tasks = new Runnable[6];
 	protected final double[] pressure = new double[6];
 
-	public FluidStorage(BlockPos pos, StorageInterface storageInterface) {
-		this.core = pos.immutable();
+	public FluidStorage(BlockPos core, StorageInterface storageInterface) {
+		super(core);
 		this.storageInterface = storageInterface;
-		this.aabb = new AABB(pos);
+		this.aabb = new AABB(core);
 	}
 
 	@Override
@@ -40,15 +40,16 @@ public class FluidStorage implements IPipeUnit {
 	}
 
 	@Override
-	public void setPressure(ArrayDeque<Runnable> tasks, ArrayDeque<Runnable> next, Direction direction, double newPressure) {
-		tasks.addLast(() -> {
-			int index = direction.ordinal();
+	public void setPressure(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double newPressure) {
+		int index = direction.ordinal();
+		this.tasks[index] = () -> {
 			double pressure = Math.max(newPressure, 0.0D);
 			this.pressure[index] = pressure;
-			IPipeUnit neighbor = this.neighbors[index];
+			PipeUnit neighbor = this.neighbors[index];
 			if (neighbor != null)
 				neighbor.onNeighborUpdatePressure(tasks, next, this, direction.getOpposite(), pressure);
-		});
+		};
+		tasks.addLast(this);
 	}
 
 	@Override
@@ -72,7 +73,7 @@ public class FluidStorage implements IPipeUnit {
 	}
 
 	@Override
-	public void addTick(ArrayDeque<Runnable> tasks, ArrayDeque<Runnable> next, Direction direction, double tick) {
+	public void addTick(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double tick) {
 	}
 
 	@Override
@@ -91,8 +92,8 @@ public class FluidStorage implements IPipeUnit {
 	}
 
 	@Override
-	public IPipeUnit spilt(BlockPos pos, Direction direction) {
-		IPipeUnit neighbor = this.neighbors[direction.ordinal()];
+	public PipeUnit spilt(BlockPos pos, Direction direction) {
+		PipeUnit neighbor = this.neighbors[direction.ordinal()];
 		if (neighbor != null) {
 			neighbor.setNeighbor(direction.getOpposite(), null);
 			this.setNeighbor(direction, null);
@@ -105,30 +106,32 @@ public class FluidStorage implements IPipeUnit {
 		return null;
 	}
 
-	@Override
-	public BlockPos getCore() {
-		return this.core;
-	}
-
 	@Nullable
 	@Override
-	public IPipeUnit getNeighbor(Direction direction) {
+	public PipeUnit getNeighbor(Direction direction) {
 		return this.neighbors[direction.ordinal()];
 	}
 
 	@Override
-	public IPipeUnit setNeighbor(Direction direction, @Nullable IPipeUnit neighbor) {
+	public PipeUnit setNeighbor(Direction direction, @Nullable PipeUnit neighbor) {
 		int index = direction.ordinal();
-		IPipeUnit old = this.neighbors[index];
+		PipeUnit old = this.neighbors[index];
 		this.neighbors[index] = neighbor;
 		return old;
 	}
 
 	@Override
-	public void forEachNeighbor(BiConsumer<? super Direction, ? super IPipeUnit> action) {
+	public void forEachNeighbor(BiConsumer<? super Direction, ? super PipeUnit> action) {
 		for (Direction direction : Direction.values()) {
-			IPipeUnit unit = this.neighbors[direction.ordinal()];
+			PipeUnit unit = this.neighbors[direction.ordinal()];
 			if (unit != null) action.accept(direction, unit);
+		}
+	}
+
+	@Override
+	public void tickTasks() {
+		for (Runnable task : this.tasks) {
+			if (task != null) task.run();
 		}
 	}
 

@@ -11,9 +11,8 @@ import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.function.BiConsumer;
 
-public class StraightPipe implements IPipeUnit {
+public class StraightPipe extends PipeUnit {
 	protected final Direction.Axis axis;
-	protected final BlockPos core;
 	protected final AABB aabb; // TODO
 	protected final Direction positiveDirection;
 	protected final Direction negativeDirection;
@@ -23,21 +22,23 @@ public class StraightPipe implements IPipeUnit {
 	private double negativePressure;
 	protected double positiveTick;
 	protected double negativeTick;
+	private Runnable positiveTask;
+	private Runnable negativeTask;
 	protected int amount;
 	@Nullable
-	protected IPipeUnit positive;
+	protected PipeUnit positive;
 	@Nullable
-	protected IPipeUnit negative;
+	protected PipeUnit negative;
 
 	protected StraightPipe(BlockPos pos, Direction.Axis axis) {
 		this(pos, pos.get(axis), pos.get(axis), axis);
 	}
 
-	protected StraightPipe(BlockPos pos, int start, int end, Direction.Axis axis) {
-		this.core = pos.immutable();
+	protected StraightPipe(BlockPos core, int start, int end, Direction.Axis axis) {
+		super(core);
 		this.axis = axis;
-		this.aabb = new AABB(pos.getX() + 0.3125D, pos.getY() + 0.3125D, pos.getZ() + 0.3125D,
-				pos.getX() + 0.6875D, pos.getY() + 0.6875D, pos.getZ() + 0.6875D);
+		this.aabb = new AABB(core.getX() + 0.3125D, core.getY() + 0.3125D, core.getZ() + 0.3125D,
+				core.getX() + 0.6875D, core.getY() + 0.6875D, core.getZ() + 0.6875D);
 		this.positiveDirection = Direction.fromAxisAndDirection(axis, Direction.AxisDirection.POSITIVE);
 		this.negativeDirection = Direction.fromAxisAndDirection(axis, Direction.AxisDirection.NEGATIVE);
 		if (start <= end) {
@@ -75,10 +76,10 @@ public class StraightPipe implements IPipeUnit {
 	}
 
 	@Override
-	public void setPressure(ArrayDeque<Runnable> tasks, ArrayDeque<Runnable> next, Direction direction, double newPressure) {
-		tasks.addLast(() -> {
+	public void setPressure(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double newPressure) {
+		if (direction == this.positiveDirection) {
 			double pressure = Math.max(newPressure, 0.0D);
-			if (direction == this.positiveDirection) {
+			this.positiveTask = () -> {
 				this.positivePressure = pressure;
 				if (this.positive != null) { // if positive side is closed
 					this.positive.onNeighborUpdatePressure(tasks, next, this, this.negativeDirection, pressure);
@@ -87,7 +88,11 @@ public class StraightPipe implements IPipeUnit {
 					if (this.negative != null)
 						this.negative.onNeighborUpdatePressure(tasks, next, this, this.positiveDirection, pressure);
 				}
-			} else if (direction == this.negativeDirection) {
+			};
+			tasks.addLast(this);
+		} else if (direction == this.negativeDirection) {
+			double pressure = Math.max(newPressure, 0.0D);
+			this.negativeTask = () -> {
 				this.negativePressure = pressure;
 				if (this.negative != null) {
 					this.negative.onNeighborUpdatePressure(tasks, next, this, this.positiveDirection, pressure);
@@ -96,8 +101,9 @@ public class StraightPipe implements IPipeUnit {
 					if (this.positive != null)
 						this.positive.onNeighborUpdatePressure(tasks, next, this, this.negativeDirection, pressure);
 				}
-			}
-		});
+			};
+			tasks.addLast(this);
+		}
 	}
 
 	@Override
@@ -133,7 +139,7 @@ public class StraightPipe implements IPipeUnit {
 	}
 
 	@Override
-	public void addTick(ArrayDeque<Runnable> tasks, ArrayDeque<Runnable> next, Direction direction, double tick) {
+	public void addTick(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double tick) {
 		if (tick > 0.0D) {
 			if (direction == this.positiveDirection) {
 				double diff = this.getMaxTick() - this.positiveTick;
@@ -208,7 +214,7 @@ public class StraightPipe implements IPipeUnit {
 		return false;
 	}
 
-	public IPipeUnit merge(Direction direction, IPipeUnit neighbor) {
+	public PipeUnit merge(Direction direction, PipeUnit neighbor) {
 		if (neighbor.getType() == UnitType.STRAIGHT_PIPE) {
 			StraightPipe unit = (StraightPipe) neighbor;
 			if (direction.getAxisDirection() == Direction.AxisDirection.POSITIVE) {
@@ -229,7 +235,7 @@ public class StraightPipe implements IPipeUnit {
 	 * @param pos the pos want to cut and discard
 	 * @return unit of block that need to be update in components map
 	 */
-	public IPipeUnit[] toRouter(BlockPos pos) {
+	public PipeUnit[] toRouter(BlockPos pos) {
 		int axisPos = pos.get(this.axis);
 		if (axisPos == this.start) {
 			this.start++;
@@ -240,7 +246,7 @@ public class StraightPipe implements IPipeUnit {
 			if (this.negative != null) this.negative.setNeighbor(this.positiveDirection, router);
 			this.negative = router;
 
-			return new IPipeUnit[]{router};
+			return new PipeUnit[]{router};
 		} else if (axisPos == this.end) {
 			this.end--;
 
@@ -250,7 +256,7 @@ public class StraightPipe implements IPipeUnit {
 			if (this.positive != null) this.positive.setNeighbor(this.negativeDirection, router);
 			this.positive = router;
 
-			return new IPipeUnit[]{router};
+			return new PipeUnit[]{router};
 		} else if (axisPos > this.start && axisPos < this.end) {
 			PipeRouter router = new PipeRouter(this.getPos(axisPos));
 			StraightPipe unit = new StraightPipe(this.core, this.start, axisPos - 1, this.axis);
@@ -263,7 +269,7 @@ public class StraightPipe implements IPipeUnit {
 			router.setNeighbor(this.positiveDirection, this);
 
 			this.negative = router;
-			return new IPipeUnit[]{router, unit};
+			return new PipeUnit[]{router, unit};
 		}
 		return EmptyUnit.INSTANCES;
 	}
@@ -277,7 +283,7 @@ public class StraightPipe implements IPipeUnit {
 	}
 
 	@Override
-	public IPipeUnit spilt(BlockPos pos, Direction direction) {
+	public PipeUnit spilt(BlockPos pos, Direction direction) {
 		int axis = pos.get(this.axis);
 		if (axis == this.start && direction == this.negativeDirection) {
 			if (this.negative != null) this.negative.setNeighbor(this.positiveDirection, null);
@@ -315,11 +321,6 @@ public class StraightPipe implements IPipeUnit {
 		return this.axis;
 	}
 
-	@Override
-	public BlockPos getCore() {
-		return this.core;
-	}
-
 	public int getNeighborSize() {
 		int i = 0;
 		if (this.positive != null) i++;
@@ -328,15 +329,15 @@ public class StraightPipe implements IPipeUnit {
 	}
 
 	@Override
-	public IPipeUnit getNeighbor(Direction direction) {
+	public PipeUnit getNeighbor(Direction direction) {
 		if (direction.getAxis() == this.axis) {
 			return direction == this.positiveDirection ? this.positive : this.negative;
 		}
 		return null;
 	}
 
-	public IPipeUnit setNeighbor(Direction direction, @Nullable IPipeUnit neighbor) {
-		IPipeUnit old = null;
+	public PipeUnit setNeighbor(Direction direction, @Nullable PipeUnit neighbor) {
+		PipeUnit old = null;
 		if (direction == this.positiveDirection) {
 			old = this.positive;
 			this.positive = neighbor;
@@ -348,11 +349,15 @@ public class StraightPipe implements IPipeUnit {
 	}
 
 	@Override
-	public void forEachNeighbor(BiConsumer<? super Direction, ? super IPipeUnit> action) {
-		if (this.positive != null)
-			action.accept(this.positiveDirection, this.positive);
-		if (this.negative != null)
-			action.accept(this.negativeDirection, this.negative);
+	public void forEachNeighbor(BiConsumer<? super Direction, ? super PipeUnit> action) {
+		if (this.positive != null) action.accept(this.positiveDirection, this.positive);
+		if (this.negative != null) action.accept(this.negativeDirection, this.negative);
+	}
+
+	@Override
+	public void tickTasks() {
+		if (this.positiveTask != null) this.positiveTask.run();
+		if (this.negativeTask != null) this.negativeTask.run();
 	}
 
 	@Override
@@ -381,7 +386,7 @@ public class StraightPipe implements IPipeUnit {
 		return false;
 	}
 
-	public boolean canMergeWith2(Direction direction, @Nullable IPipeUnit unit) {
+	public boolean canMergeWith2(Direction direction, @Nullable PipeUnit unit) {
 		if (unit != null && this.axis == unit.getAxis()) {
 			return direction.getAxis() == this.axis;
 		} else if (this.isSingle()) {

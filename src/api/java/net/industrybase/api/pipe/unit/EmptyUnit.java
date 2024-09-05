@@ -11,12 +11,13 @@ import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.function.BiConsumer;
 
-public class EmptyUnit implements IPipeUnit {
+public class EmptyUnit extends PipeUnit {
 	protected static final EmptyUnit INSTANCE = new EmptyUnit();
 	protected static final EmptyUnit[] INSTANCES = new EmptyUnit[]{INSTANCE};
 	private final AABB aabb = new AABB(0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D);
 
 	private EmptyUnit() {
+		super(BlockPos.ZERO);
 	}
 
 	@Override
@@ -35,7 +36,7 @@ public class EmptyUnit implements IPipeUnit {
 	}
 
 	@Override
-	public void setPressure(ArrayDeque<Runnable> tasks, ArrayDeque<Runnable> next, Direction direction, double newPressure) {
+	public void setPressure(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double newPressure) {
 	}
 
 	@Override
@@ -59,7 +60,7 @@ public class EmptyUnit implements IPipeUnit {
 	}
 
 	@Override
-	public void addTick(ArrayDeque<Runnable> tasks, ArrayDeque<Runnable> next, Direction direction, double tick) {
+	public void addTick(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double tick) {
 	}
 
 	@Override
@@ -78,7 +79,7 @@ public class EmptyUnit implements IPipeUnit {
 	}
 
 	@Override
-	public IPipeUnit spilt(BlockPos pos, Direction direction) {
+	public PipeUnit spilt(BlockPos pos, Direction direction) {
 		return this;
 	}
 
@@ -88,25 +89,24 @@ public class EmptyUnit implements IPipeUnit {
 		return null;
 	}
 
-	@Override
-	public BlockPos getCore() {
-		return BlockPos.ZERO;
-	}
-
 	@Nullable
 	@Override
-	public IPipeUnit getNeighbor(Direction direction) {
+	public PipeUnit getNeighbor(Direction direction) {
 		return null;
 	}
 
 	@Nullable
 	@Override
-	public IPipeUnit setNeighbor(Direction direction, @Nullable IPipeUnit neighbor) {
+	public PipeUnit setNeighbor(Direction direction, @Nullable PipeUnit neighbor) {
 		return null;
 	}
 
 	@Override
-	public void forEachNeighbor(BiConsumer<? super Direction, ? super IPipeUnit> action) {
+	public void forEachNeighbor(BiConsumer<? super Direction, ? super PipeUnit> action) {
+	}
+
+	@Override
+	public void tickTasks() {
 	}
 
 	@Override

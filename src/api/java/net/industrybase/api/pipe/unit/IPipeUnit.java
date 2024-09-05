@@ -17,23 +17,21 @@ public interface IPipeUnit extends Iterable<BlockPos> {
 
 	double getPressure(Direction direction);
 
-	boolean setPressure(ArrayDeque<Runnable> tasks, ArrayDeque<Runnable> next, Direction direction, double pressure);
+	void setPressure(ArrayDeque<Runnable> tasks, ArrayDeque<Runnable> next, Direction direction, double newPressure);
 
 	default void onNeighborUpdatePressure(ArrayDeque<Runnable> tasks, ArrayDeque<Runnable> next, IPipeUnit neighbor, Direction direction, double neighborPressure) {
 		Direction neighborFace = direction.getOpposite();
 		double speed = this.getSpeed(direction, neighbor, neighborPressure);
 
-		tasks.addLast(() -> {
-			int maxAmount = this.applySpeed(direction, speed, true);
-			int neighborMaxAmount = -neighbor.addAmount(neighborFace, -maxAmount, true);
-			int amount = speed > 0 ? Math.min(maxAmount, neighborMaxAmount) : Math.max(maxAmount, neighborMaxAmount);
+		int maxAmount = this.applySpeed(direction, speed, true);
+		int neighborMaxAmount = -neighbor.addAmount(neighborFace, -maxAmount, true);
+		int amount = speed > 0 ? Math.min(maxAmount, neighborMaxAmount) : Math.max(maxAmount, neighborMaxAmount);
 
-			this.addAmount(direction, amount, false);
-			neighbor.addAmount(neighborFace, -amount, false);
+		this.addAmount(direction, amount, false);
+		neighbor.addAmount(neighborFace, -amount, false);
 
-			this.addTick(tasks, next, direction, speed);
-			neighbor.addTick(tasks, next, neighborFace, -speed);
-		});
+		this.addTick(tasks, next, direction, speed);
+		neighbor.addTick(tasks, next, neighborFace, -speed);
 	}
 
 	int getAmount();

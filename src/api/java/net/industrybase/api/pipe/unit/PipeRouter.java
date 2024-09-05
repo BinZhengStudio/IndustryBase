@@ -44,14 +44,15 @@ public class PipeRouter implements IPipeUnit {
 	}
 
 	@Override
-	public boolean setPressure(ArrayDeque<Runnable> tasks, ArrayDeque<Runnable> next, Direction direction, double pressure) {
-		int index = direction.ordinal();
-		if (pressure < 0.0D) pressure = 0.0D;
-		this.pressure[index] = pressure;
-		IPipeUnit neighbor = this.neighbors[index];
-		if (neighbor != null)
-			neighbor.onNeighborUpdatePressure(tasks, next, this, direction.getOpposite(), pressure);
-		return true;
+	public void setPressure(ArrayDeque<Runnable> tasks, ArrayDeque<Runnable> next, Direction direction, double newPressure) {
+		tasks.addLast(() -> {
+			int index = direction.ordinal();
+			double pressure = Math.max(newPressure, 0.0D);
+			this.pressure[index] = pressure;
+			IPipeUnit neighbor = this.neighbors[index];
+			if (neighbor != null)
+				neighbor.onNeighborUpdatePressure(tasks, next, this, direction.getOpposite(), pressure);
+		});
 	}
 
 	@Override

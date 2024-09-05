@@ -35,8 +35,7 @@ public class EmptyUnit implements IPipeUnit {
 	}
 
 	@Override
-	public boolean setPressure(ArrayDeque<Runnable> tasks, ArrayDeque<Runnable> next, Direction direction, double pressure) {
-		return false;
+	public void setPressure(ArrayDeque<Runnable> tasks, ArrayDeque<Runnable> next, Direction direction, double newPressure) {
 	}
 
 	@Override

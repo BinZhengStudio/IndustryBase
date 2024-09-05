@@ -75,30 +75,29 @@ public class StraightPipe implements IPipeUnit {
 	}
 
 	@Override
-	public boolean setPressure(ArrayDeque<Runnable> tasks, ArrayDeque<Runnable> next, Direction direction, double pressure) {
-		if (pressure < 0.0D) pressure = 0.0D;
-		if (direction == this.positiveDirection) {
-			this.positivePressure = pressure;
-			if (this.positive != null) {
-				this.positive.onNeighborUpdatePressure(tasks, next, this, this.negativeDirection, pressure);
-			} else {
-				this.negativePressure = pressure;
-				if (this.negative != null)
-					this.negative.onNeighborUpdatePressure(tasks, next, this, this.positiveDirection, pressure);
-			}
-			return true;
-		} else if (direction == this.negativeDirection) {
-			this.negativePressure = pressure;
-			if (this.negative != null) {
-				this.negative.onNeighborUpdatePressure(tasks, next, this, this.positiveDirection, pressure);
-			} else {
+	public void setPressure(ArrayDeque<Runnable> tasks, ArrayDeque<Runnable> next, Direction direction, double newPressure) {
+		tasks.addLast(() -> {
+			double pressure = Math.max(newPressure, 0.0D);
+			if (direction == this.positiveDirection) {
 				this.positivePressure = pressure;
-				if (this.positive != null)
+				if (this.positive != null) { // if positive side is closed
 					this.positive.onNeighborUpdatePressure(tasks, next, this, this.negativeDirection, pressure);
+				} else {
+					this.negativePressure = pressure; // rebound pressure
+					if (this.negative != null)
+						this.negative.onNeighborUpdatePressure(tasks, next, this, this.positiveDirection, pressure);
+				}
+			} else if (direction == this.negativeDirection) {
+				this.negativePressure = pressure;
+				if (this.negative != null) {
+					this.negative.onNeighborUpdatePressure(tasks, next, this, this.positiveDirection, pressure);
+				} else {
+					this.positivePressure = pressure;
+					if (this.positive != null)
+						this.positive.onNeighborUpdatePressure(tasks, next, this, this.negativeDirection, pressure);
+				}
 			}
-			return true;
-		}
-		return false;
+		});
 	}
 
 	@Override

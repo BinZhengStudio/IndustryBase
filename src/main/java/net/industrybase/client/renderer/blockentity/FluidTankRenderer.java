@@ -83,6 +83,28 @@ public class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlockEnti
 				.setLight(packedLight)
 				.setNormal(0.0F, 1.0F, 0.0F);
 
+		// Down
+		buffer.addVertex(matrix4f, minX, minY, maxZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u0, v1)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
+		buffer.addVertex(matrix4f, minX, minY, minZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u0, v0)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
+		buffer.addVertex(matrix4f, maxX, minY, minZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u1, v0)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
+		buffer.addVertex(matrix4f, maxX, minY, maxZ)
+				.setColor(red, green, blue, alpha)
+				.setUv(u1, v1)
+				.setLight(packedLight)
+				.setNormal(0.0F, 1.0F, 0.0F);
+
 		// West
 		buffer.addVertex(matrix4f, minX, maxY, minZ)
 				.setColor(red, green, blue, alpha)

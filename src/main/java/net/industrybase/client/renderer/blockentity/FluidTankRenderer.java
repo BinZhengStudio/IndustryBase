@@ -41,7 +41,7 @@ public class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlockEnti
 		float minY = (float) box.minY + 0.001F;
 		float minZ = (float) box.minZ + 0.001F;
 		float maxX = (float) box.maxX - 0.001F;
-		float maxY = (float) box.minY + waterAmount - 0.001F;
+		float maxY = Math.max(minY, (float) box.minY + waterAmount - 0.001F);
 		float maxZ = (float) box.maxZ - 0.001F;
 
 		FlowingFluid fluid = Fluids.WATER;

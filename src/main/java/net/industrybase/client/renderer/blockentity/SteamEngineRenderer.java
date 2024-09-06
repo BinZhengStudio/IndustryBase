@@ -37,12 +37,12 @@ public class SteamEngineRenderer implements BlockEntityRenderer<SteamEngineBlock
 		poseStack.translate(-pos.getX(), -pos.getY(), -pos.getZ());
 		Matrix4f matrix4f = poseStack.last().pose();
 
-		float minX = (float) box.minX + 0.0626F; // 应为 0.0625，0.0626 是为兼容铷
+		float minX = (float) box.minX + 0.0635F; // 应为 0.0625，0.0635 是为兼容铷
 		float minY = (float) box.minY + 0.5F;
-		float minZ = (float) box.minZ + 0.0626F;
-		float maxX = (float) box.maxX - 0.0626F;
-		float maxY = (float) box.minY + 0.5F + 0.4374F * waterAmount; // 应为 0.4375，0.4374 是为兼容铷
-		float maxZ = (float) box.maxZ - 0.0626F;
+		float minZ = (float) box.minZ + 0.0635F;
+		float maxX = (float) box.maxX - 0.0635F;
+		float maxY = (float) box.minY + 0.5F + 0.4365F * waterAmount; // 应为 0.4375，0.4365 是为兼容铷
+		float maxZ = (float) box.maxZ - 0.0635F;
 
 		FlowingFluid fluid = Fluids.WATER;
 		TextureAtlasSprite[] sprites = FluidSpriteCache.getFluidSprites(blockEntity.getLevel(), pos, fluid.defaultFluidState());

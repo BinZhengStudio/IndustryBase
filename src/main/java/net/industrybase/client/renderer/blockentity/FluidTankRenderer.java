@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluids;
@@ -24,10 +25,11 @@ public class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlockEnti
 
 	@Override
 	public void render(FluidTankBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+		int oldWaterAmount = blockEntity.getOldWaterAmount();
 		int waterAmount = blockEntity.getWaterAmount();
-		if (waterAmount <= 0) return; // 如果没水就没有渲染的必要了
+		if (oldWaterAmount <= 0 && waterAmount <= 0) return; // 如果没水就没有渲染的必要了
 		poseStack.pushPose();
-		renderWater(this, (float) waterAmount / FluidTankBlockEntity.CAPACITY, blockEntity, poseStack, bufferSource, packedLight);
+		renderWater(this, Mth.lerp(partialTick, oldWaterAmount, waterAmount) / FluidTankBlockEntity.CAPACITY, blockEntity, poseStack, bufferSource, packedLight);
 		poseStack.popPose();
 	}
 

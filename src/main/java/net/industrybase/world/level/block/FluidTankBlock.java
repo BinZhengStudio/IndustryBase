@@ -1,6 +1,7 @@
 package net.industrybase.world.level.block;
 
 import com.mojang.serialization.MapCodec;
+import net.industrybase.world.level.block.entity.BlockEntityTypeList;
 import net.industrybase.world.level.block.entity.FluidTankBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
@@ -13,6 +14,8 @@ import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
@@ -57,5 +60,11 @@ public class FluidTankBlock extends BaseEntityBlock {
 	@Override
 	protected RenderShape getRenderShape(BlockState pState) {
 		return RenderShape.MODEL;
+	}
+
+	@Nullable
+	@Override
+	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> serverType) {
+		return level.isClientSide ? createTickerHelper(serverType, BlockEntityTypeList.FLUID_TANK.get(), FluidTankBlockEntity::clientTick) : null;
 	}
 }

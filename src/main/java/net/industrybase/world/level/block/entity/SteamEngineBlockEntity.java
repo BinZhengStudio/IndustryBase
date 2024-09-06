@@ -24,8 +24,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.level.material.WaterFluid;
 import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -50,6 +48,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 		}
 	};
 	private final MechanicalTransmit transmit = new MechanicalTransmit(this);
+	private int oldWaterAmount;
 	private int waterAmount; // 仅在客户端调用
 	private final ContainerData data = new ContainerData() { // 用于双端同步数据
 		@Override
@@ -83,6 +82,10 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 
 	public SteamEngineBlockEntity(BlockPos pos, BlockState state) {
 		super(BlockEntityTypeList.STEAM_ENGINE.get(), pos, state);
+	}
+
+	public static void clientTick(Level level, BlockPos pos, BlockState state, SteamEngineBlockEntity blockEntity) {
+		blockEntity.oldWaterAmount = blockEntity.waterAmount;
 	}
 
 	public static void serverTick(Level level, BlockPos pos, BlockState state, SteamEngineBlockEntity blockEntity) {
@@ -181,7 +184,12 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 		return this.waterAmount;
 	}
 
+	public int getOldWaterAmount() {
+		return this.oldWaterAmount;
+	}
+
 	public void setClientWaterAmount(int waterAmount) {
+		this.oldWaterAmount = this.waterAmount;
 		this.waterAmount = waterAmount;
 	}
 

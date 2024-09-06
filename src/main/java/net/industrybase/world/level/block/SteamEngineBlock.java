@@ -2,7 +2,6 @@ package net.industrybase.world.level.block;
 
 import com.mojang.serialization.MapCodec;
 import net.industrybase.api.util.TransmitHelper;
-import net.industrybase.network.server.WaterAmountPayload;
 import net.industrybase.world.level.block.entity.BlockEntityTypeList;
 import net.industrybase.world.level.block.entity.SteamEngineBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -34,7 +33,6 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
 public class SteamEngineBlock extends BaseEntityBlock {
@@ -124,6 +122,6 @@ public class SteamEngineBlock extends BaseEntityBlock {
 
 	@Nullable
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> serverType) {
-		return level.isClientSide ? null : createTickerHelper(serverType, BlockEntityTypeList.STEAM_ENGINE.get(), SteamEngineBlockEntity::serverTick);
+		return createTickerHelper(serverType, BlockEntityTypeList.STEAM_ENGINE.get(), level.isClientSide ? SteamEngineBlockEntity::clientTick : SteamEngineBlockEntity::serverTick);
 	}
 }

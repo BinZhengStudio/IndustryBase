@@ -21,6 +21,7 @@ public class FluidTankBlockEntity extends BlockEntity {
 			if (level != null && !level.isClientSide) {
 				PacketDistributor.sendToAllPlayers(new WaterAmountPayload(worldPosition, tank.getFluidAmount()));
 				for (Direction direction : Direction.values()) {
+					if (direction == Direction.UP) continue; // keep up pressure zero
 					handler.setPressure(direction, (double) this.getFluidAmount() / this.getCapacity());
 				}
 			}

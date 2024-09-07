@@ -46,7 +46,7 @@ public class PipeNetwork {
 				if (this.canConnect(pos, side)) {
 					if (this.pipeConnected(pos.relative(side), side.getOpposite())) {
 						this.link(pos, side);
-					} else if (this.canConnect(pos.relative(side), side.getOpposite())){
+					} else if (this.canConnect(pos.relative(side), side.getOpposite())) {
 						this.link(pos, side);
 					} else {
 						this.spiltPipe(pos, side);
@@ -65,7 +65,7 @@ public class PipeNetwork {
 				if (this.pipeConnected(pos, side)) {
 					if (this.pipeConnected(pos.relative(side), side.getOpposite())) {
 						this.link(pos, side);
-					} else if (!this.canConnect(pos.relative(side), side.getOpposite())){
+					} else if (!this.canConnect(pos.relative(side), side.getOpposite())) {
 						this.spiltPipe(pos, side);
 					}
 				} else {
@@ -199,7 +199,8 @@ public class PipeNetwork {
 						unit.forEach(pos -> this.components.put(pos, secondaryUnit));
 
 						PipeUnit primaryNeighbor = primaryUnit.getNeighbor(direction);
-						if (primaryNeighbor != null) primaryNeighbor.setNeighbor(direction.getOpposite(), secondaryUnit);
+						if (primaryNeighbor != null)
+							primaryNeighbor.setNeighbor(direction.getOpposite(), secondaryUnit);
 						secondaryUnit.setNeighbor(direction, primaryNeighbor);
 					} else {
 						StraightPipe unit = StraightPipe.newInstance(secondary, connectAxis);

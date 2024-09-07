@@ -71,7 +71,7 @@ public class WireBlock extends BaseEntityBlock {
 		this.registerDefaultState(defaultState);
 
 		// 计算好所有 BlockState 的碰撞箱
-		for(BlockState state : this.getStateDefinition().getPossibleStates()) {
+		for (BlockState state : this.getStateDefinition().getPossibleStates()) {
 			SHAPES.put(state, this.calculateShape(state, SHAPES_DIRECTION));
 			COLLISION_SHAPES.put(state, this.calculateShape(state, COLLISION_SHAPES_DIRECTION));
 		}
@@ -79,7 +79,7 @@ public class WireBlock extends BaseEntityBlock {
 
 	private VoxelShape calculateShape(BlockState state, Map<Direction, VoxelShape> map) {
 		VoxelShape shape = CORE;
-		for(Direction direction : Direction.values()) {
+		for (Direction direction : Direction.values()) {
 			if (state.getValue(PROPERTIES.get(direction))) {
 				shape = Shapes.or(shape, map.get(direction));
 			}

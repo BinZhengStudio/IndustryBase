@@ -1,7 +1,6 @@
 package net.industrybase.api.pipe;
 
 import com.google.common.collect.ImmutableMap;
-import net.industrybase.api.tags.BlockTagList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -56,14 +55,14 @@ public abstract class PipeBlock extends BaseEntityBlock {
 		this.registerDefaultState(defaultState);
 
 		// calculate collision shapes for all states
-		for(BlockState state : this.getStateDefinition().getPossibleStates()) {
+		for (BlockState state : this.getStateDefinition().getPossibleStates()) {
 			SHAPES.put(state, this.calculateShape(state, SHAPES_DIRECTION));
 		}
 	}
 
 	private VoxelShape calculateShape(BlockState state, Map<Direction, VoxelShape> map) {
 		VoxelShape shape = CORE;
-		for(Direction direction : Direction.values()) {
+		for (Direction direction : Direction.values()) {
 			if (state.getValue(PROPERTIES.get(direction))) {
 				shape = Shapes.or(shape, map.get(direction));
 			}

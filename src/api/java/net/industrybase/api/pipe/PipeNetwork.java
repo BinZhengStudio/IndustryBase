@@ -39,8 +39,7 @@ public class PipeNetwork {
 
 	public void registerHandler(BlockPos pos, StorageInterface storageInterface, Runnable callback) {
 		this.tasks.addLast(() -> {
-			FluidStorage storage = new FluidStorage(pos, storageInterface);
-			this.components.put(pos.immutable(), storage);
+			this.components.put(pos.immutable(), new FluidStorage(pos, storageInterface));
 
 			for (Direction side : Direction.values()) {
 				if (this.canConnect(pos, side)) {

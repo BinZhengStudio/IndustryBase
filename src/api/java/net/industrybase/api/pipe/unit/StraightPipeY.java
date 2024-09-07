@@ -25,24 +25,24 @@ public class StraightPipeY extends StraightPipe {
 	public void addTick(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double tick) {
 		if (tick > 0.0D) {
 			if (direction == Direction.UP) {
-				double diff = this.getMaxTick() - this.positiveTick;
+				double diff = this.getMaxTick() - this.ticks[0];
 				if (tick > diff) tick = diff;
-				this.positiveTick += tick;
+				this.ticks[0] += tick;
 			} else {
-				this.setPressure(next, tasks, this.negativeDirection, (double) (this.size() * this.bottomAmount) / this.getCapacity());
+				this.setPressure(next, tasks, this.directions[1], (double) (this.size() * this.bottomAmount) / this.getCapacity());
 			}
 			if (this.fullTick()) {
 				double positiveNeighbor = 0.0D;
-				if (this.positive != null) positiveNeighbor = this.positive.getPressure(this.negativeDirection);
-				this.setPressure(next, tasks, this.negativeDirection, positiveNeighbor + (double) (this.size() * this.bottomAmount) / this.getCapacity());
-				this.positiveTick = this.getMaxTick() - this.negativeTick;
+				if (this.positive != null) positiveNeighbor = this.positive.getPressure(this.directions[1]);
+				this.setPressure(next, tasks, this.directions[1], positiveNeighbor + (double) (this.size() * this.bottomAmount) / this.getCapacity());
+				this.ticks[0] = this.getMaxTick() - this.ticks[1];
 			}
 			if (this.full()) {
 				double negativeNeighbor = 0.0D;
-				if (this.negative != null) negativeNeighbor = this.negative.getPressure(this.positiveDirection);
-				this.setPressure(next, tasks, this.positiveDirection, negativeNeighbor - (double) (this.size() * this.amount) / this.getCapacity());
-				this.positiveTick = 0.0D;
-				this.negativeTick = this.getMaxTick();
+				if (this.negative != null) negativeNeighbor = this.negative.getPressure(this.directions[0]);
+				this.setPressure(next, tasks, this.directions[0], negativeNeighbor - (double) (this.size() * this.amount) / this.getCapacity());
+				this.ticks[0] = 0.0D;
+				this.ticks[1] = this.getMaxTick();
 			}
 		}
 	}
@@ -53,7 +53,7 @@ public class StraightPipeY extends StraightPipe {
 		if (!simulate) {
 			if (direction == Direction.DOWN || this.fullTick()) {
 				this.bottomAmount += result;
-				this.negativeTick = (double) (this.getMaxTick() * this.bottomAmount) / this.getCapacity();
+				this.ticks[1] = (double) (this.getMaxTick() * this.bottomAmount) / this.getCapacity();
 			}
 		}
 		return result;

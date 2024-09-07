@@ -356,8 +356,18 @@ public class StraightPipe extends PipeUnit {
 
 	@Override
 	public void tickTasks() {
-		if (this.positiveTask != null) this.positiveTask.run();
-		if (this.negativeTask != null) this.negativeTask.run();
+		if (this.positiveTask != null) {
+			Runnable task = this.positiveTask;
+			// task will be assigned again while run() (such as FluidTank#onContentsChanged)
+			// must clear before run()
+			this.positiveTask = null;
+			task.run();
+		}
+		if (this.negativeTask != null) {
+			Runnable task = this.negativeTask;
+			this.negativeTask = null;
+			task.run();
+		}
 	}
 
 	@Override

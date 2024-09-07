@@ -130,8 +130,14 @@ public class FluidStorage extends PipeUnit {
 
 	@Override
 	public void tickTasks() {
-		for (Runnable task : this.tasks) {
-			if (task != null) task.run();
+		for (int i = 0; i < this.tasks.length; i++) {
+			if (this.tasks[i] != null) {
+				Runnable task = this.tasks[i];
+				// tasks[i] will be assigned again while run() (such as FluidTank#onContentsChanged)
+				// must clear before run()
+				this.tasks[i] = null;
+				task.run();
+			}
 		}
 	}
 

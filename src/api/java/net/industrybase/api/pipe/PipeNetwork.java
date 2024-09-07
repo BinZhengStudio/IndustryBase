@@ -39,6 +39,12 @@ public class PipeNetwork {
 
 	public void registerHandler(BlockPos pos, StorageInterface storageInterface, Runnable callback) {
 		this.tasks.addLast(() -> {
+			// clean up old pipe
+ 			PipeUnit unit = this.components.get(pos);
+			if (unit != null) {
+				this.connections.removeAll(pos); // clear connections
+				unit.forEachNeighbor((direction, neighbor) -> neighbor.setNeighbor(direction.getOpposite(), null));
+			}
 			this.components.put(pos.immutable(), new FluidStorage(pos, storageInterface));
 
 			for (Direction side : Direction.values()) {

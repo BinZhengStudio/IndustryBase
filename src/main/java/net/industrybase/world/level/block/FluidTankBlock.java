@@ -1,6 +1,7 @@
 package net.industrybase.world.level.block;
 
 import com.mojang.serialization.MapCodec;
+import net.industrybase.api.pipe.PipeNetwork;
 import net.industrybase.world.level.block.entity.BlockEntityTypeList;
 import net.industrybase.world.level.block.entity.FluidTankBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -11,6 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -44,6 +46,15 @@ public class FluidTankBlock extends BaseEntityBlock {
 			return ItemInteractionResult.sidedSuccess(level.isClientSide);
 		}
 		return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+	}
+
+	@Override
+	public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
+		super.neighborChanged(state, level, pos, block, fromPos, isMoving);
+		if (!level.isClientSide()) {
+			BlockEntity blockEntity = level.getBlockEntity(pos);
+			if (blockEntity != null) PipeNetwork.Manager.get(level).updateHandler(pos, blockEntity::setChanged);
+		}
 	}
 
 	@Override

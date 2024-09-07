@@ -58,6 +58,28 @@ public class PipeNetwork {
 		});
 	}
 
+	public void updateHandler(BlockPos pos, Runnable callback) {
+		this.tasks.addLast(() -> {
+			PipeUnit unit = this.components.get(pos);
+			if (unit == null || unit.getType() != UnitType.FLUID_STORAGE) return;
+
+			for (Direction side : Direction.values()) {
+				if (this.canConnect(pos, side)) {
+					if (this.pipeConnected(pos.relative(side), side.getOpposite())) {
+						this.link(pos, side);
+					} else if (this.canConnect(pos.relative(side), side.getOpposite())) {
+						this.link(pos, side);
+					} else {
+						this.spiltPipe(pos, side);
+					}
+				} else {
+					this.spiltPipe(pos, side);
+				}
+			}
+			callback.run();
+		});
+	}
+
 	public void registerPipe(BlockPos pos, Runnable callback) {
 		this.tasks.addLast(() -> {
 			for (Direction side : Direction.values()) {

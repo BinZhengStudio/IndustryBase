@@ -293,7 +293,8 @@ public class PipeNetwork {
 			unit.forEach((pos) -> this.components.put(pos, unit));
 			if (primaryUnit.getType() == UnitType.ROUTER) {
 				PipeUnit straight = ((PipeRouter) primaryUnit).toStraightPipe();
-				straight.forEach((pos) -> this.components.put(pos, straight)); // prevent empty unit
+				// don't put straight into map directly, in order to prevent empty unit
+				straight.forEach((pos) -> this.components.put(pos, straight));
 			}
 			if (secondaryUnit.getType() == UnitType.ROUTER) {
 				PipeUnit straight = ((PipeRouter) secondaryUnit).toStraightPipe();

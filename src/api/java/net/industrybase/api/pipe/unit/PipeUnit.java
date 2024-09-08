@@ -34,10 +34,11 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 		int neighborMaxAmount = -neighbor.addAmount(neighborFace, -maxAmount, true);
 		int amount = speed > 0 ? Math.min(maxAmount, neighborMaxAmount) : Math.max(maxAmount, neighborMaxAmount);
 
-		this.addAmount(direction, amount, false);
-		neighbor.addAmount(neighborFace, -amount, false);
-
+		this.addAmount(direction, amount, false); // add amount first, because addTick may use latest amount
 		this.addTick(tasks, next, direction, speed);
+
+		// latter is neighbor, in order to prevent neighbor task cut in task queue
+		neighbor.addAmount(neighborFace, -amount, false);
 		neighbor.addTick(tasks, next, neighborFace, -speed);
 	}
 

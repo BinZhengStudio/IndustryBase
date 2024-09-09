@@ -18,10 +18,10 @@ public class StraightPipe extends PipeUnit {
 	protected final Direction[] directions;
 	protected int start;
 	protected int end;
-	private final double[] pressures;
-	private final double[] neighborPressures;
+	protected final double[] pressures;
+	protected final double[] neighborPressures;
 	protected final double[] ticks;
-	private final Runnable[] tasks;
+	protected final Runnable[] tasks;
 	protected int amount;
 	@Nullable
 	protected PipeUnit positive;

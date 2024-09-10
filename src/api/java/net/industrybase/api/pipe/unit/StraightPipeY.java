@@ -70,6 +70,7 @@ public class StraightPipeY extends StraightPipe {
 		if (!simulate) {
 			if (direction == Direction.DOWN || this.fullTick()) {
 				this.bottomAmount += result;
+				if (this.bottomAmount < 0) this.bottomAmount = 0;
 				this.ticks[1] = (double) (this.getMaxTick() * this.bottomAmount) / this.getCapacity();
 			}
 		}

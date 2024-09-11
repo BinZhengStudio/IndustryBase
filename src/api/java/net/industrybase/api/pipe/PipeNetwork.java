@@ -274,8 +274,10 @@ public class PipeNetwork {
 						}
 					}
 					// re get the unit because of unit update
-					this.components.get(primary).setNeighbor(direction.getOpposite(), secondaryUnit);
-					this.components.get(secondary).setNeighbor(direction, primaryUnit);
+					PipeUnit newPrimaryUnit = this.components.get(primary);
+					PipeUnit newSecondaryUnit = this.components.get(secondary);
+					newPrimaryUnit.setNeighbor(direction.getOpposite(), newSecondaryUnit);
+					newSecondaryUnit.setNeighbor(direction, newPrimaryUnit);
 				}
 			}
 		}

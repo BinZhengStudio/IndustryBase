@@ -237,39 +237,48 @@ public class StraightPipe extends PipeUnit {
 	 */
 	public PipeUnit[] toRouter(BlockPos pos) {
 		int axisPos = pos.get(this.axis);
-		if (axisPos == this.start) {
-			this.start++;
-
-			PipeRouter router = new PipeRouter(this.getPos(axisPos));
-			router.setNeighbor(this.directions[1], this.negative);
-			router.setNeighbor(this.directions[0], this);
-			if (this.negative != null) this.negative.setNeighbor(this.directions[0], router);
-			this.negative = router;
-
-			return new PipeUnit[]{router};
-		} else if (axisPos == this.end) {
-			this.end--;
-
+		if (this.isSingle()) {
 			PipeRouter router = new PipeRouter(this.getPos(axisPos));
 			router.setNeighbor(this.directions[0], this.positive);
-			router.setNeighbor(this.directions[1], this);
+			router.setNeighbor(this.directions[1], this.negative);
+			if (this.negative != null) this.negative.setNeighbor(this.directions[0], router);
 			if (this.positive != null) this.positive.setNeighbor(this.directions[1], router);
-			this.positive = router;
-
 			return new PipeUnit[]{router};
-		} else if (axisPos > this.start && axisPos < this.end) {
-			PipeRouter router = new PipeRouter(this.getPos(axisPos));
-			StraightPipe unit = new StraightPipe(this.core, this.start, axisPos - 1, this.axis);
-			this.start = axisPos + 1;
+		} else {
+			if (axisPos == this.start) {
+				this.start++;
 
-			if (this.negative != null) this.negative.setNeighbor(this.directions[0], unit);
-			unit.negative = this.negative;
+				PipeRouter router = new PipeRouter(this.getPos(axisPos));
+				router.setNeighbor(this.directions[1], this.negative);
+				router.setNeighbor(this.directions[0], this);
+				if (this.negative != null) this.negative.setNeighbor(this.directions[0], router);
+				this.negative = router;
 
-			router.setNeighbor(this.directions[1], unit);
-			router.setNeighbor(this.directions[0], this);
+				return new PipeUnit[]{router};
+			} else if (axisPos == this.end) {
+				this.end--;
 
-			this.negative = router;
-			return new PipeUnit[]{router, unit};
+				PipeRouter router = new PipeRouter(this.getPos(axisPos));
+				router.setNeighbor(this.directions[0], this.positive);
+				router.setNeighbor(this.directions[1], this);
+				if (this.positive != null) this.positive.setNeighbor(this.directions[1], router);
+				this.positive = router;
+
+				return new PipeUnit[]{router};
+			} else if (axisPos > this.start && axisPos < this.end) {
+				PipeRouter router = new PipeRouter(this.getPos(axisPos));
+				StraightPipe unit = new StraightPipe(this.core, this.start, axisPos - 1, this.axis);
+				this.start = axisPos + 1;
+
+				if (this.negative != null) this.negative.setNeighbor(this.directions[0], unit);
+				unit.negative = this.negative;
+
+				router.setNeighbor(this.directions[1], unit);
+				router.setNeighbor(this.directions[0], this);
+
+				this.negative = router;
+				return new PipeUnit[]{router, unit};
+			}
 		}
 		return EmptyUnit.INSTANCES;
 	}

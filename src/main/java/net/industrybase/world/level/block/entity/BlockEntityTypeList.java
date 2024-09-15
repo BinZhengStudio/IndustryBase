@@ -40,6 +40,7 @@ public class BlockEntityTypeList {
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<IronPipeBlockEntity>> IRON_PIPE = register("iron_pipe", IronPipeBlockEntity::new, BlockList.IRON_PIPE);
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WaterPumpBlockEntity>> WATER_PUMP = register("water_pump", WaterPumpBlockEntity::new, BlockList.WATER_PUMP);
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FluidTankBlockEntity>> FLUID_TANK = register("fluid_tank", FluidTankBlockEntity::new, BlockList.FLUID_TANK);
+	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<InsulatorBlockEntity>> INSULATOR = register("insulator", InsulatorBlockEntity::new, BlockList.INSULATOR);
 
 	private BlockEntityTypeList() {
 	}

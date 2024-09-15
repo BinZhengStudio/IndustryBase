@@ -93,6 +93,7 @@ public class RendererManager {
 		event.registerBlockEntityRenderer(BlockEntityTypeList.CREATIVE_STEAM_ENGINE.get(), CreativeSteamEngineRenderer::new);
 		event.registerBlockEntityRenderer(BlockEntityTypeList.WIRE_CONNECTOR.get(), WireConnectableRenderer::new);
 		event.registerBlockEntityRenderer(BlockEntityTypeList.FLUID_TANK.get(), FluidTankRenderer::new);
+		event.registerBlockEntityRenderer(BlockEntityTypeList.INSULATOR.get(), WireConnectableRenderer::new);
 	}
 
 	@SubscribeEvent

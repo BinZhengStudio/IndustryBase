@@ -1,0 +1,65 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "axis": "x",
+        "positive_connected": "true"
+      },
+      "apply": {
+        "model": "industrybase:block/insulator",
+        "x": 90,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "axis": "x",
+        "negative_connected": "true"
+      },
+      "apply": {
+        "model": "industrybase:block/insulator",
+        "x": 90,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "axis": "y",
+        "positive_connected": "true"
+      },
+      "apply": {
+        "model": "industrybase:block/insulator",
+        "x": 180
+      }
+    },
+    {
+      "when": {
+        "axis": "y",
+        "negative_connected": "true"
+      },
+      "apply": {
+        "model": "industrybase:block/insulator"
+      }
+    },
+    {
+      "when": {
+        "axis": "z",
+        "positive_connected": "true"
+      },
+      "apply": {
+        "model": "industrybase:block/insulator",
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "axis": "z",
+        "negative_connected": "true"
+      },
+      "apply": {
+        "model": "industrybase:block/insulator",
+        "x": 270
+      }
+    }
+  ]
+}

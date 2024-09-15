@@ -1,7 +1,6 @@
 package net.industrybase.world.level.block;
 
 import net.industrybase.api.IndustryBaseApi;
-import net.minecraft.world.level.block.Block;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -34,7 +33,7 @@ public class BlockList {
 	public static final DeferredBlock<IronPipeBlock> IRON_PIPE = BLOCK.register("iron_pipe", IronPipeBlock::new);
 	public static final DeferredBlock<WaterPumpBlock> WATER_PUMP = BLOCK.register("water_pump", WaterPumpBlock::new);
 	public static final DeferredBlock<FluidTankBlock> FLUID_TANK = BLOCK.register("fluid_tank", FluidTankBlock::new);
-
+	public static final DeferredBlock<InsulatorBlock> INSULATOR = BLOCK.register("insulator", InsulatorBlock::new);
 
 	private BlockList() {
 	}

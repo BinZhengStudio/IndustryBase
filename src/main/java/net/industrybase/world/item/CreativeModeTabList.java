@@ -40,5 +40,6 @@ public class CreativeModeTabList {
 				output.accept(ItemList.IRON_PIPE);
 				output.accept(ItemList.WATER_PUMP);
 				output.accept(ItemList.FLUID_TANK);
+				output.accept(ItemList.INSULATOR);
 			}).build());
 }

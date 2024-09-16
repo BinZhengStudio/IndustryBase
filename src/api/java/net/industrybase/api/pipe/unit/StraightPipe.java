@@ -88,7 +88,7 @@ public class StraightPipe extends PipeUnit {
 					this.positive.onNeighborUpdatePressure(tasks, next, this, this.directions[1], pressure);
 				} else {
 					this.pressures[1] = pressure; // rebound pressure
-					if (this.negative != null)
+					if (this.negative != null) // TODO: rebound without calc tick?
 						this.negative.onNeighborUpdatePressure(tasks, next, this, this.directions[0], pressure);
 				}
 			};

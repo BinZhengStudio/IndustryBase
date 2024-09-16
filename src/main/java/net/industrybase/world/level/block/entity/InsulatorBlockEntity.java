@@ -3,6 +3,8 @@ package net.industrybase.world.level.block.entity;
 import net.industrybase.api.electric.ElectricPower;
 import net.industrybase.api.electric.IWireConnectable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -21,6 +23,18 @@ public class InsulatorBlockEntity extends BlockEntity implements IWireConnectabl
 	public void onLoad() {
 		super.onLoad();
 		this.electricPower.register();
+	}
+
+	@Override
+	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.loadAdditional(tag, registries);
+		this.electricPower.readFromNBT(tag);
+	}
+
+	@Override
+	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.saveAdditional(tag, registries);
+		this.electricPower.writeToNBT(tag);
 	}
 
 	@Override

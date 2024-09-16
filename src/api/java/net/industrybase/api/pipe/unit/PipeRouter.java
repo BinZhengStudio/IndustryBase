@@ -15,6 +15,7 @@ public class PipeRouter extends PipeUnit {
 	private final AABB aabb; // TODO
 	private final PipeUnit[] neighbors = new PipeUnit[6];
 	private final double[] pressure = new double[6];
+	protected final double[] neighborPressures = new double[6];
 	private final double[] ticks = new double[6];
 	private final Runnable[] tasks = new Runnable[6];
 	private double totalTick;
@@ -54,6 +55,12 @@ public class PipeRouter extends PipeUnit {
 				neighbor.onNeighborUpdatePressure(tasks, next, this, direction.getOpposite(), pressure);
 		};
 		tasks.addLast(this);
+	}
+
+	@Override
+	public void onNeighborUpdatePressure(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, PipeUnit neighbor, Direction direction, double neighborPressure) {
+		this.neighborPressures[direction.ordinal()] = neighborPressure;
+		super.onNeighborUpdatePressure(tasks, next, neighbor, direction, neighborPressure);
 	}
 
 	@Override
@@ -109,26 +116,36 @@ public class PipeRouter extends PipeUnit {
 				double minPressure = Double.MAX_VALUE;
 				ArrayList<Direction> minDirections = new ArrayList<>(6);
 				for (Direction value : Direction.values()) {
-					PipeUnit neighbor = this.neighbors[value.ordinal()];
-					if (neighbor != null) {
-						double pressure = neighbor.getPressure(direction.getOpposite());
-						if (pressure < minPressure) {
-							minPressure = Math.min(minPressure, pressure);
+					double neighborPressure = this.neighborPressures[value.ordinal()];
+					if (this.ticks[value.ordinal()] > 0.0D) {
+						if (neighborPressure > 0.0D && neighborPressure < minPressure) {
+							minPressure = neighborPressure;
 							minDirections.clear();
 							minDirections.add(value);
-						} else if (pressure == minPressure) {
+						} else if (neighborPressure == minPressure) {
 							minDirections.add(value);
 						}
 					}
 				}
 
-				minDirections.forEach(value -> this.ticks[value.ordinal()] = 0.0D); // reset ticks
+				minDirections.forEach(value -> {
+					int valueIndex = value.ordinal();
+					this.totalTick = this.ticks[valueIndex];
+					this.ticks[valueIndex] = 0.0D;
+				}); // reset ticks
+
+				if (minDirections.isEmpty()) return; // if not neighbor pressure above 0.0D
 
 				for (Direction value : Direction.values()) {
+					if (this.ticks[value.ordinal()] > 0.0D) {
+						this.setPressure(next, tasks, direction, minPressure);
+					}
 					if (value != Direction.UP) {
-						this.setPressure(next, tasks, value, minPressure);
+						if (value != direction) {
+							this.setPressure(next, tasks, value, minPressure);
+						}
 						PipeUnit neighbor = this.neighbors[value.ordinal()];
-						nonUpPressure += neighbor == null ? 0.0D : neighbor.getPressure(value.getOpposite());
+						nonUpPressure += neighbor == null ? 0.0D : this.neighborPressures[value.getOpposite().ordinal()];
 					}
 				}
 			}
@@ -226,6 +243,11 @@ public class PipeRouter extends PipeUnit {
 		if (old != neighbor && direction.getAxis().isHorizontal()) {
 			if (old == null) this.horizontalNeighborSize++;
 			if (neighbor == null) this.horizontalNeighborSize--;
+		}
+		if (neighbor == null) {
+			this.neighborPressures[index] = 0.0D;
+		} else {
+			this.neighborPressures[index] = neighbor.getPressure(direction.getOpposite());
 		}
 		return old;
 	}

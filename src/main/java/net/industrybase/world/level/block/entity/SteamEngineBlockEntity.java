@@ -1,6 +1,8 @@
 package net.industrybase.world.level.block.entity;
 
 import net.industrybase.api.IndustryBaseApi;
+import net.industrybase.api.pipe.PipeConnectedHandler;
+import net.industrybase.api.pipe.StorageInterface;
 import net.industrybase.api.transmit.MechanicalTransmit;
 import net.industrybase.network.server.WaterAmountPayload;
 import net.industrybase.world.inventory.SteamEngineMenu;
@@ -38,12 +40,20 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 	public static final int MAX_POWER = 100;
 	public static final int MAX_WATER = FluidType.BUCKET_VOLUME * 2;
 	private NonNullList<ItemStack> inventory = NonNullList.withSize(1, ItemStack.EMPTY);
+	private final PipeConnectedHandler handler = new PipeConnectedHandler(this);
 	private final FluidTank tank = new FluidTank(MAX_WATER, fluidStack -> fluidStack.is(NeoForgeMod.WATER_TYPE.value())) {
 		@Override
 		protected void onContentsChanged() {
 			if (level != null && !level.isClientSide) {
 				// send packet to sync the fluid amount
 				PacketDistributor.sendToAllPlayers(new WaterAmountPayload(worldPosition, tank.getFluidAmount()));
+				for (Direction direction : Direction.values()) {
+					if (direction == Direction.UP) {
+						handler.setPressure(direction, 0.0D);
+					} else {
+						handler.setPressure(direction, (double) this.getFluidAmount() / this.getCapacity());
+					}
+				}
 			}
 		}
 	};
@@ -158,6 +168,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 		super.onLoad();
 		this.transmit.register();
 		this.transmit.setResistance(10);
+		this.handler.registerHandler(new StorageInterface(this.tank::getCapacity, this.tank::getFluidAmount, this.tank::fill, this.tank::drain));
 	}
 
 	@Override
@@ -234,6 +245,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 	@Override
 	public void setRemoved() {
 		this.transmit.remove();
+		this.handler.removeHandler();
 		super.setRemoved();
 	}
 

@@ -51,7 +51,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 					if (direction == Direction.UP) {
 						handler.setPressure(direction, 0.0D);
 					} else {
-						handler.setPressure(direction, (double) this.getFluidAmount() / this.getCapacity());
+						handler.setPressure(direction, this.getFluidAmount() * 0.5D / this.getCapacity());
 					}
 				}
 			}

@@ -46,6 +46,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 		@Override
 		protected void onContentsChanged() {
 			if (level != null && !level.isClientSide) {
+				setChanged();
 				// send packet to sync the fluid amount
 				PacketDistributor.sendToAllPlayers(new WaterAmountPayload(worldPosition, tank.getFluidAmount()));
 				for (Direction direction : Direction.values()) {

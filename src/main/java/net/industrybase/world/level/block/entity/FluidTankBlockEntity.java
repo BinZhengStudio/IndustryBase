@@ -5,6 +5,8 @@ import net.industrybase.api.pipe.StorageInterface;
 import net.industrybase.network.server.WaterAmountPayload;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -22,6 +24,7 @@ public class FluidTankBlockEntity extends BlockEntity {
 		@Override
 		protected void onContentsChanged() {
 			if (level != null && !level.isClientSide) {
+				setChanged();
 				PacketDistributor.sendToAllPlayers(new WaterAmountPayload(worldPosition, tank.getFluidAmount()));
 				for (Direction direction : Direction.values()) {
 					if (direction == Direction.UP) {
@@ -50,6 +53,18 @@ public class FluidTankBlockEntity extends BlockEntity {
 
 	public FluidTank getTank(Direction direction) {
 		return this.tank;
+	}
+
+	@Override
+	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.loadAdditional(tag, registries);
+		this.tank.readFromNBT(registries, tag);
+	}
+
+	@Override
+	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+		super.saveAdditional(tag, registries);
+		this.tank.writeToNBT(registries, tag);
 	}
 
 	public int getFluidAmount() {

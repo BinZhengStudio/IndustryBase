@@ -2,6 +2,7 @@ package net.industrybase.client.renderer.blockentity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.industrybase.network.client.RequestWaterAmountPayload;
 import net.industrybase.world.level.block.entity.SteamEngineBlockEntity;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -17,6 +18,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.textures.FluidSpriteCache;
 import net.neoforged.neoforge.common.NeoForgeMod;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Matrix4f;
 
 public class SteamEngineRenderer implements BlockEntityRenderer<SteamEngineBlockEntity> {
@@ -25,12 +27,20 @@ public class SteamEngineRenderer implements BlockEntityRenderer<SteamEngineBlock
 
 	@Override
 	public void render(SteamEngineBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+		requestWaterAmount(blockEntity);
 		int oldWaterAmount = blockEntity.getOldWaterAmount();
 		int waterAmount = blockEntity.getWaterAmount();
 		if (oldWaterAmount <= 0 && waterAmount <= 0) return; // 如果没水就没有渲染的必要了
 		poseStack.pushPose();
 		renderWater(this, Mth.lerp(partialTick, oldWaterAmount, waterAmount) / SteamEngineBlockEntity.MAX_WATER, blockEntity, poseStack, bufferSource, packedLight);
 		poseStack.popPose();
+	}
+
+	private static void requestWaterAmount(SteamEngineBlockEntity blockEntity) {
+		if (blockEntity.hasLevel() && !blockEntity.isSubscribed()) {
+			PacketDistributor.sendToServer(new RequestWaterAmountPayload(blockEntity.getBlockPos()));
+			blockEntity.setSubscribed();
+		}
 	}
 
 	public static <T extends BlockEntity> void renderWater(BlockEntityRenderer<T> renderer, float waterAmount, T blockEntity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {

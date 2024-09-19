@@ -1,6 +1,7 @@
 package net.industrybase.network;
 
 import net.industrybase.api.IndustryBaseApi;
+import net.industrybase.network.client.RequestWaterAmountPayload;
 import net.industrybase.network.server.WaterAmountPayload;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -15,5 +16,6 @@ public class NetworkManager {
 	private static void register(final RegisterPayloadHandlersEvent event) {
 		final PayloadRegistrar registrar = event.registrar(VERSION);
 		registrar.playToClient(WaterAmountPayload.TYPE, WaterAmountPayload.STREAM_CODEC, WaterAmountPayload::handler);
+		registrar.playToServer(RequestWaterAmountPayload.TYPE, RequestWaterAmountPayload.STREAM_CODEC, RequestWaterAmountPayload::handler);
 	}
 }

@@ -37,6 +37,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 	private int burnTime;
 	private int totalBurnTime;
 	private int shrinkTick;
+	private boolean subscribed = false;
 	public static final int MAX_POWER = 100;
 	public static final int MAX_WATER = FluidType.BUCKET_VOLUME * 2;
 	private NonNullList<ItemStack> inventory = NonNullList.withSize(1, ItemStack.EMPTY);
@@ -191,6 +192,10 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 		return new SteamEngineMenu(id, inventory, this, this.data);
 	}
 
+	public int getFluidAmount() {
+		return this.tank.getFluidAmount();
+	}
+
 	public int getWaterAmount() {
 		return this.waterAmount;
 	}
@@ -202,6 +207,14 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 	public void setClientWaterAmount(int waterAmount) {
 		this.oldWaterAmount = this.waterAmount;
 		this.waterAmount = waterAmount;
+	}
+
+	public boolean isSubscribed() {
+		return this.subscribed;
+	}
+
+	public void setSubscribed() {
+		this.subscribed = true;
 	}
 
 	@Nullable

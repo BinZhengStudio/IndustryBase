@@ -16,6 +16,7 @@ public class FluidTankBlockEntity extends BlockEntity {
 	public static final int CAPACITY = 8000;
 	private int oldWaterAmount;
 	private int waterAmount;
+	private boolean subscribed = false;
 	private final PipeConnectedHandler handler = new PipeConnectedHandler(this);
 	private final FluidTank tank = new FluidTank(CAPACITY, fluidStack -> fluidStack.is(NeoForgeMod.WATER_TYPE.value())) {
 		@Override
@@ -51,6 +52,10 @@ public class FluidTankBlockEntity extends BlockEntity {
 		return this.tank;
 	}
 
+	public int getFluidAmount() {
+		return this.tank.getFluidAmount();
+	}
+
 	public int getWaterAmount() {
 		return this.waterAmount;
 	}
@@ -62,6 +67,14 @@ public class FluidTankBlockEntity extends BlockEntity {
 	public void setClientWaterAmount(int waterAmount) {
 		this.oldWaterAmount = this.waterAmount;
 		this.waterAmount = waterAmount;
+	}
+
+	public boolean isSubscribed() {
+		return this.subscribed;
+	}
+
+	public void setSubscribed() {
+		this.subscribed = true;
 	}
 
 	@Override

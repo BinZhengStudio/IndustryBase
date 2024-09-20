@@ -304,20 +304,15 @@ public class StraightPipe extends PipeUnit {
 			StraightPipe unit;
 			if (direction == this.directions[0]) {
 				unit = new StraightPipe(pos.relative(direction), axis + 1, this.end, this.axis);
-				if (this.positive != null) {
-					this.positive.setNeighbor(this.directions[1], unit);
-					unit.positive = this.positive;
-					this.positive = null;
-				}
 				this.end = axis;
 			} else {
-				unit = new StraightPipe(pos.relative(direction), this.start, axis - 1, this.axis);
-				if (this.negative != null) {
-					this.negative.setNeighbor(this.directions[0], unit);
-					unit.negative = this.negative;
-					this.negative = null;
-				}
-				this.start = axis;
+				unit = new StraightPipe(pos.relative(direction), axis, this.end, this.axis);
+				this.end = axis - 1;
+			}
+			if (this.positive != null) {
+				this.positive.setNeighbor(this.directions[1], unit);
+				unit.positive = this.positive;
+				this.positive = null;
 			}
 			return unit;
 		}

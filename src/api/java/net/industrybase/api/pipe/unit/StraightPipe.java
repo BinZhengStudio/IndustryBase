@@ -313,6 +313,9 @@ public class StraightPipe extends PipeUnit {
 				this.positive.setNeighbor(this.directions[1], unit);
 				unit.positive = this.positive;
 				this.positive = null;
+
+				unit.neighborPressures[0] = this.neighborPressures[0];
+				this.neighborPressures[0] = 0.0D;
 			}
 			return unit;
 		}

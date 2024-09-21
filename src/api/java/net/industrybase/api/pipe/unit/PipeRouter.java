@@ -103,6 +103,11 @@ public class PipeRouter extends PipeUnit {
 	}
 
 	@Override
+	protected void setTick(Direction direction, double tick) {
+		this.ticks[direction.ordinal()] = Math.clamp(tick, 0.0D, this.getMaxTick());
+	}
+
+	@Override
 	public void addTick(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double tick) {
 		if (tick > 0.0D) {
 			int index = direction.ordinal();

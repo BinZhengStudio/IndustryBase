@@ -231,11 +231,15 @@ public class StraightPipe extends PipeUnit {
 			} else {
 				this.start = unit.start;
 			}
-			return unit;
 		} else {
 			this.addPipe(neighbor.getCore());
-			return neighbor;
 		}
+
+		PipeUnit neighborNeighbor = neighbor.getNeighbor(direction);
+		if (neighborNeighbor != null) neighborNeighbor.setNeighbor(direction.getOpposite(), this);
+		this.setNeighbor(direction, neighborNeighbor);
+
+		return neighbor;
 	}
 
 	/**

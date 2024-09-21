@@ -148,6 +148,15 @@ public class StraightPipe extends PipeUnit {
 	}
 
 	@Override
+	protected void setTick(Direction direction, double tick) {
+		if (direction == this.directions[0]) {
+			this.ticks[0] = Math.clamp(tick, 0.0D, this.getMaxTick());
+		} else if (direction == this.directions[1]) {
+			this.ticks[1] = Math.clamp(tick, 0.0D, this.getMaxTick());
+		}
+	}
+
+	@Override
 	public void addTick(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double tick) {
 		if (tick > 0.0D) {
 			if (direction == this.directions[0]) {
@@ -243,6 +252,10 @@ public class StraightPipe extends PipeUnit {
 			router.setNeighbor(this.directions[1], this.negative);
 			if (this.negative != null) this.negative.setNeighbor(this.directions[0], router);
 			if (this.positive != null) this.positive.setNeighbor(this.directions[1], router);
+
+			router.setTick(this.directions[0], this.ticks[0]);
+			router.setTick(this.directions[1], this.ticks[1]);
+
 			return new PipeUnit[]{router};
 		} else {
 			if (axisPos == this.start) {
@@ -254,6 +267,11 @@ public class StraightPipe extends PipeUnit {
 				if (this.negative != null) this.negative.setNeighbor(this.directions[0], router);
 				this.negative = router;
 
+				router.setTick(this.directions[0], this.ticks[0] - this.getMaxTick());
+				this.setTick(this.directions[0], this.ticks[0]);
+				router.setTick(this.directions[1], this.ticks[1]);
+				this.setTick(this.directions[1], this.ticks[1] - router.getMaxTick());
+
 				return new PipeUnit[]{router};
 			} else if (axisPos == this.end) {
 				this.end--;
@@ -263,6 +281,11 @@ public class StraightPipe extends PipeUnit {
 				router.setNeighbor(this.directions[1], this);
 				if (this.positive != null) this.positive.setNeighbor(this.directions[1], router);
 				this.positive = router;
+
+				router.setTick(this.directions[0], this.ticks[0]);
+				this.setTick(this.directions[0], this.ticks[0] - router.getMaxTick());
+				router.setTick(this.directions[1], this.ticks[1] - this.getMaxTick());
+				this.setTick(this.directions[1], this.ticks[1]);
 
 				return new PipeUnit[]{router};
 			} else if (axisPos > this.start && axisPos < this.end) {
@@ -277,6 +300,14 @@ public class StraightPipe extends PipeUnit {
 				router.setNeighbor(this.directions[0], this);
 
 				this.negative = router;
+
+				unit.setTick(this.directions[0], this.ticks[0] - this.getMaxTick() - router.getMaxTick());
+				router.setTick(this.directions[0], this.ticks[0] - this.getMaxTick());
+				this.setTick(this.directions[0], this.ticks[0]);
+				unit.setTick(this.directions[1], this.ticks[1]);
+				router.setTick(this.directions[1], this.ticks[1] - unit.getMaxTick());
+				this.setTick(this.directions[1], this.ticks[1] - unit.getMaxTick() - router.getMaxTick());
+
 				return new PipeUnit[]{router, unit};
 			}
 		}
@@ -309,6 +340,7 @@ public class StraightPipe extends PipeUnit {
 				unit = new StraightPipe(pos.relative(direction), axis, this.end, this.axis);
 				this.end = axis - 1;
 			}
+
 			if (this.positive != null) {
 				this.positive.setNeighbor(this.directions[1], unit);
 				unit.positive = this.positive;
@@ -317,6 +349,12 @@ public class StraightPipe extends PipeUnit {
 				unit.neighborPressures[0] = this.neighborPressures[0];
 				this.neighborPressures[0] = 0.0D;
 			}
+
+			unit.setTick(this.directions[0], this.ticks[0]);
+			this.setTick(this.directions[0], this.ticks[0] - unit.getMaxTick());
+			unit.setTick(this.directions[1], this.ticks[1] - this.getMaxTick());
+			this.setTick(this.directions[1], this.ticks[1]);
+
 			return unit;
 		}
 		return EmptyUnit.INSTANCE;

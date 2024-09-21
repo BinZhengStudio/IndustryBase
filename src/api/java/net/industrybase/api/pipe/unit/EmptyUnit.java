@@ -60,6 +60,10 @@ public class EmptyUnit extends PipeUnit {
 	}
 
 	@Override
+	protected void setTick(Direction direction, double tick) {
+	}
+
+	@Override
 	public void addTick(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double tick) {
 	}
 

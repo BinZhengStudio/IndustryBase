@@ -50,6 +50,8 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 
 	public abstract double getTick(Direction direction);
 
+	protected abstract void setTick(Direction direction, double tick);
+
 	public abstract void addTick(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double tick);
 
 	public abstract AABB getAABB();

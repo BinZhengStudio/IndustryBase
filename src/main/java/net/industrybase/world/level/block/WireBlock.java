@@ -11,15 +11,14 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.block.BaseEntityBlock;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.RenderShape;
-import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -30,9 +29,10 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 
-public class WireBlock extends BaseEntityBlock {
+public class WireBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
 	public static final MapCodec<WireBlock> CODEC = simpleCodec((properties) -> new WireBlock());
 
+	public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 	public static final EnumMap<Direction, BooleanProperty> PROPERTIES = new EnumMap<>(ImmutableMap.of(
 			Direction.NORTH, BlockStateProperties.NORTH,
 			Direction.EAST, BlockStateProperties.EAST,
@@ -68,6 +68,7 @@ public class WireBlock extends BaseEntityBlock {
 		for (Direction direction : Direction.values()) {
 			defaultState.setValue(PROPERTIES.get(direction), false);
 		}
+		defaultState.setValue(WATERLOGGED, false);
 		this.registerDefaultState(defaultState);
 
 		// 计算好所有 BlockState 的碰撞箱
@@ -88,6 +89,16 @@ public class WireBlock extends BaseEntityBlock {
 	}
 
 	@Override
+	protected boolean propagatesSkylightDown(BlockState pState, BlockGetter pReader, BlockPos pPos) {
+		return !pState.getValue(WATERLOGGED);
+	}
+
+	@Override
+	protected FluidState getFluidState(BlockState pState) {
+		return pState.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(pState);
+	}
+
+	@Override
 	public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
 		super.neighborChanged(state, level, pos, block, fromPos, isMoving);
 		if (!level.isClientSide()) {
@@ -101,14 +112,16 @@ public class WireBlock extends BaseEntityBlock {
 	@Nullable
 	@Override
 	public BlockState getStateForPlacement(BlockPlaceContext context) {
+		Level level = context.getLevel();
+		BlockPos pos = context.getClickedPos();
 		BlockState state = this.defaultBlockState();
+		FluidState fluidstate = level.getFluidState(pos);
 		for (Direction direction : Direction.values()) {
-			Level level = context.getLevel();
-			BlockPos facingPos = context.getClickedPos().relative(direction);
+			BlockPos facingPos = pos.relative(direction);
 			BlockState facingState = level.getBlockState(facingPos);
 			state = state.setValue(PROPERTIES.get(direction), this.hasCapability(level, direction.getOpposite(), facingPos, facingState));
 		}
-		return state;
+		return state.setValue(WATERLOGGED, fluidstate.getType() == Fluids.WATER);
 	}
 
 	@Override
@@ -128,6 +141,9 @@ public class WireBlock extends BaseEntityBlock {
 
 	@Override
 	public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos currentPos, BlockPos neighborPos) {
+		if (state.getValue(WATERLOGGED)) {
+			level.scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+		}
 		return state.setValue(PROPERTIES.get(direction), this.hasCapability(level, direction.getOpposite(), neighborPos, neighborState));
 	}
 
@@ -150,6 +166,7 @@ public class WireBlock extends BaseEntityBlock {
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
 		builder.add(PROPERTIES.values().toArray(new BooleanProperty[0]));
+		builder.add(WATERLOGGED);
 	}
 
 	@Override

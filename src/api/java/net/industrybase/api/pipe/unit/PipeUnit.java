@@ -46,7 +46,9 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 
 	public abstract int addAmount(Direction direction, int amount, boolean simulate);
 
-	public abstract int applySpeed(Direction direction, double speed, boolean simulate);
+	public int applySpeed(Direction direction, double speed, boolean simulate) {
+		return this.addAmount(direction, (int) (speed * 20), simulate);
+	}
 
 	public abstract double getTick(Direction direction);
 

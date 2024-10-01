@@ -135,11 +135,6 @@ public class StraightPipe extends PipeUnit {
 	}
 
 	@Override
-	public int applySpeed(Direction direction, double speed, boolean simulate) {
-		return this.addAmount(direction, (int) (speed * 20), simulate);
-	}
-
-	@Override
 	public double getTick(Direction direction) {
 		if (direction.getAxis() == this.axis) {
 			return direction == this.directions[0] ? this.ticks[0] : this.ticks[1];

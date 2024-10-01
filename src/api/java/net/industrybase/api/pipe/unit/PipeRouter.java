@@ -93,11 +93,6 @@ public class PipeRouter extends PipeUnit {
 	}
 
 	@Override
-	public int applySpeed(Direction direction, double speed, boolean simulate) {
-		return this.addAmount(direction, (int) (speed * 20), simulate);
-	}
-
-	@Override
 	public double getTick(Direction direction) {
 		return this.ticks[direction.ordinal()];
 	}

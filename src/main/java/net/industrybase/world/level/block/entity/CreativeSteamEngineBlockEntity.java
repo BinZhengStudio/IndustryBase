@@ -1,6 +1,8 @@
 package net.industrybase.world.level.block.entity;
 
 import net.industrybase.api.IndustryBaseApi;
+import net.industrybase.api.pipe.PipeConnectedHandler;
+import net.industrybase.api.pipe.StorageInterface;
 import net.industrybase.api.transmit.MechanicalTransmit;
 import net.industrybase.world.inventory.CreativeSteamEngineMenu;
 import net.minecraft.core.BlockPos;
@@ -20,10 +22,15 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.neoforged.neoforge.common.NeoForgeMod;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import org.jetbrains.annotations.Nullable;
 
 public class CreativeSteamEngineBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
 	private NonNullList<ItemStack> inventory = NonNullList.withSize(1, new ItemStack(Items.LAVA_BUCKET));
+	private final PipeConnectedHandler handler = new PipeConnectedHandler(this);
+	private final FluidTank tank = new FluidTank(2000, fluidStack -> fluidStack.is(NeoForgeMod.WATER_TYPE.value()));
+
 	private final MechanicalTransmit transmit = new MechanicalTransmit(this);
 	private final ContainerData data = new ContainerData() { // 用于双端同步数据
 		@Override
@@ -51,6 +58,7 @@ public class CreativeSteamEngineBlockEntity extends BaseContainerBlockEntity imp
 		this.transmit.register();
 		this.transmit.setPower(100);
 		this.transmit.setResistance(10);
+		this.handler.registerHandler(new StorageInterface(this.tank::getCapacity, this.tank::getFluidAmount, this.tank::fill, this.tank::drain));
 	}
 
 	@Override
@@ -81,6 +89,14 @@ public class CreativeSteamEngineBlockEntity extends BaseContainerBlockEntity imp
 		return null;
 	}
 
+	@Nullable
+	public FluidTank getTank(Direction side) {
+		if (side.getAxis() != this.getBlockState().getValue(BlockStateProperties.AXIS)) {
+			return this.tank;
+		}
+		return null;
+	}
+
 	@Override
 	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
 		super.loadAdditional(tag, registries);
@@ -98,6 +114,7 @@ public class CreativeSteamEngineBlockEntity extends BaseContainerBlockEntity imp
 	@Override
 	public void setRemoved() {
 		this.transmit.remove();
+		this.handler.removeHandler();
 		super.setRemoved();
 	}
 

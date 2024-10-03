@@ -54,6 +54,7 @@ public class BlockCapabilityRegister {
 		event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, BlockEntityTypeList.ELECTRIC_MOTOR.get(), ElectricMotorBlockEntity::getElectricPower);
 
 		event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, BlockEntityTypeList.STEAM_ENGINE.get(), SteamEngineBlockEntity::getTank);
+		event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, BlockEntityTypeList.CREATIVE_STEAM_ENGINE.get(), CreativeSteamEngineBlockEntity::getTank);
 		event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, BlockEntityTypeList.FLUID_TANK.get(), FluidTankBlockEntity::getTank);
 	}
 

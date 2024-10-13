@@ -4,6 +4,7 @@ import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.api.transmit.TransmitNetwork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
@@ -12,7 +13,14 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 public class ReturnSpeedPacket implements CustomPacketPayload {
 	public static final Type<ReturnSpeedPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "return_speed"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReturnSpeedPacket> STREAM_CODEC =
-			StreamCodec.ofMember(ReturnSpeedPacket::encode, ReturnSpeedPacket::new);
+			StreamCodec.composite(
+					BlockPos.STREAM_CODEC,
+					packet -> packet.target,
+					BlockPos.STREAM_CODEC,
+					packet -> packet.root,
+					ByteBufCodecs.FLOAT,
+					packet -> packet.speed,
+					ReturnSpeedPacket::new);
 	private final BlockPos target;
 	private final BlockPos root;
 	private final float speed;
@@ -21,18 +29,6 @@ public class ReturnSpeedPacket implements CustomPacketPayload {
 		this.target = target;
 		this.root = root;
 		this.speed = speed;
-	}
-
-	public ReturnSpeedPacket(RegistryFriendlyByteBuf buf) {
-		this.target = buf.readBlockPos();
-		this.root = buf.readBlockPos();
-		this.speed = buf.readFloat();
-	}
-
-	public void encode(RegistryFriendlyByteBuf buf) {
-		buf.writeBlockPos(this.target);
-		buf.writeBlockPos(this.root);
-		buf.writeFloat(this.speed);
 	}
 
 	public static void handler(ReturnSpeedPacket msg, IPayloadContext context) {

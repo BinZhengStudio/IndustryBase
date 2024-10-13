@@ -130,7 +130,7 @@ public class TransmitNetwork {
 		}
 	}
 
-	public void updateClientRoots(BlockPos[] targets, BlockPos root) {
+	public void updateClientRoots(Collection<BlockPos> targets, BlockPos root) {
 		if (this.level.isClientSide()) {
 			for (BlockPos target : targets) {
 				if (!target.equals(root)) {
@@ -280,15 +280,14 @@ public class TransmitNetwork {
 			} else {
 				int powerDiff = 0;
 				int resistanceDiff = 0;
-				int index = 0;
-				BlockPos[] secondaryComponentArray = new BlockPos[secondaryComponent.size()];
+				ArrayList<BlockPos> secondaryComponentArray = new ArrayList<>(secondaryComponent.size());
 				for (BlockPos pos : secondaryComponent) {
 					this.components.put(pos, secondaryComponent);
 
 					powerDiff += this.machinePower.count(pos);
 					resistanceDiff += this.machineResistance.count(pos);
 
-					secondaryComponentArray[index++] = pos;
+					secondaryComponentArray.add(pos);
 				}
 				this.subscribes.get(primaryNode).forEach(player -> {
 					PacketDistributor.sendToPlayer(player, new RootsSyncPacket(secondaryComponentArray, secondaryNode));
@@ -409,13 +408,12 @@ public class TransmitNetwork {
 				BlockPos primaryNode = primaryComponent.getFirst();
 				BlockPos secondaryNode = secondaryComponent.getFirst();
 
-				int index = 0;
-				BlockPos[] secondaryComponentArray = new BlockPos[secondaryComponent.size()];
+				ArrayList<BlockPos> secondaryComponentArray = new ArrayList<>(secondaryComponent.size());
 				for (BlockPos pos : secondaryComponent) {
 					primaryComponent.add(pos);
 					this.components.put(pos, primaryComponent);
 
-					secondaryComponentArray[index++] = pos;
+					secondaryComponentArray.add(pos);
 				}
 
 				this.subscribes.removeAll(secondaryNode).forEach(player -> {

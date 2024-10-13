@@ -12,19 +12,15 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class UnsubscribeSpeedPacket implements CustomPacketPayload {
 	public static final Type<UnsubscribeSpeedPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "unsubscribe_speed"));
-	public static final StreamCodec<RegistryFriendlyByteBuf, UnsubscribeSpeedPacket> STREAM_CODEC = StreamCodec.ofMember(UnsubscribeSpeedPacket::encode, UnsubscribeSpeedPacket::new);
+	public static final StreamCodec<RegistryFriendlyByteBuf, UnsubscribeSpeedPacket> STREAM_CODEC =
+			StreamCodec.composite(
+					BlockPos.STREAM_CODEC,
+					packet -> packet.target,
+					UnsubscribeSpeedPacket::new);
 	private final BlockPos target;
 
 	public UnsubscribeSpeedPacket(BlockPos target) {
 		this.target = target;
-	}
-
-	public UnsubscribeSpeedPacket(RegistryFriendlyByteBuf buf) {
-		this.target = buf.readBlockPos();
-	}
-
-	public void encode(RegistryFriendlyByteBuf buf) {
-		buf.writeBlockPos(this.target);
 	}
 
 	public static void handler(UnsubscribeSpeedPacket msg, IPayloadContext context) {

@@ -15,19 +15,14 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 public class SubscribeWireConnPacket implements CustomPacketPayload {
 	public static final Type<SubscribeWireConnPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "subscribe_wire_conn"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, SubscribeWireConnPacket> STREAM_CODEC =
-			StreamCodec.ofMember(SubscribeWireConnPacket::encode, SubscribeWireConnPacket::new);
+			StreamCodec.composite(
+					BlockPos.STREAM_CODEC,
+					packet -> packet.target,
+					SubscribeWireConnPacket::new);
 	private final BlockPos target;
 
 	public SubscribeWireConnPacket(BlockPos target) {
 		this.target = target;
-	}
-
-	public SubscribeWireConnPacket(RegistryFriendlyByteBuf buf) {
-		this.target = buf.readBlockPos();
-	}
-
-	public void encode(RegistryFriendlyByteBuf buf) {
-		buf.writeBlockPos(this.target);
 	}
 
 	@SuppressWarnings("deprecation")

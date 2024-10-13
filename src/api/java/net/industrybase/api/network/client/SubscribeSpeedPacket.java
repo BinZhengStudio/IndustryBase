@@ -16,22 +16,16 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 public class SubscribeSpeedPacket implements CustomPacketPayload {
 	public static final Type<SubscribeSpeedPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "subscribe_speed"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, SubscribeSpeedPacket> STREAM_CODEC =
-			StreamCodec.ofMember(SubscribeSpeedPacket::encode, SubscribeSpeedPacket::new);
+			StreamCodec.composite(
+					BlockPos.STREAM_CODEC,
+					packet -> packet.target,
+					SubscribeSpeedPacket::new);
 	private final BlockPos target;
 
 	public SubscribeSpeedPacket(BlockPos target) {
 		this.target = target;
 	}
 
-	public SubscribeSpeedPacket(RegistryFriendlyByteBuf buf) {
-		this.target = buf.readBlockPos();
-	}
-
-	public void encode(RegistryFriendlyByteBuf buf) {
-		buf.writeBlockPos(this.target);
-	}
-
-	@SuppressWarnings("deprecation")
 	public static void handler(SubscribeSpeedPacket msg, IPayloadContext context) {
 		context.enqueueWork(() -> {
 			ServerPlayer player = (ServerPlayer) context.player();

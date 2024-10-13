@@ -130,15 +130,15 @@ public class TransmitNetwork {
 		}
 	}
 
-	public void updateClientRoots(Collection<BlockPos> targets, BlockPos root) {
+	public void updateClientRoots(BlockPos[] targets, BlockPos root) {
 		if (this.level.isClientSide()) {
-			targets.forEach(target -> {
+			for (BlockPos target : targets) {
 				if (!target.equals(root)) {
 					this.roots.put(target, root);
 				} else {
 					this.roots.remove(target);
 				}
-			});
+			}
 		}
 	}
 
@@ -280,14 +280,18 @@ public class TransmitNetwork {
 			} else {
 				int powerDiff = 0;
 				int resistanceDiff = 0;
+				int index = 0;
+				BlockPos[] secondaryComponentArray = new BlockPos[secondaryComponent.size()];
 				for (BlockPos pos : secondaryComponent) {
 					this.components.put(pos, secondaryComponent);
 
 					powerDiff += this.machinePower.count(pos);
 					resistanceDiff += this.machineResistance.count(pos);
+
+					secondaryComponentArray[index++] = pos;
 				}
 				this.subscribes.get(primaryNode).forEach(player -> {
-					PacketDistributor.sendToPlayer(player, new RootsSyncPacket(secondaryComponent, secondaryNode));
+					PacketDistributor.sendToPlayer(player, new RootsSyncPacket(secondaryComponentArray, secondaryNode));
 					this.subscribes.put(secondaryNode, player);
 					this.subscribesReverse.put(player, secondaryNode);
 				});
@@ -404,12 +408,18 @@ public class TransmitNetwork {
 			} else if (primaryComponent != secondaryComponent) {
 				BlockPos primaryNode = primaryComponent.getFirst();
 				BlockPos secondaryNode = secondaryComponent.getFirst();
-				secondaryComponent.forEach(pos -> { // TODO size
+
+				int index = 0;
+				BlockPos[] secondaryComponentArray = new BlockPos[secondaryComponent.size()];
+				for (BlockPos pos : secondaryComponent) {
 					primaryComponent.add(pos);
 					this.components.put(pos, primaryComponent);
-				});
+
+					secondaryComponentArray[index++] = pos;
+				}
+
 				this.subscribes.removeAll(secondaryNode).forEach(player -> {
-					PacketDistributor.sendToPlayer(player, new RootsSyncPacket(secondaryComponent, primaryNode),
+					PacketDistributor.sendToPlayer(player, new RootsSyncPacket(secondaryComponentArray, primaryNode),
 							new SpeedSyncPacket(secondaryNode, 0.0F));
 					this.subscribes.put(primaryNode, player);
 					this.subscribesReverse.remove(player, secondaryNode);

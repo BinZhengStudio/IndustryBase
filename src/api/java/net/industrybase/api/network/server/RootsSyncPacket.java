@@ -9,28 +9,25 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.Collection;
-import java.util.HashSet;
-
 public class RootsSyncPacket implements CustomPacketPayload {
 	public static final Type<RootsSyncPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "roots_sync"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, RootsSyncPacket> STREAM_CODEC =
 			StreamCodec.ofMember(RootsSyncPacket::encode, RootsSyncPacket::new);
-	private final Collection<BlockPos> targets;
+	private final BlockPos[] targets;
 	private final BlockPos root;
 
-	public RootsSyncPacket(Collection<BlockPos> targets, BlockPos root) {
+	public RootsSyncPacket(BlockPos[] targets, BlockPos root) {
 		this.targets = targets;
 		this.root = root;
 	}
 
 	public RootsSyncPacket(RegistryFriendlyByteBuf buf) {
-		this.targets = buf.readCollection(count -> new HashSet<>(), RegistryFriendlyByteBuf::readBlockPos);
+		this.targets = buf.readArray(BlockPos[]::new, RegistryFriendlyByteBuf::readBlockPos);
 		this.root = buf.readBlockPos();
 	}
 
 	public void encode(RegistryFriendlyByteBuf buf) {
-		buf.writeCollection(this.targets, RegistryFriendlyByteBuf::writeBlockPos);
+		buf.writeArray(this.targets, RegistryFriendlyByteBuf::writeBlockPos);
 		buf.writeBlockPos(this.root);
 	}
 

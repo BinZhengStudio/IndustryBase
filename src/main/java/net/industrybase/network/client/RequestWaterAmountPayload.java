@@ -17,19 +17,14 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 public class RequestWaterAmountPayload implements CustomPacketPayload {
 	public static final CustomPacketPayload.Type<RequestWaterAmountPayload> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "request_water_amount"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, RequestWaterAmountPayload> STREAM_CODEC =
-			StreamCodec.ofMember(RequestWaterAmountPayload::encode, RequestWaterAmountPayload::new);
+			StreamCodec.composite(
+					BlockPos.STREAM_CODEC,
+					packet -> packet.target,
+					RequestWaterAmountPayload::new);
 	private final BlockPos target;
 
 	public RequestWaterAmountPayload(BlockPos target) {
 		this.target = target;
-	}
-
-	public RequestWaterAmountPayload(RegistryFriendlyByteBuf buf) {
-		this.target = buf.readBlockPos();
-	}
-
-	public void encode(RegistryFriendlyByteBuf buf) {
-		buf.writeBlockPos(this.target);
 	}
 
 	public static void handler(RequestWaterAmountPayload msg, IPayloadContext context) {

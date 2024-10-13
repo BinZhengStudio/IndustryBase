@@ -4,6 +4,7 @@ import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.api.electric.ElectricNetwork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
@@ -12,7 +13,14 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 public class WireConnSyncPacket implements CustomPacketPayload {
 	public static final Type<WireConnSyncPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "wire_conn_sync"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, WireConnSyncPacket> STREAM_CODEC =
-			StreamCodec.ofMember(WireConnSyncPacket::encode, WireConnSyncPacket::new);
+			StreamCodec.composite(
+					BlockPos.STREAM_CODEC,
+					packet -> packet.from,
+					BlockPos.STREAM_CODEC,
+					packet -> packet.to,
+					ByteBufCodecs.BOOL,
+					packet -> packet.isRemove,
+					WireConnSyncPacket::new);
 	private final BlockPos from;
 	private final BlockPos to;
 	private final boolean isRemove;
@@ -21,18 +29,6 @@ public class WireConnSyncPacket implements CustomPacketPayload {
 		this.from = from;
 		this.to = to;
 		this.isRemove = isRemove;
-	}
-
-	public WireConnSyncPacket(RegistryFriendlyByteBuf buf) {
-		this.from = buf.readBlockPos();
-		this.to = buf.readBlockPos();
-		this.isRemove = buf.readBoolean();
-	}
-
-	public void encode(RegistryFriendlyByteBuf buf) {
-		buf.writeBlockPos(this.from);
-		buf.writeBlockPos(this.to);
-		buf.writeBoolean(this.isRemove);
 	}
 
 	public static void handler(WireConnSyncPacket msg, IPayloadContext context) {

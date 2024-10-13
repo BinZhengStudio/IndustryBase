@@ -12,19 +12,14 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 public class RemoveWiresPacket implements CustomPacketPayload {
 	public static final Type<RemoveWiresPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "remove_wires"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, RemoveWiresPacket> STREAM_CODEC =
-			StreamCodec.ofMember(RemoveWiresPacket::encode, RemoveWiresPacket::new);
+			StreamCodec.composite(
+					BlockPos.STREAM_CODEC,
+					packet -> packet.from,
+					RemoveWiresPacket::new);
 	private final BlockPos from;
 
 	public RemoveWiresPacket(BlockPos from) {
 		this.from = from;
-	}
-
-	public RemoveWiresPacket(RegistryFriendlyByteBuf buf) {
-		this.from = buf.readBlockPos();
-	}
-
-	public void encode(RegistryFriendlyByteBuf buf) {
-		buf.writeBlockPos(this.from);
 	}
 
 	public static void handler(RemoveWiresPacket msg, IPayloadContext context) {

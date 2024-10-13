@@ -12,23 +12,19 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 public class RootSyncPacket implements CustomPacketPayload {
 	public static final Type<RootSyncPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "root_sync"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, RootSyncPacket> STREAM_CODEC =
-			StreamCodec.ofMember(RootSyncPacket::encode, RootSyncPacket::new);
+			StreamCodec.composite(
+					BlockPos.STREAM_CODEC,
+					packet -> packet.targets,
+					BlockPos.STREAM_CODEC,
+					packet -> packet.root,
+					RootSyncPacket::new
+			);
 	private final BlockPos targets;
 	private final BlockPos root;
 
 	public RootSyncPacket(BlockPos targets, BlockPos root) {
 		this.targets = targets;
 		this.root = root;
-	}
-
-	public RootSyncPacket(RegistryFriendlyByteBuf buf) {
-		this.targets = buf.readBlockPos();
-		this.root = buf.readBlockPos();
-	}
-
-	public void encode(RegistryFriendlyByteBuf buf) {
-		buf.writeBlockPos(this.targets);
-		buf.writeBlockPos(this.root);
 	}
 
 	public static void handler(RootSyncPacket msg, IPayloadContext context) {

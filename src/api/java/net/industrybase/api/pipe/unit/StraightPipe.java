@@ -23,10 +23,7 @@ public class StraightPipe extends PipeUnit {
 	protected final double[] ticks;
 	protected final Runnable[] tasks;
 	protected int amount;
-	@Nullable
-	protected PipeUnit positive;
-	@Nullable
-	protected PipeUnit negative;
+	protected final PipeUnit[] neighbors;
 
 	protected StraightPipe(BlockPos pos, Direction.Axis axis) {
 		this(pos, pos.get(axis), pos.get(axis), axis);
@@ -44,6 +41,7 @@ public class StraightPipe extends PipeUnit {
 		this.neighborPressures = new double[2];
 		this.ticks = new double[2];
 		this.tasks = new Runnable[2];
+		this.neighbors = new PipeUnit[2];
 		if (start <= end) {
 			this.start = start;
 			this.end = end;
@@ -84,12 +82,12 @@ public class StraightPipe extends PipeUnit {
 			double pressure = Math.max(newPressure, 0.0D);
 			this.tasks[0] = () -> {
 				this.pressures[0] = pressure;
-				if (this.positive != null) { // if positive side is closed
-					this.positive.onNeighborUpdatePressure(tasks, next, this, this.directions[1], pressure);
+				if (this.neighbors[0] != null) { // if positive side is closed
+					this.neighbors[0].onNeighborUpdatePressure(tasks, next, this, this.directions[1], pressure);
 				} else {
 					this.pressures[1] = pressure; // rebound pressure
-					if (this.negative != null) // TODO: rebound without calc tick?
-						this.negative.onNeighborUpdatePressure(tasks, next, this, this.directions[0], pressure);
+					if (this.neighbors[1] != null) // TODO: rebound without calc tick?
+						this.neighbors[1].onNeighborUpdatePressure(tasks, next, this, this.directions[0], pressure);
 				}
 			};
 			tasks.addLast(this);
@@ -97,12 +95,12 @@ public class StraightPipe extends PipeUnit {
 			double pressure = Math.max(newPressure, 0.0D);
 			this.tasks[1] = () -> {
 				this.pressures[1] = pressure;
-				if (this.negative != null) {
-					this.negative.onNeighborUpdatePressure(tasks, next, this, this.directions[0], pressure);
+				if (this.neighbors[1] != null) {
+					this.neighbors[1].onNeighborUpdatePressure(tasks, next, this, this.directions[0], pressure);
 				} else {
 					this.pressures[0] = pressure;
-					if (this.positive != null)
-						this.positive.onNeighborUpdatePressure(tasks, next, this, this.directions[1], pressure);
+					if (this.neighbors[0] != null)
+						this.neighbors[0].onNeighborUpdatePressure(tasks, next, this, this.directions[1], pressure);
 				}
 			};
 			tasks.addLast(this);
@@ -247,10 +245,10 @@ public class StraightPipe extends PipeUnit {
 		int axisPos = pos.get(this.axis);
 		if (this.isSingle()) {
 			PipeRouter router = new PipeRouter(this.getPos(axisPos));
-			router.setNeighbor(this.directions[0], this.positive);
-			router.setNeighbor(this.directions[1], this.negative);
-			if (this.negative != null) this.negative.setNeighbor(this.directions[0], router);
-			if (this.positive != null) this.positive.setNeighbor(this.directions[1], router);
+			router.setNeighbor(this.directions[0], this.neighbors[0]);
+			router.setNeighbor(this.directions[1], this.neighbors[1]);
+			if (this.neighbors[1] != null) this.neighbors[1].setNeighbor(this.directions[0], router);
+			if (this.neighbors[0] != null) this.neighbors[0].setNeighbor(this.directions[1], router);
 
 			router.setTick(this.directions[0], this.ticks[0]);
 			router.setTick(this.directions[1], this.ticks[1]);
@@ -261,10 +259,10 @@ public class StraightPipe extends PipeUnit {
 				this.start++;
 
 				PipeRouter router = new PipeRouter(this.getPos(axisPos));
-				router.setNeighbor(this.directions[1], this.negative);
+				router.setNeighbor(this.directions[1], this.neighbors[1]);
 				router.setNeighbor(this.directions[0], this);
-				if (this.negative != null) this.negative.setNeighbor(this.directions[0], router);
-				this.negative = router;
+				if (this.neighbors[1] != null) this.neighbors[1].setNeighbor(this.directions[0], router);
+				this.neighbors[1] = router;
 
 				router.setTick(this.directions[0], this.ticks[0] - this.getMaxTick());
 				this.setTick(this.directions[0], this.ticks[0]);
@@ -276,10 +274,10 @@ public class StraightPipe extends PipeUnit {
 				this.end--;
 
 				PipeRouter router = new PipeRouter(this.getPos(axisPos));
-				router.setNeighbor(this.directions[0], this.positive);
+				router.setNeighbor(this.directions[0], this.neighbors[0]);
 				router.setNeighbor(this.directions[1], this);
-				if (this.positive != null) this.positive.setNeighbor(this.directions[1], router);
-				this.positive = router;
+				if (this.neighbors[0] != null) this.neighbors[0].setNeighbor(this.directions[1], router);
+				this.neighbors[0] = router;
 
 				router.setTick(this.directions[0], this.ticks[0]);
 				this.setTick(this.directions[0], this.ticks[0] - router.getMaxTick());
@@ -292,13 +290,13 @@ public class StraightPipe extends PipeUnit {
 				StraightPipe unit = new StraightPipe(this.core, this.start, axisPos - 1, this.axis);
 				this.start = axisPos + 1;
 
-				if (this.negative != null) this.negative.setNeighbor(this.directions[0], unit);
-				unit.negative = this.negative;
+				if (this.neighbors[1] != null) this.neighbors[1].setNeighbor(this.directions[0], unit);
+				unit.neighbors[1] = this.neighbors[1];
 
 				router.setNeighbor(this.directions[1], unit);
 				router.setNeighbor(this.directions[0], this);
 
-				this.negative = router;
+				this.neighbors[1] = router;
 
 				unit.setTick(this.directions[0], this.ticks[0] - this.getMaxTick() - router.getMaxTick());
 				router.setTick(this.directions[0], this.ticks[0] - this.getMaxTick());
@@ -325,11 +323,11 @@ public class StraightPipe extends PipeUnit {
 	public PipeUnit spilt(BlockPos pos, Direction direction) {
 		int axis = pos.get(this.axis);
 		if (axis == this.start && direction == this.directions[1]) {
-			if (this.negative != null) this.negative.setNeighbor(this.directions[0], null);
-			this.negative = null;
+			if (this.neighbors[1] != null) this.neighbors[1].setNeighbor(this.directions[0], null);
+			this.neighbors[1] = null;
 		} else if (axis == this.end && direction == this.directions[0]) {
-			if (this.positive != null) this.positive.setNeighbor(this.directions[1], null);
-			this.positive = null;
+			if (this.neighbors[0] != null) this.neighbors[0].setNeighbor(this.directions[1], null);
+			this.neighbors[0] = null;
 		} else if (axis >= this.start && axis <= this.end) {
 			StraightPipe unit;
 			if (direction == this.directions[0]) {
@@ -340,10 +338,10 @@ public class StraightPipe extends PipeUnit {
 				this.end = axis - 1;
 			}
 
-			if (this.positive != null) {
-				this.positive.setNeighbor(this.directions[1], unit);
-				unit.positive = this.positive;
-				this.positive = null;
+			if (this.neighbors[0] != null) {
+				this.neighbors[0].setNeighbor(this.directions[1], unit);
+				unit.neighbors[0] = this.neighbors[0];
+				this.neighbors[0] = null;
 
 				unit.neighborPressures[0] = this.neighborPressures[0];
 				this.neighborPressures[0] = 0.0D;
@@ -367,15 +365,15 @@ public class StraightPipe extends PipeUnit {
 
 	public int getNeighborSize() {
 		int i = 0;
-		if (this.positive != null) i++;
-		if (this.negative != null) i++;
+		if (this.neighbors[0] != null) i++;
+		if (this.neighbors[1] != null) i++;
 		return i;
 	}
 
 	@Override
 	public PipeUnit getNeighbor(Direction direction) {
 		if (direction.getAxis() == this.axis) {
-			return direction == this.directions[0] ? this.positive : this.negative;
+			return direction == this.directions[0] ? this.neighbors[0] : this.neighbors[1];
 		}
 		return null;
 	}
@@ -383,16 +381,16 @@ public class StraightPipe extends PipeUnit {
 	public PipeUnit setNeighbor(Direction direction, @Nullable PipeUnit neighbor) {
 		PipeUnit old = null;
 		if (direction == this.directions[0]) {
-			old = this.positive;
-			this.positive = neighbor;
+			old = this.neighbors[0];
+			this.neighbors[0] = neighbor;
 			if (neighbor == null) {
 				this.neighborPressures[0] = 0.0D;
 			} else {
 				this.neighborPressures[0] = neighbor.getPressure(direction.getOpposite());
 			}
 		} else if (direction == this.directions[1]) {
-			old = this.negative;
-			this.negative = neighbor;
+			old = this.neighbors[1];
+			this.neighbors[1] = neighbor;
 			if (neighbor == null) {
 				this.neighborPressures[1] = 0.0D;
 			} else {
@@ -404,8 +402,8 @@ public class StraightPipe extends PipeUnit {
 
 	@Override
 	public void forEachNeighbor(BiConsumer<? super Direction, ? super PipeUnit> action) {
-		if (this.positive != null) action.accept(this.directions[0], this.positive);
-		if (this.negative != null) action.accept(this.directions[1], this.negative);
+		if (this.neighbors[0] != null) action.accept(this.directions[0], this.neighbors[0]);
+		if (this.neighbors[1] != null) action.accept(this.directions[1], this.neighbors[1]);
 	}
 
 	@Override
@@ -445,7 +443,7 @@ public class StraightPipe extends PipeUnit {
 		if (direction.getAxis() == this.axis) {
 			return true;
 		} else if (this.isSingle()) {
-			return this.negative == null && this.positive == null;
+			return this.neighbors[1] == null && this.neighbors[0] == null;
 		}
 		return false;
 	}
@@ -454,7 +452,7 @@ public class StraightPipe extends PipeUnit {
 		if (unit != null && this.axis == unit.getAxis()) {
 			return direction.getAxis() == this.axis;
 		} else if (this.isSingle()) {
-			return this.negative == null && this.positive == null;
+			return this.neighbors[1] == null && this.neighbors[0] == null;
 		}
 		return false;
 	}

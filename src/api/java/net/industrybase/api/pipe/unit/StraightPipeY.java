@@ -27,16 +27,16 @@ public class StraightPipeY extends StraightPipe {
 			double pressure = Math.max(newPressure, 0.0D);
 			this.tasks[0] = () -> {
 				this.pressures[0] = pressure;
-				if (this.positive != null)
-					this.positive.onNeighborUpdatePressure(tasks, next, this, this.directions[1], pressure);
+				if (this.neighbors[0] != null)
+					this.neighbors[0].onNeighborUpdatePressure(tasks, next, this, this.directions[1], pressure);
 			};
 			tasks.addLast(this);
 		} else if (direction == Direction.DOWN) {
 			double pressure = Math.max(newPressure, 0.0D);
 			this.tasks[1] = () -> {
 				this.pressures[1] = pressure;
-				if (this.negative != null)
-					this.negative.onNeighborUpdatePressure(tasks, next, this, this.directions[0], pressure);
+				if (this.neighbors[1] != null)
+					this.neighbors[1].onNeighborUpdatePressure(tasks, next, this, this.directions[0], pressure);
 			};
 			tasks.addLast(this);
 		}

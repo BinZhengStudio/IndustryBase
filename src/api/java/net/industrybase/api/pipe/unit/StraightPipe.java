@@ -78,32 +78,23 @@ public class StraightPipe extends PipeUnit {
 
 	@Override
 	public void setPressure(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double newPressure) {
-		if (direction == this.directions[0]) {
-			double pressure = Math.max(newPressure, 0.0D);
-			this.tasks[0] = () -> {
-				this.pressures[0] = pressure;
-				if (this.neighbors[0] != null) { // if positive side is closed
-					this.neighbors[0].onNeighborUpdatePressure(tasks, next, this, this.directions[1], pressure);
-				} else {
-					this.pressures[1] = pressure; // rebound pressure
-					if (this.neighbors[1] != null) // TODO: rebound without calc tick?
-						this.neighbors[1].onNeighborUpdatePressure(tasks, next, this, this.directions[0], pressure);
-				}
-			};
-			tasks.addLast(this);
-		} else if (direction == this.directions[1]) {
-			double pressure = Math.max(newPressure, 0.0D);
-			this.tasks[1] = () -> {
-				this.pressures[1] = pressure;
-				if (this.neighbors[1] != null) {
-					this.neighbors[1].onNeighborUpdatePressure(tasks, next, this, this.directions[0], pressure);
-				} else {
-					this.pressures[0] = pressure;
-					if (this.neighbors[0] != null)
-						this.neighbors[0].onNeighborUpdatePressure(tasks, next, this, this.directions[1], pressure);
-				}
-			};
-			tasks.addLast(this);
+		for (int i = 0; i < 2; i++) {
+			if (direction == this.directions[i]) {
+				int index = i;
+				int oppositeIndex = i == 0 ? 1 : 0;
+				double pressure = Math.max(newPressure, 0.0D);
+				this.tasks[index] = () -> {
+					this.pressures[index] = pressure;
+					if (this.neighbors[index] != null) { // if positive side is closed
+						this.neighbors[index].onNeighborUpdatePressure(tasks, next, this, this.directions[oppositeIndex], pressure);
+					} else {
+						this.pressures[oppositeIndex] = pressure; // rebound pressure
+						if (this.neighbors[oppositeIndex] != null) // TODO: rebound without calc tick?
+							this.neighbors[oppositeIndex].onNeighborUpdatePressure(tasks, next, this, this.directions[index], pressure);
+					}
+				};
+				tasks.addLast(this);
+			}
 		}
 	}
 

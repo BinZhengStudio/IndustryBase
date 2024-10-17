@@ -99,7 +99,7 @@ public class PipeRouter extends PipeUnit {
 
 	@Override
 	protected void setTick(Direction direction, double tick) {
-		this.ticks[direction.ordinal()] = Math.clamp(tick, 0.0D, this.getMaxTick());
+//		this.ticks[direction.ordinal()] = Math.clamp(tick, 0.0D, this.getMaxTick());
 	}
 
 	@Override

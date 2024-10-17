@@ -145,9 +145,9 @@ public class StraightPipe extends PipeUnit {
 	@Override
 	protected void setTick(Direction direction, double tick) {
 		if (direction == this.directions[0]) {
-			this.ticks[0] = Math.clamp(tick, 0.0D, this.getMaxTick());
+//			this.ticks[0] = Math.clamp(tick, 0.0D, this.getMaxTick());
 		} else if (direction == this.directions[1]) {
-			this.ticks[1] = Math.clamp(tick, 0.0D, this.getMaxTick());
+//			this.ticks[1] = Math.clamp(tick, 0.0D, this.getMaxTick());
 		}
 	}
 

@@ -408,13 +408,11 @@ public class StraightPipe extends PipeUnit {
 			// task will be assigned again while run() (such as FluidTank#onContentsChanged)
 			// must clear before run()
 			this.tasks[0] = null;
-			this.unsetSubmittedTask();
 			task.run();
 		}
 		if (this.tasks[1] != null) {
 			Runnable task = this.tasks[1];
 			this.tasks[1] = null;
-			this.unsetSubmittedTask();
 			task.run();
 		}
 	}

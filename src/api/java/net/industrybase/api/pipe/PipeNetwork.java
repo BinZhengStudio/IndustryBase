@@ -375,6 +375,7 @@ public class PipeNetwork {
 		this.nextFluidTasks = tasks;
 
 		for (PipeUnit unit = tasks.pollFirst(); unit != null; unit = tasks.pollFirst()) {
+			unit.unsetSubmittedTask();
 			unit.tickTasks();
 		}
 	}

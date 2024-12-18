@@ -139,7 +139,6 @@ public class FluidStorage extends PipeUnit {
 				// tasks[i] will be assigned again while run() (such as FluidTank#onContentsChanged)
 				// must clear before run()
 				this.tasks[i] = null;
-				this.unsetSubmittedTask();
 				task.run();
 			}
 		}

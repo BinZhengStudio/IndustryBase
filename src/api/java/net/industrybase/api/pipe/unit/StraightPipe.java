@@ -8,22 +8,31 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
+import java.util.EnumMap;
 import java.util.Iterator;
 import java.util.function.BiConsumer;
 
 public class StraightPipe extends PipeUnit {
+	private static final EnumMap<Direction.Axis, Direction[]> DIRECTIONS = new EnumMap<>(Direction.Axis.class);
+
+	static {
+		DIRECTIONS.put(Direction.Axis.X, new Direction[]{Direction.EAST, Direction.WEST});
+		DIRECTIONS.put(Direction.Axis.Y, new Direction[]{Direction.UP, Direction.DOWN});
+		DIRECTIONS.put(Direction.Axis.Z, new Direction[]{Direction.SOUTH, Direction.NORTH});
+	}
+
 	protected final Direction.Axis axis;
 	protected final AABB aabb; // TODO
 	// index 0 is positive, index 1 is negative 
 	protected final Direction[] directions;
 	protected int start;
 	protected int end;
-	protected final double[] pressures;
-	protected final double[] neighborPressures;
-	protected final double[] ticks;
-	protected final Runnable[] tasks;
+	protected final double[] pressures = new double[2];
+	protected final double[] neighborPressures = new double[2];
+	protected final double[] ticks = new double[2];
+	protected final Runnable[] tasks = new Runnable[2];
 	protected int amount;
-	protected final PipeUnit[] neighbors;
+	protected final PipeUnit[] neighbors = new PipeUnit[2];
 
 	protected StraightPipe(BlockPos pos, Direction.Axis axis) {
 		this(pos, pos.get(axis), pos.get(axis), axis);
@@ -34,14 +43,7 @@ public class StraightPipe extends PipeUnit {
 		this.axis = axis;
 		this.aabb = new AABB(core.getX() + 0.3125D, core.getY() + 0.3125D, core.getZ() + 0.3125D,
 				core.getX() + 0.6875D, core.getY() + 0.6875D, core.getZ() + 0.6875D);
-		this.directions = new Direction[]{
-			Direction.fromAxisAndDirection(axis, Direction.AxisDirection.POSITIVE),
-			Direction.fromAxisAndDirection(axis, Direction.AxisDirection.NEGATIVE)};
-		this.pressures = new double[2];
-		this.neighborPressures = new double[2];
-		this.ticks = new double[2];
-		this.tasks = new Runnable[2];
-		this.neighbors = new PipeUnit[2];
+		this.directions = DIRECTIONS.get(axis);
 		if (start <= end) {
 			this.start = start;
 			this.end = end;

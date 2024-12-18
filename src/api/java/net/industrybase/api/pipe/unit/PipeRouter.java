@@ -7,7 +7,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.function.BiConsumer;
 
@@ -115,64 +114,71 @@ public class PipeRouter extends PipeUnit {
 			this.ticks[index] += tick;
 			this.totalTick += tick;
 
-			double nonUpPressure = 0.0D;
-			if (this.fullTick()) { // TODO
-				double minPressure = Double.MAX_VALUE;
-				ArrayList<Direction> minDirections = new ArrayList<>(6);
-				ArrayList<Direction> tickAboveZero = new ArrayList<>(6);
-				ArrayList<Direction> tickBelowZero = new ArrayList<>(6);
+			if (this.fullTick() || this.full()) { // TODO
+				double[] shrinkPressure;
+				double[] finalPressure = new double[6];
+				int neighborSize = this.horizontalNeighborSize;
 
-				// check
+				double total = 0.0D;
+				double nonDownTotal = 0.0D;
 				for (Direction value : Direction.values()) {
-					int valueIndex = value.ordinal();
-					double neighborPressure = this.neighborPressures[valueIndex];
+					double pressure = this.neighborPressures[value.ordinal()];
 
-					if (this.neighbors[valueIndex] != null) {
-						if (this.ticks[valueIndex] > 0.0D) {
-							tickAboveZero.add(value);
-
-							if (neighborPressure > 0.0D && neighborPressure < minPressure) {
-								minPressure = neighborPressure;
-								minDirections.clear();
-								minDirections.add(value);
-							} else if (neighborPressure == minPressure) {
-								minDirections.add(value);
-							}
-						} else {
-							tickBelowZero.add(value);
-						}
-					}
-
+					total += pressure;
+					if (value != Direction.DOWN) nonDownTotal += pressure;
 				}
 
-				// reset ticks
-				minDirections.forEach(value -> {
-					int valueIndex = value.ordinal();
-					this.totalTick -= this.ticks[valueIndex];
-					this.ticks[valueIndex] = 0.0D;
-				});
+				if (this.neighbors[Direction.DOWN.ordinal()] == null) {
+					shrinkPressure = this.neighborPressures;
+				} else {
+					neighborSize += 1; // add bottom side
+					shrinkPressure = new double[6];
 
-				if (minDirections.isEmpty()) return; // if not neighbor pressure above 0.0D
+					if (nonDownTotal <= 0.75D) { // TODO 0.75
+						finalPressure[Direction.DOWN.ordinal()] = total;
 
-				// execute set pressure
-				for (Direction below : tickBelowZero) {
-					this.setPressure(next, tasks, below, minPressure);
-				}
+						// total will contain the pressure rebounded by bottom pipe
+						total = this.neighborPressures[Direction.DOWN.ordinal()];
 
-				for (Direction above : tickAboveZero) {
-					if (this.neighborPressures[above.ordinal()] > minPressure) {
-						this.setPressure(next, tasks, above, minPressure);
+						// keep shrinkPressure zero
 					} else {
-						if (tickBelowZero.isEmpty()) {
-							this.setPressure(next, tasks, above, minPressure);
+						finalPressure[Direction.DOWN.ordinal()] = 0.75D;
+						total -= 0.75D;
+						nonDownTotal -= 0.75D;
+
+						for (int i = 0; i < 6; i++) {
+							shrinkPressure[i] = nonDownTotal * (this.neighborPressures[i] / (nonDownTotal + 0.75D));
 						}
 					}
-
-					nonUpPressure += this.neighborPressures[above.getOpposite().ordinal()];
+					// down pressure will not be used to satisfy down requirement
+					shrinkPressure[Direction.DOWN.ordinal()] = this.neighborPressures[Direction.DOWN.ordinal()];
 				}
-			}
-			if (this.full()) {
-				this.setPressure(next, tasks, Direction.UP, nonUpPressure - (double) (this.size() * this.amount) / this.getCapacity());
+
+				boolean top = false;
+				if (this.neighbors[Direction.UP.ordinal()] != null) {
+					if ((total / (this.horizontalNeighborSize + 2)) > 0.75D) {
+						// if average pressure bigger than requirement to push liquid to top side
+						// calc top pressure will be meaningful
+						neighborSize += 1; // add top side
+						top = true;
+					}
+				}
+
+				for (Direction value : Direction.values()) {
+					double pressure = shrinkPressure[value.ordinal()] / (neighborSize - 1); // shrink itself
+
+					for (Direction value1 : Direction.values()) {
+						if (value1 == value) continue;
+						if (value1 == Direction.UP && !top) continue;
+						if (this.neighbors[value1.ordinal()] == null) continue;
+
+						finalPressure[value1.ordinal()] += pressure;
+					}
+				}
+
+				for (Direction value : Direction.values()) {
+					this.setPressure(next, tasks, value, finalPressure[value.ordinal()]);
+				}
 			}
 		} else {
 			// TODO

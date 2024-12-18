@@ -54,7 +54,11 @@ public class PipeRouter extends PipeUnit {
 			if (neighbor != null)
 				neighbor.onNeighborUpdatePressure(tasks, next, this, direction.getOpposite(), pressure);
 		};
-		tasks.addLast(this);
+
+		if (!this.submittedTask()) {
+			tasks.addLast(this);
+			this.setSubmittedTask();
+		}
 	}
 
 	@Override
@@ -286,6 +290,7 @@ public class PipeRouter extends PipeUnit {
 				// tasks[i] will be assigned again while run() (such as FluidTank#onContentsChanged)
 				// must clear before run()
 				this.tasks[i] = null;
+				this.unsetSubmittedTask();
 				task.run();
 			}
 		}

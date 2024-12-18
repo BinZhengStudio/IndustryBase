@@ -23,22 +23,20 @@ public class StraightPipeY extends StraightPipe {
 
 	@Override
 	public void setPressure(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double newPressure) {
-		if (direction == Direction.UP) {
-			double pressure = Math.max(newPressure, 0.0D);
-			this.tasks[0] = () -> {
-				this.pressures[0] = pressure;
-				if (this.neighbors[0] != null)
-					this.neighbors[0].onNeighborUpdatePressure(tasks, next, this, this.directions[1], pressure);
-			};
+		if (direction.getAxis() != this.axis) return;
+		int i = direction.getAxisDirection().ordinal();
+		int j = (i == 0 ? 1 : 0);
+
+		double pressure = Math.max(newPressure, 0.0D);
+		this.tasks[i] = () -> {
+			this.pressures[i] = pressure;
+			if (this.neighbors[i] != null)
+				this.neighbors[i].onNeighborUpdatePressure(tasks, next, this, this.directions[j], pressure);
+		};
+
+		if (!this.submittedTask()) {
 			tasks.addLast(this);
-		} else if (direction == Direction.DOWN) {
-			double pressure = Math.max(newPressure, 0.0D);
-			this.tasks[1] = () -> {
-				this.pressures[1] = pressure;
-				if (this.neighbors[1] != null)
-					this.neighbors[1].onNeighborUpdatePressure(tasks, next, this, this.directions[0], pressure);
-			};
-			tasks.addLast(this);
+			this.setSubmittedTask();
 		}
 	}
 

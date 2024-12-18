@@ -11,6 +11,7 @@ import java.util.ArrayDeque;
 import java.util.function.BiConsumer;
 
 public abstract class PipeUnit implements Iterable<BlockPos> {
+	private boolean submittedTask;
 	private boolean ticked;
 	protected final BlockPos core;
 
@@ -91,16 +92,17 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 
 	public abstract void tickTasks();
 
-	public boolean ticked() {
-		return this.ticked;
+
+	public boolean submittedTask() {
+		return this.submittedTask;
 	}
 
-	public void unsetTicked() {
-		this.ticked = false;
+	public void setSubmittedTask() {
+		this.submittedTask = true;
 	}
 
-	public void setTicked() {
-		this.ticked = true;
+	public void unsetSubmittedTask() {
+		this.submittedTask = false;
 	}
 
 	public abstract UnitType getType();

@@ -78,23 +78,25 @@ public class StraightPipe extends PipeUnit {
 
 	@Override
 	public void setPressure(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double newPressure) {
-		for (int i = 0; i < 2; i++) {
-			if (direction == this.directions[i]) {
-				int index = i;
-				int oppositeIndex = i == 0 ? 1 : 0;
-				double pressure = Math.max(newPressure, 0.0D);
-				this.tasks[index] = () -> {
-					this.pressures[index] = pressure;
-					if (this.neighbors[index] != null) { // if positive side is closed
-						this.neighbors[index].onNeighborUpdatePressure(tasks, next, this, this.directions[oppositeIndex], pressure);
-					} else {
-						this.pressures[oppositeIndex] = pressure; // rebound pressure
-						if (this.neighbors[oppositeIndex] != null) // TODO: rebound without calc tick?
-							this.neighbors[oppositeIndex].onNeighborUpdatePressure(tasks, next, this, this.directions[index], pressure);
-					}
-				};
-				tasks.addLast(this);
+		if (direction.getAxis() != this.axis) return;
+		int i = direction.getAxisDirection().ordinal();
+		int j = (i == 0 ? 1 : 0);
+
+		double pressure = Math.max(newPressure, 0.0D);
+		this.tasks[i] = () -> {
+			this.pressures[i] = pressure;
+			if (this.neighbors[i] != null) { // if positive side is closed
+				this.neighbors[i].onNeighborUpdatePressure(tasks, next, this, this.directions[j], pressure);
+			} else {
+				this.pressures[j] = pressure; // rebound pressure
+				if (this.neighbors[j] != null) // TODO: rebound without calc tick?
+					this.neighbors[j].onNeighborUpdatePressure(tasks, next, this, this.directions[i], pressure);
 			}
+		};
+
+		if (!this.submittedTask()) {
+			tasks.addLast(this);
+			this.setSubmittedTask();
 		}
 	}
 
@@ -404,11 +406,13 @@ public class StraightPipe extends PipeUnit {
 			// task will be assigned again while run() (such as FluidTank#onContentsChanged)
 			// must clear before run()
 			this.tasks[0] = null;
+			this.unsetSubmittedTask();
 			task.run();
 		}
 		if (this.tasks[1] != null) {
 			Runnable task = this.tasks[1];
 			this.tasks[1] = null;
+			this.unsetSubmittedTask();
 			task.run();
 		}
 	}

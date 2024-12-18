@@ -374,19 +374,8 @@ public class PipeNetwork {
 		this.fluidTasks = this.nextFluidTasks;
 		this.nextFluidTasks = tasks;
 
-		int size = tasks.size();
-		PipeUnit[] units = new PipeUnit[size];
-		for (int i = 0; i < size; i++) {
-			PipeUnit unit = this.nextFluidTasks.pollFirst();
-			if (unit == null) break;
-			units[i] = unit;
-			unit.unsetTicked();
-		}
-		for (PipeUnit unit : units) {
-			if (!unit.ticked()) {
-				unit.tickTasks();
-				unit.setTicked();
-			}
+		for (PipeUnit unit = tasks.pollFirst(); unit != null; unit = tasks.pollFirst()) {
+			unit.tickTasks();
 		}
 	}
 

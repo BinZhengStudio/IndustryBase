@@ -33,8 +33,12 @@ public class PipeNetwork {
 	public void setPressure(BlockPos pos, Direction direction, double pressure) {
 		PipeUnit unit = this.components.get(pos);
 		if (unit != null) {
-			unit.setPressure(this.fluidTasks, this.nextFluidTasks, direction, pressure);
+			unit.setPressure(this.getTask(), direction, pressure);
 		}
+	}
+
+	public ArrayDeque<PipeUnit> getTask() {
+		return this.fluidTasks;
 	}
 
 	public void registerHandler(BlockPos pos, StorageInterface storageInterface, Runnable callback) {
@@ -45,7 +49,7 @@ public class PipeNetwork {
 				this.connections.removeAll(pos); // clear connections
 				unit.forEachNeighbor((direction, neighbor) -> neighbor.setNeighbor(direction.getOpposite(), null));
 			}
-			this.components.put(pos.immutable(), new FluidStorage(pos, storageInterface));
+			this.components.put(pos.immutable(), new FluidStorage(pos, this, storageInterface));
 
 			for (Direction side : Direction.values()) {
 				if (this.canConnect(pos, side)) {
@@ -148,14 +152,14 @@ public class PipeNetwork {
 			PipeUnit secondaryUnit = this.components.get(secondary);
 
 			if (primaryUnit == null && secondaryUnit == null) {
-				StraightPipe unit = StraightPipe.newInstance(secondary, connectAxis);
+				StraightPipe unit = StraightPipe.newInstance(secondary, this, connectAxis);
 				unit.addPipe(primary);
 				this.components.put(secondary, unit);
 				this.components.put(primary, unit);
 			} else if (primaryUnit == null) {
 				if (secondaryUnit.canMergeWith(direction)) {
 					if (secondaryUnit.isSingle()) {
-						StraightPipe unit = StraightPipe.newInstance(secondary, connectAxis);
+						StraightPipe unit = StraightPipe.newInstance(secondary, this, connectAxis);
 						unit.addPipe(primary);
 
 						PipeUnit secondaryNeighbor = secondaryUnit.getNeighbor(direction.getOpposite());
@@ -176,7 +180,7 @@ public class PipeNetwork {
 						}
 					}
 					PipeUnit newSecondaryUnit = this.components.get(secondary);
-					PipeUnit newPrimaryUnit = StraightPipe.newInstance(primary, connectAxis);
+					PipeUnit newPrimaryUnit = StraightPipe.newInstance(primary, this, connectAxis);
 					newPrimaryUnit.setNeighbor(direction.getOpposite(), newSecondaryUnit);
 					newSecondaryUnit.setNeighbor(direction, newPrimaryUnit);
 					this.components.put(primary, newPrimaryUnit);
@@ -184,7 +188,7 @@ public class PipeNetwork {
 			} else if (secondaryUnit == null) {
 				if (primaryUnit.canMergeWith(direction.getOpposite())) {
 					if (primaryUnit.isSingle()) {
-						StraightPipe unit = StraightPipe.newInstance(primary, connectAxis);
+						StraightPipe unit = StraightPipe.newInstance(primary, this, connectAxis);
 						unit.addPipe(secondary);
 
 						PipeUnit primaryNeighbor = primaryUnit.getNeighbor(direction);
@@ -205,7 +209,7 @@ public class PipeNetwork {
 						}
 					}
 					PipeUnit newPrimaryUnit = this.components.get(primary);
-					PipeUnit newSecondaryUnit = StraightPipe.newInstance(secondary, connectAxis);
+					PipeUnit newSecondaryUnit = StraightPipe.newInstance(secondary, this, connectAxis);
 					newPrimaryUnit.setNeighbor(direction.getOpposite(), newSecondaryUnit);
 					newSecondaryUnit.setNeighbor(direction, newPrimaryUnit);
 					this.components.put(secondary, newSecondaryUnit);
@@ -221,7 +225,7 @@ public class PipeNetwork {
 						PipeUnit unit = ((StraightPipe) secondaryUnit).merge(direction, primaryUnit);
 						unit.forEach(pos -> this.components.put(pos, secondaryUnit));
 					} else { // TODO merge via StraightPipe#merge and PipeRouter#toStraightPipe
-						StraightPipe unit = StraightPipe.newInstance(secondary, connectAxis);
+						StraightPipe unit = StraightPipe.newInstance(secondary, this, connectAxis);
 						unit.addPipe(secondary);
 
 						PipeUnit primaryNeighbor = primaryUnit.getNeighbor(direction);

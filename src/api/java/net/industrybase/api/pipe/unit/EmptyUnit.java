@@ -17,7 +17,7 @@ public class EmptyUnit extends PipeUnit {
 	private final AABB aabb = new AABB(0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D);
 
 	private EmptyUnit() {
-		super(BlockPos.ZERO);
+		super(BlockPos.ZERO, null);
 	}
 
 	@Override
@@ -36,7 +36,7 @@ public class EmptyUnit extends PipeUnit {
 	}
 
 	@Override
-	public void setPressure(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double newPressure) {
+	public void setPressure(ArrayDeque<PipeUnit> tasks, Direction direction, double newPressure) {
 	}
 
 	@Override
@@ -64,7 +64,7 @@ public class EmptyUnit extends PipeUnit {
 	}
 
 	@Override
-	public void addTick(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double tick) {
+	public void addTick(Direction direction, double tick) {
 	}
 
 	@Override

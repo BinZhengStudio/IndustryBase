@@ -14,9 +14,11 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 	private boolean submittedTask;
 	private boolean ticked;
 	protected final BlockPos core;
+	protected final PipeNetwork network;
 
-	protected PipeUnit(BlockPos core) {
+	protected PipeUnit(BlockPos core, PipeNetwork network) {
 		this.core = core.immutable();
+		this.network = network;
 	}
 
 	public abstract int size();
@@ -25,9 +27,9 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 
 	public abstract double getPressure(Direction direction);
 
-	public abstract void setPressure(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double newPressure);
+	public abstract void setPressure(ArrayDeque<PipeUnit> tasks, Direction direction, double newPressure);
 
-	public void onNeighborUpdatePressure(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, PipeUnit neighbor, Direction direction, double neighborPressure) {
+	public void onNeighborUpdatePressure(PipeUnit neighbor, Direction direction, double neighborPressure) {
 		Direction neighborFace = direction.getOpposite();
 		double speed = this.getSpeed(direction, neighbor, neighborPressure);
 
@@ -36,11 +38,11 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 		int amount = speed > 0 ? Math.min(maxAmount, neighborMaxAmount) : Math.max(maxAmount, neighborMaxAmount);
 
 		this.addAmount(direction, amount, false); // add amount first, because addTick may use latest amount
-		this.addTick(tasks, next, direction, speed);
+		this.addTick(direction, speed);
 
 		// latter is neighbor, in order to prevent neighbor task cut in task queue
 		neighbor.addAmount(neighborFace, -amount, false);
-		neighbor.addTick(tasks, next, neighborFace, -speed);
+		neighbor.addTick(neighborFace, -speed);
 	}
 
 	public abstract int getAmount();
@@ -55,7 +57,7 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 
 	protected abstract void setTick(Direction direction, double tick);
 
-	public abstract void addTick(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double tick);
+	public abstract void addTick(Direction direction, double tick);
 
 	public abstract AABB getAABB();
 

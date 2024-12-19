@@ -1,5 +1,6 @@
 package net.industrybase.api.pipe.unit;
 
+import net.industrybase.api.pipe.PipeNetwork;
 import net.industrybase.api.pipe.StorageInterface;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -18,8 +19,8 @@ public class FluidStorage extends PipeUnit {
 	private final Runnable[] tasks = new Runnable[6];
 	protected final double[] pressure = new double[6];
 
-	public FluidStorage(BlockPos core, StorageInterface storageInterface) {
-		super(core);
+	public FluidStorage(BlockPos core, PipeNetwork network, StorageInterface storageInterface) {
+		super(core, network);
 		this.storageInterface = storageInterface;
 		this.aabb = new AABB(core);
 	}
@@ -40,14 +41,14 @@ public class FluidStorage extends PipeUnit {
 	}
 
 	@Override
-	public void setPressure(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double newPressure) {
+	public void setPressure(ArrayDeque<PipeUnit> tasks, Direction direction, double newPressure) {
 		int index = direction.ordinal();
 		this.tasks[index] = () -> {
 			double pressure = Math.max(newPressure, 0.0D);
 			this.pressure[index] = pressure;
 			PipeUnit neighbor = this.neighbors[index];
 			if (neighbor != null)
-				neighbor.onNeighborUpdatePressure(tasks, next, this, direction.getOpposite(), pressure);
+				neighbor.onNeighborUpdatePressure(this, direction.getOpposite(), pressure);
 		};
 
 		if (!this.submittedTask()) {
@@ -76,7 +77,7 @@ public class FluidStorage extends PipeUnit {
 	}
 
 	@Override
-	public void addTick(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double tick) {
+	public void addTick(Direction direction, double tick) {
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package net.industrybase.api.pipe.unit;
 
+import net.industrybase.api.pipe.PipeNetwork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
@@ -22,8 +23,8 @@ public class PipeRouter extends PipeUnit {
 	private int nonUpAmount;
 	private int horizontalNeighborSize;
 
-	public PipeRouter(BlockPos core) {
-		super(core);
+	public PipeRouter(BlockPos core, PipeNetwork network) {
+		super(core, network);
 		this.aabb = new AABB(core.getX() + 0.3125D, core.getY() + 0.3125D, core.getZ() + 0.3125D,
 				core.getX() + 0.6875D, core.getY() + 0.6875D, core.getZ() + 0.6875D);
 	}
@@ -44,14 +45,14 @@ public class PipeRouter extends PipeUnit {
 	}
 
 	@Override
-	public void setPressure(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double newPressure) {
+	public void setPressure(ArrayDeque<PipeUnit> tasks, Direction direction, double newPressure) {
 		int index = direction.ordinal();
 		this.tasks[index] = () -> {
 			double pressure = Math.max(newPressure, 0.0D);
 			this.pressure[index] = pressure;
 			PipeUnit neighbor = this.neighbors[index];
 			if (neighbor != null)
-				neighbor.onNeighborUpdatePressure(tasks, next, this, direction.getOpposite(), pressure);
+				neighbor.onNeighborUpdatePressure(this, direction.getOpposite(), pressure);
 		};
 
 		if (!this.submittedTask()) {
@@ -61,9 +62,9 @@ public class PipeRouter extends PipeUnit {
 	}
 
 	@Override
-	public void onNeighborUpdatePressure(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, PipeUnit neighbor, Direction direction, double neighborPressure) {
+	public void onNeighborUpdatePressure(PipeUnit neighbor, Direction direction, double neighborPressure) {
 		this.neighborPressures[direction.ordinal()] = neighborPressure;
-		super.onNeighborUpdatePressure(tasks, next, neighbor, direction, neighborPressure);
+		super.onNeighborUpdatePressure(neighbor, direction, neighborPressure);
 	}
 
 	@Override
@@ -106,7 +107,7 @@ public class PipeRouter extends PipeUnit {
 	}
 
 	@Override
-	public void addTick(ArrayDeque<PipeUnit> tasks, ArrayDeque<PipeUnit> next, Direction direction, double tick) {
+	public void addTick(Direction direction, double tick) {
 		if (tick > 0.0D) {
 			int index = direction.ordinal();
 			double diff = this.getMaxTick() - this.ticks[index];
@@ -177,7 +178,7 @@ public class PipeRouter extends PipeUnit {
 				}
 
 				for (Direction value : Direction.values()) {
-					this.setPressure(next, tasks, value, finalPressure[value.ordinal()]);
+					this.setPressure(this.network.getTask(), value, finalPressure[value.ordinal()]);
 				}
 			}
 		} else {
@@ -226,7 +227,7 @@ public class PipeRouter extends PipeUnit {
 			}
 		}
 		if (direction != null) {
-			StraightPipe pipe = StraightPipe.newInstance(this.core, direction.getAxis());
+			StraightPipe pipe = StraightPipe.newInstance(this.core, this.network, direction.getAxis());
 
 			PipeUnit neighbor = this.neighbors[direction.ordinal()];
 			pipe.setNeighbor(direction, neighbor);

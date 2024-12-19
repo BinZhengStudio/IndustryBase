@@ -287,7 +287,9 @@ public class StraightPipe extends PipeUnit {
 				this.start = axisPos + 1;
 
 				if (this.neighbors[1] != null) this.neighbors[1].setNeighbor(this.directions[0], unit);
+
 				unit.neighbors[1] = this.neighbors[1];
+				unit.neighbors[0] = router;
 
 				router.setNeighbor(this.directions[1], unit);
 				router.setNeighbor(this.directions[0], this);

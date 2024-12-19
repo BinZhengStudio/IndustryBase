@@ -157,7 +157,7 @@ public class PipeRouter extends PipeUnit {
 
 				boolean top = false;
 				if (this.neighbors[Direction.UP.ordinal()] != null) {
-					if ((total / (this.horizontalNeighborSize + 2)) > 0.75D) {
+					if ((total / (neighborSize + 1)) > 0.75D) {
 						// if average pressure bigger than requirement to push liquid to top side
 						// calc top pressure will be meaningful
 						neighborSize += 1; // add top side

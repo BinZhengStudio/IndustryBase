@@ -107,7 +107,7 @@ public class PipeRouter extends PipeUnit {
 	}
 
 	@Override
-	public void addTick(Direction direction, double tick) {
+	public void addTick(Direction direction, double tick) { // TODO reset tick
 		if (tick > 0.0D) {
 			int index = direction.ordinal();
 			double diff = this.getMaxTick() - this.ticks[index];

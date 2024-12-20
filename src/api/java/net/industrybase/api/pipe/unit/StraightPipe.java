@@ -85,15 +85,12 @@ public class StraightPipe extends PipeUnit {
 		int i = direction.getAxisDirection().ordinal();
 		int j = (i == 0 ? 1 : 0);
 
-		double pressure = Math.max(newPressure, 0.0D);
 		this.tasks[i] = () -> {
+			double pressure = Math.max(newPressure, 0.0D);
 			this.pressures[i] = pressure;
-			if (this.neighbors[i] != null) { // if positive side is closed
-				this.neighbors[i].onNeighborUpdatePressure(this, this.directions[j], pressure);
-			} else {
-				this.pressures[j] = pressure; // rebound pressure
-				if (this.neighbors[j] != null) // TODO: rebound without calc tick?
-					this.neighbors[j].onNeighborUpdatePressure(this, this.directions[i], pressure);
+			PipeUnit neighbor = this.neighbors[i];
+			if (neighbor != null) {
+				neighbor.onNeighborUpdatePressure(this, this.directions[j], pressure);
 			}
 		};
 
@@ -157,23 +154,29 @@ public class StraightPipe extends PipeUnit {
 				if (tick > diff) tick = diff;
 				this.ticks[1] += tick;
 			}
+
 			if (this.fullTick() || this.full()) {
-				if (this.neighborPressures[0] > this.neighborPressures[1]) {
-					if (this.ticks[1] <= 0.0D) {
+				if (this.ticks[0] <= 0.0D || this.ticks[1] <= 0.0D || this.neighborPressures[0] == this.neighborPressures[1]) {
+					this.ticks[0] = 0.0D;
+					this.ticks[1] = 0.0D;
+
+					if (this.neighbors[0] != null) {
 						this.setPressure(this.network.getTask(), this.directions[1], this.neighborPressures[0]);
 					} else {
-						this.ticks[1] = 0.0D; // reset tick
-						this.setPressure(this.network.getTask(), this.directions[0], this.neighborPressures[1]);
 						this.setPressure(this.network.getTask(), this.directions[1], this.neighborPressures[1]);
 					}
-				} else {
-					if (this.ticks[0] <= 0.0D) {
+
+					if (this.neighbors[1] != null) {
 						this.setPressure(this.network.getTask(), this.directions[0], this.neighborPressures[1]);
 					} else {
-						this.ticks[0] = 0.0D;
 						this.setPressure(this.network.getTask(), this.directions[0], this.neighborPressures[0]);
-						this.setPressure(this.network.getTask(), this.directions[1], this.neighborPressures[0]);
 					}
+				} else {
+					int i = this.neighborPressures[0] < this.neighborPressures[1] ? 0 : 1;
+
+					this.ticks[i] = 0.0D;
+					this.setPressure(this.network.getTask(), this.directions[0], this.neighborPressures[i]);
+					this.setPressure(this.network.getTask(), this.directions[1], this.neighborPressures[i]);
 				}
 			}
 		} else {

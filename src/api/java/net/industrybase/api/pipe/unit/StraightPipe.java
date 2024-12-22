@@ -160,17 +160,12 @@ public class StraightPipe extends PipeUnit {
 					this.ticks[0] = 0.0D;
 					this.ticks[1] = 0.0D;
 
-					if (this.neighbors[0] != null) {
-						this.setPressure(this.network.getTask(), this.directions[1], this.neighborPressures[0]);
-					} else {
-						this.setPressure(this.network.getTask(), this.directions[1], this.neighborPressures[1]);
-					}
+					// convey or rebound pressure
+					int i1 = this.neighbors[0] != null ? 0 : 1;
+					int i2 = this.neighbors[1] != null ? 1 : 0;
 
-					if (this.neighbors[1] != null) {
-						this.setPressure(this.network.getTask(), this.directions[0], this.neighborPressures[1]);
-					} else {
-						this.setPressure(this.network.getTask(), this.directions[0], this.neighborPressures[0]);
-					}
+					this.setPressure(this.network.getTask(), this.directions[1], this.neighborPressures[i1]);
+					this.setPressure(this.network.getTask(), this.directions[0], this.neighborPressures[i2]);
 				} else {
 					int i = this.neighborPressures[0] < this.neighborPressures[1] ? 0 : 1;
 

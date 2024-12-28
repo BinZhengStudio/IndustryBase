@@ -1,7 +1,7 @@
 {
 	"parent": "minecraft:block/block",
 	"textures": {
-		"particle": "industrybase:block/iron_pipe_core"
+		"particle": "industrybase:block/iron_pipe"
 	},
 	"elements": [
 		{

@@ -1,8 +1,7 @@
 {
 	"parent": "minecraft:block/block",
 	"textures": {
-		"core": "industrybase:block/iron_pipe_core",
-		"part": "industrybase:block/iron_pipe_part"
+		"core": "industrybase:block/iron_pipe"
 	},
 	"elements": [
 		{
@@ -21,24 +20,24 @@
 			"from": [5, 5, 0],
 			"to": [11, 11, 5],
 			"faces": {
-				"north": {"uv": [0, 0, 6, 6], "texture": "#part"},
-				"east": {"uv": [6, 0, 11, 6], "texture": "#part"},
-				"south": {"uv": [0, 0, 6, 6], "texture": "#part"},
-				"west": {"uv": [6, 0, 11, 6], "texture": "#part"},
-				"up": {"uv": [0, 6, 6, 11], "texture": "#part"},
-				"down": {"uv": [0, 6, 6, 11], "texture": "#part"}
+				"north": {"uv": [0, 0, 6, 6], "texture": "#core"},
+				"east": {"uv": [6, 0, 11, 6], "texture": "#core"},
+				"south": {"uv": [10, 10, 16, 16], "texture": "#core"},
+				"west": {"uv": [6, 0, 11, 6], "texture": "#core"},
+				"up": {"uv": [0, 6, 6, 11], "texture": "#core"},
+				"down": {"uv": [0, 6, 6, 11], "texture": "#core"}
 			}
 		},
 		{
 			"from": [5, 5, 11],
 			"to": [11, 11, 16],
 			"faces": {
-				"north": {"uv": [0, 0, 6, 6], "texture": "#part"},
-				"east": {"uv": [6, 0, 11, 6], "texture": "#part"},
-				"south": {"uv": [0, 0, 6, 6], "texture": "#part"},
-				"west": {"uv": [6, 0, 11, 6], "texture": "#part"},
-				"up": {"uv": [0, 6, 6, 11], "texture": "#part"},
-				"down": {"uv": [0, 6, 6, 11], "texture": "#part"}
+				"north": {"uv": [10, 10, 16, 16], "texture": "#core"},
+				"east": {"uv": [6, 0, 11, 6], "texture": "#core"},
+				"south": {"uv": [0, 0, 6, 6], "texture": "#core"},
+				"west": {"uv": [6, 0, 11, 6], "texture": "#core"},
+				"up": {"uv": [0, 6, 6, 11], "texture": "#core"},
+				"down": {"uv": [0, 6, 6, 11], "texture": "#core"}
 			}
 		}
 	]

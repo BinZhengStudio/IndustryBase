@@ -9,7 +9,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -351,20 +350,6 @@ public class PipeNetwork {
 				}
 			}
 		}
-	}
-
-	public static double square(Direction.Axis axis, AABB aabb1, AABB aabb2) {
-		double x = Math.min(aabb1.maxX, aabb2.maxX) - Math.max(aabb1.minX, aabb2.minX);
-		double y = Math.min(aabb1.maxY, aabb2.maxY) - Math.max(aabb1.minY, aabb2.minY);
-		double z = Math.min(aabb1.maxZ, aabb2.maxZ) - Math.max(aabb1.minZ, aabb2.minZ);
-		if (x < 0.0D) x = 0.0D;
-		if (y < 0.0D) y = 0.0D;
-		if (z < 0.0D) z = 0.0D;
-		return switch (axis) {
-			case X -> y * z;
-			case Y -> x * z;
-			case Z -> x * y;
-		};
 	}
 
 	private void tickConnectTasks() {

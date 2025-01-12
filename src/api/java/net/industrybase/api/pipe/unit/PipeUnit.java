@@ -119,9 +119,23 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 		AABB neighborAABB = neighbor.aabb;
 		double pressure = this.getPressure(direction);
 		int density = NeoForgeMod.WATER_TYPE.value().getDensity();
-		double square = PipeNetwork.square(direction.getAxis(), aabb, neighborAABB);
+		double square = square(direction.getAxis(), aabb, neighborAABB);
 
 		double pressureDiff = neighborPressure - pressure;
 		return (pressureDiff / density) * square * 50000.0D;
+	}
+
+	public static double square(Direction.Axis axis, AABB aabb1, AABB aabb2) {
+		double x = Math.min(aabb1.maxX, aabb2.maxX) - Math.max(aabb1.minX, aabb2.minX);
+		double y = Math.min(aabb1.maxY, aabb2.maxY) - Math.max(aabb1.minY, aabb2.minY);
+		double z = Math.min(aabb1.maxZ, aabb2.maxZ) - Math.max(aabb1.minZ, aabb2.minZ);
+		if (x < 0.0D) x = 0.0D;
+		if (y < 0.0D) y = 0.0D;
+		if (z < 0.0D) z = 0.0D;
+		return switch (axis) {
+			case X -> y * z;
+			case Y -> x * z;
+			case Z -> x * y;
+		};
 	}
 }

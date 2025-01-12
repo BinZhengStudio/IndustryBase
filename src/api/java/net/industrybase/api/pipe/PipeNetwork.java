@@ -49,7 +49,7 @@ public class PipeNetwork {
 				this.connections.removeAll(pos); // clear connections
 				unit.forEachNeighbor((direction, neighbor) -> neighbor.setNeighbor(direction.getOpposite(), null));
 			}
-			this.components.put(pos.immutable(), new FluidStorage(pos, this, storageInterface));
+			this.components.put(pos.immutable(), new FluidStorage(this, pos, storageInterface));
 
 			for (Direction side : Direction.values()) {
 				if (this.canConnect(pos, side)) {

@@ -7,8 +7,8 @@ import net.minecraft.core.Direction;
 public class StraightPipeY extends StraightPipe {
 	private int bottomAmount;
 
-	protected StraightPipeY(BlockPos pos, PipeNetwork network) {
-		super(pos, network, Direction.Axis.Y);
+	protected StraightPipeY(PipeNetwork network, BlockPos pos) {
+		super(network, pos, Direction.Axis.Y);
 	}
 
 	@Override

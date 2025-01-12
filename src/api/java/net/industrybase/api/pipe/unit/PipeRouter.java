@@ -23,8 +23,8 @@ public class PipeRouter extends PipeUnit {
 	private int nonUpAmount;
 	private int horizontalNeighborSize;
 
-	public PipeRouter(BlockPos core, PipeNetwork network) {
-		super(core, network);
+	public PipeRouter(PipeNetwork network, BlockPos core) {
+		super(network, core);
 		this.aabb = new AABB(core.getX() + 0.3125D, core.getY() + 0.3125D, core.getZ() + 0.3125D,
 				core.getX() + 0.6875D, core.getY() + 0.6875D, core.getZ() + 0.6875D);
 	}

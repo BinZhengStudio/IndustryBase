@@ -17,7 +17,7 @@ public class EmptyUnit extends PipeUnit {
 	private final AABB aabb = new AABB(0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D);
 
 	private EmptyUnit() {
-		super(BlockPos.ZERO, null);
+		super(null, BlockPos.ZERO);
 	}
 
 	@Override

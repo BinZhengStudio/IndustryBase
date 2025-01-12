@@ -19,8 +19,8 @@ public class FluidStorage extends PipeUnit {
 	private final Runnable[] tasks = new Runnable[6];
 	protected final double[] pressure = new double[6];
 
-	public FluidStorage(BlockPos core, PipeNetwork network, StorageInterface storageInterface) {
-		super(core, network);
+	public FluidStorage(PipeNetwork network, BlockPos core, StorageInterface storageInterface) {
+		super(network, core);
 		this.storageInterface = storageInterface;
 		this.aabb = new AABB(core);
 	}

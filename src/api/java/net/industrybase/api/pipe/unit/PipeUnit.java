@@ -17,7 +17,7 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 	protected final BlockPos core;
 	protected final PipeNetwork network;
 
-	protected PipeUnit(BlockPos core, PipeNetwork network) {
+	protected PipeUnit(PipeNetwork network, BlockPos core) {
 		this.core = core.immutable();
 		this.network = network;
 	}

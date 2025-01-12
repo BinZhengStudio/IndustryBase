@@ -23,7 +23,6 @@ public class StraightPipe extends PipeUnit {
 	}
 
 	protected final Direction.Axis axis;
-	protected final AABB aabb; // TODO
 	// index 0 is positive, index 1 is negative 
 	protected final Direction[] directions;
 	protected int start;
@@ -40,10 +39,10 @@ public class StraightPipe extends PipeUnit {
 	}
 
 	protected StraightPipe(PipeNetwork network, BlockPos core, int start, int end, Direction.Axis axis) {
-		super(network, core);
+		super(network, core,
+				new AABB(core.getX() + 0.3125D, core.getY() + 0.3125D, core.getZ() + 0.3125D,
+						core.getX() + 0.6875D, core.getY() + 0.6875D, core.getZ() + 0.6875D));
 		this.axis = axis;
-		this.aabb = new AABB(core.getX() + 0.3125D, core.getY() + 0.3125D, core.getZ() + 0.3125D,
-				core.getX() + 0.6875D, core.getY() + 0.6875D, core.getZ() + 0.6875D);
 		this.directions = DIRECTIONS.get(axis);
 		if (start <= end) {
 			this.start = start;
@@ -189,11 +188,6 @@ public class StraightPipe extends PipeUnit {
 
 	protected boolean full() {
 		return this.amount >= this.getCapacity();
-	}
-
-	@Override
-	public AABB getAABB() {
-		return this.aabb;
 	}
 
 	@Override

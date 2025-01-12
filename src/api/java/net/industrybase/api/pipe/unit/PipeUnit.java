@@ -15,11 +15,13 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 	private boolean submittedTask;
 	private boolean ticked;
 	protected final BlockPos core;
+	protected final AABB aabb;
 	protected final PipeNetwork network;
 
-	protected PipeUnit(PipeNetwork network, BlockPos core) {
+	protected PipeUnit(PipeNetwork network, BlockPos core, AABB aabb) {
 		this.core = core.immutable();
 		this.network = network;
+		this.aabb = aabb;
 	}
 
 	public abstract int size();
@@ -59,8 +61,6 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 	protected abstract void setTick(Direction direction, double tick);
 
 	public abstract void addTick(Direction direction, double tick);
-
-	public abstract AABB getAABB();
 
 	public abstract int getCapacity();
 
@@ -115,8 +115,8 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 	public abstract boolean canMergeWith(Direction direction);
 
 	public double getSpeed(Direction direction, PipeUnit neighbor, double neighborPressure) {
-		AABB aabb = this.getAABB();
-		AABB neighborAABB = neighbor.getAABB();
+		AABB aabb = this.aabb;
+		AABB neighborAABB = neighbor.aabb;
 		double pressure = this.getPressure(direction);
 		int density = NeoForgeMod.WATER_TYPE.value().getDensity();
 		double square = PipeNetwork.square(direction.getAxis(), aabb, neighborAABB);

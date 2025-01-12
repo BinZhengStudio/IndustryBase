@@ -12,7 +12,6 @@ import java.util.Iterator;
 import java.util.function.BiConsumer;
 
 public class PipeRouter extends PipeUnit {
-	private final AABB aabb; // TODO
 	private final PipeUnit[] neighbors = new PipeUnit[6];
 	private final double[] pressure = new double[6];
 	protected final double[] neighborPressures = new double[6];
@@ -24,9 +23,9 @@ public class PipeRouter extends PipeUnit {
 	private int horizontalNeighborSize;
 
 	public PipeRouter(PipeNetwork network, BlockPos core) {
-		super(network, core);
-		this.aabb = new AABB(core.getX() + 0.3125D, core.getY() + 0.3125D, core.getZ() + 0.3125D,
-				core.getX() + 0.6875D, core.getY() + 0.6875D, core.getZ() + 0.6875D);
+		super(network, core,
+				new AABB(core.getX() + 0.3125D, core.getY() + 0.3125D, core.getZ() + 0.3125D,
+						core.getX() + 0.6875D, core.getY() + 0.6875D, core.getZ() + 0.6875D));
 	}
 
 	@Override
@@ -196,11 +195,6 @@ public class PipeRouter extends PipeUnit {
 
 	private boolean full() {
 		return this.amount >= this.getCapacity();
-	}
-
-	@Override
-	public AABB getAABB() {
-		return this.aabb;
 	}
 
 	@Override

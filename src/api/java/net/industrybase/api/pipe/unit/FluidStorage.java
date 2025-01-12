@@ -14,15 +14,13 @@ import java.util.function.BiConsumer;
 
 public class FluidStorage extends PipeUnit {
 	protected final StorageInterface storageInterface;
-	protected final AABB aabb; // TODO
 	protected final PipeUnit[] neighbors = new PipeUnit[6];
 	private final Runnable[] tasks = new Runnable[6];
 	protected final double[] pressure = new double[6];
 
 	public FluidStorage(PipeNetwork network, BlockPos core, StorageInterface storageInterface) {
-		super(network, core);
+		super(network, core, new AABB(core));
 		this.storageInterface = storageInterface;
-		this.aabb = new AABB(core);
 	}
 
 	@Override
@@ -78,11 +76,6 @@ public class FluidStorage extends PipeUnit {
 
 	@Override
 	public void addTick(Direction direction, double tick) {
-	}
-
-	@Override
-	public AABB getAABB() {
-		return this.aabb;
 	}
 
 	@Override

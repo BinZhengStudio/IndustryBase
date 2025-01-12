@@ -14,10 +14,10 @@ import java.util.function.BiConsumer;
 public class EmptyUnit extends PipeUnit {
 	protected static final EmptyUnit INSTANCE = new EmptyUnit();
 	protected static final EmptyUnit[] INSTANCES = new EmptyUnit[]{INSTANCE};
-	private final AABB aabb = new AABB(0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D);
+	private static final AABB AABB = new AABB(0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D);
 
 	private EmptyUnit() {
-		super(null, BlockPos.ZERO);
+		super(null, BlockPos.ZERO, AABB);
 	}
 
 	@Override
@@ -65,11 +65,6 @@ public class EmptyUnit extends PipeUnit {
 
 	@Override
 	public void addTick(Direction direction, double tick) {
-	}
-
-	@Override
-	public AABB getAABB() {
-		return this.aabb;
 	}
 
 	@Override

@@ -126,7 +126,7 @@ public class FluidStorage extends PipeUnit {
 
 	@Override
 	public void forEachNeighbor(BiConsumer<? super Direction, ? super PipeUnit> action) {
-		for (Direction direction : Direction.values()) {
+		for (Direction direction : DIRECTIONS) {
 			PipeUnit unit = this.neighbors[direction.ordinal()];
 			if (unit != null) action.accept(direction, unit);
 		}

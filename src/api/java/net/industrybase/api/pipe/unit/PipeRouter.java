@@ -122,7 +122,7 @@ public class PipeRouter extends PipeUnit {
 
 				double total = 0.0D;
 				double nonDownTotal = 0.0D;
-				for (Direction value : Direction.values()) {
+				for (Direction value : DIRECTIONS) {
 					double pressure = this.neighborPressures[value.ordinal()];
 
 					total += pressure;
@@ -165,10 +165,10 @@ public class PipeRouter extends PipeUnit {
 					}
 				}
 
-				for (Direction value : Direction.values()) {
+				for (Direction value : DIRECTIONS) {
 					double pressure = shrinkPressure[value.ordinal()] / (neighborSize - 1); // shrink itself
 
-					for (Direction value1 : Direction.values()) {
+					for (Direction value1 : DIRECTIONS) {
 						if (value1 == value) continue;
 						if (value1 == Direction.UP && !top) continue;
 						if (this.neighbors[value1.ordinal()] == null) continue;
@@ -177,7 +177,7 @@ public class PipeRouter extends PipeUnit {
 					}
 				}
 
-				for (Direction value : Direction.values()) {
+				for (Direction value : DIRECTIONS) {
 					this.setPressure(this.network.getTask(), value, finalPressure[value.ordinal()]);
 				}
 			}
@@ -216,7 +216,7 @@ public class PipeRouter extends PipeUnit {
 	public PipeUnit toStraightPipe() {
 		Direction direction = null;
 		boolean flag = false;
-		for (Direction value : Direction.values()) {
+		for (Direction value : DIRECTIONS) {
 			if (this.neighbors[value.ordinal()] != null) {
 				if (!flag) {
 					direction = value;
@@ -283,7 +283,7 @@ public class PipeRouter extends PipeUnit {
 
 	@Override
 	public void forEachNeighbor(BiConsumer<? super Direction, ? super PipeUnit> action) {
-		for (Direction direction : Direction.values()) {
+		for (Direction direction : DIRECTIONS) {
 			PipeUnit unit = this.neighbors[direction.ordinal()];
 			if (unit != null) action.accept(direction, unit);
 		}
@@ -314,7 +314,7 @@ public class PipeRouter extends PipeUnit {
 
 	@Override
 	public boolean canMergeWith(Direction direction) {
-		for (Direction side : Direction.values()) {
+		for (Direction side : DIRECTIONS) {
 			if (this.neighbors[side.ordinal()] != null && side.getAxis() != direction.getAxis()) {
 				return false;
 			}

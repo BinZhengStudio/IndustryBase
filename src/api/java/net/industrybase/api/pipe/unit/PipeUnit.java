@@ -11,6 +11,7 @@ import java.util.ArrayDeque;
 import java.util.function.BiConsumer;
 
 public abstract class PipeUnit implements Iterable<BlockPos> {
+	protected static final Direction[] DIRECTIONS = Direction.values();
 	private boolean submittedTask;
 	private boolean ticked;
 	protected final BlockPos core;

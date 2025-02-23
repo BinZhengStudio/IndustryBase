@@ -40,8 +40,7 @@ public class StraightPipe extends PipeUnit {
 
 	protected StraightPipe(PipeNetwork network, BlockPos core, int start, int end, Direction.Axis axis) {
 		super(network, core,
-				new AABB(core.getX() + 0.3125D, core.getY() + 0.3125D, core.getZ() + 0.3125D,
-						core.getX() + 0.6875D, core.getY() + 0.6875D, core.getZ() + 0.6875D));
+				new AABB(0.3125D, 0.3125D, 0.3125D, 0.6875D, 0.6875D, 0.6875D));
 		this.axis = axis;
 		this.directions = DIRECTIONS.get(axis);
 		if (start <= end) {

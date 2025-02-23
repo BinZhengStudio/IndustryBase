@@ -24,8 +24,7 @@ public class PipeRouter extends PipeUnit {
 
 	public PipeRouter(PipeNetwork network, BlockPos core) {
 		super(network, core,
-				new AABB(core.getX() + 0.3125D, core.getY() + 0.3125D, core.getZ() + 0.3125D,
-						core.getX() + 0.6875D, core.getY() + 0.6875D, core.getZ() + 0.6875D));
+				new AABB(0.3125D, 0.3125D, 0.3125D, 0.6875D, 0.6875D, 0.6875D));
 	}
 
 	@Override

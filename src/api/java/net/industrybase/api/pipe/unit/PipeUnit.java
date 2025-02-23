@@ -3,6 +3,7 @@ package net.industrybase.api.pipe.unit;
 import net.industrybase.api.pipe.PipeNetwork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.common.NeoForgeMod;
 
@@ -119,13 +120,17 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 		AABB neighborAABB = neighbor.aabb;
 		double pressure = this.getPressure(direction);
 		int density = NeoForgeMod.WATER_TYPE.value().getDensity();
-		double factor = factor(direction.getAxis(), aabb, neighborAABB);
+		double factor = factor(direction, aabb, neighborAABB);
 
 		double pressureDiff = neighborPressure - pressure;
 		return (pressureDiff / density) * factor * 50000.0D;
 	}
 
-	public static double factor(Direction.Axis axis, AABB aabb1, AABB aabb2) {
+	public static double factor(Direction direction, AABB aabb1, AABB aabb2) {
+		Direction.Axis axis = direction.getAxis();
+		Vec3i normal = direction.getNormal();
+		aabb2 = aabb2.move(normal.getX(), normal.getY(), normal.getZ());
+
 		double x = Math.min(aabb1.maxX, aabb2.maxX) - Math.max(aabb1.minX, aabb2.minX);
 		double y = Math.min(aabb1.maxY, aabb2.maxY) - Math.max(aabb1.minY, aabb2.minY);
 		double z = Math.min(aabb1.maxZ, aabb2.maxZ) - Math.max(aabb1.minZ, aabb2.minZ);
@@ -139,7 +144,7 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 				distance = Math.max(-x, 0.0D);
 				maxArea = Math.min(aabb1.getYsize() * aabb1.getZsize(), aabb2.getYsize() * aabb2.getZsize());
 				if (y < 0.0D || z < 0.0D) {
-					minArea = -Math.abs(y * z);
+					minArea = -Math.abs(y * z); // make sure minArea is negative
 				} else {
 					minArea = y * z;
 				}

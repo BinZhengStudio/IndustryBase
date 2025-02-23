@@ -119,23 +119,54 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 		AABB neighborAABB = neighbor.aabb;
 		double pressure = this.getPressure(direction);
 		int density = NeoForgeMod.WATER_TYPE.value().getDensity();
-		double square = square(direction.getAxis(), aabb, neighborAABB);
+		double factor = factor(direction.getAxis(), aabb, neighborAABB);
 
 		double pressureDiff = neighborPressure - pressure;
-		return (pressureDiff / density) * square * 50000.0D;
+		return (pressureDiff / density) * factor * 50000.0D;
 	}
 
-	public static double square(Direction.Axis axis, AABB aabb1, AABB aabb2) {
+	public static double factor(Direction.Axis axis, AABB aabb1, AABB aabb2) {
 		double x = Math.min(aabb1.maxX, aabb2.maxX) - Math.max(aabb1.minX, aabb2.minX);
 		double y = Math.min(aabb1.maxY, aabb2.maxY) - Math.max(aabb1.minY, aabb2.minY);
 		double z = Math.min(aabb1.maxZ, aabb2.maxZ) - Math.max(aabb1.minZ, aabb2.minZ);
-		if (x < 0.0D) x = 0.0D;
-		if (y < 0.0D) y = 0.0D;
-		if (z < 0.0D) z = 0.0D;
-		return switch (axis) {
-			case X -> y * z;
-			case Y -> x * z;
-			case Z -> x * y;
-		};
+
+		double distance;
+		double minArea;
+		double maxArea;
+
+		switch (axis) {
+			case X -> {
+				distance = Math.max(-x, 0.0D);
+				maxArea = Math.min(aabb1.getYsize() * aabb1.getZsize(), aabb2.getYsize() * aabb2.getZsize());
+				if (y < 0.0D || z < 0.0D) {
+					minArea = -Math.abs(y * z);
+				} else {
+					minArea = y * z;
+				}
+			}
+			case Y -> {
+				distance = Math.max(-y, 0.0D);
+				maxArea = Math.min(aabb1.getXsize() * aabb1.getZsize(), aabb2.getXsize() * aabb2.getZsize());
+				if (x < 0.0D || z < 0.0D) {
+					minArea = -Math.abs(x * z);
+				} else {
+					minArea = x * z;
+				}
+			}
+			default -> {
+				distance = Math.max(-z, 0.0D);
+				maxArea = Math.min(aabb1.getXsize() * aabb1.getYsize(), aabb2.getXsize() * aabb2.getYsize());
+				if (x < 0.0D || y < 0.0D) {
+					minArea = -Math.abs(x * y);
+				} else {
+					minArea = x * y;
+				}
+			}
+		}
+
+		double diff = maxArea - minArea;
+
+		if (diff <= 0.0D) return maxArea;
+		return Math.max(maxArea - (diff / (distance + (diff / maxArea))), 0.0D);
 	}
 }

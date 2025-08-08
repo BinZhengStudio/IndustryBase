@@ -1,5 +1,6 @@
 package net.industrybase.api.pipe.unit;
 
+import net.industrybase.api.pipe.MergeCheckResult;
 import net.industrybase.api.pipe.PipeNetwork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -432,13 +433,13 @@ public class StraightPipe extends PipeUnit {
 	 * @return can merge or not
 	 */
 	@Override
-	public boolean canMergeWith(Direction direction) {
+	public MergeCheckResult canMergeWith(Direction direction) {
 		if (direction.getAxis() == this.axis) {
-			return true;
-		} else if (this.isSingle()) {
-			return this.neighbors[1] == null && this.neighbors[0] == null;
+			return MergeCheckResult.PASS;
+		} else if (this.isSingle() && this.neighbors[1] == null && this.neighbors[0] == null) {
+			return MergeCheckResult.PASS;
 		}
-		return false;
+		return MergeCheckResult.FAIL_DIRECTION;
 	}
 
 	public boolean canMergeWith2(Direction direction, @Nullable PipeUnit unit) {

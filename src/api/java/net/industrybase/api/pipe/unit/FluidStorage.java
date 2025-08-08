@@ -1,5 +1,6 @@
 package net.industrybase.api.pipe.unit;
 
+import net.industrybase.api.pipe.MergeCheckResult;
 import net.industrybase.api.pipe.PipeNetwork;
 import net.industrybase.api.pipe.StorageInterface;
 import net.minecraft.core.BlockPos;
@@ -149,8 +150,8 @@ public class FluidStorage extends PipeUnit {
 	}
 
 	@Override
-	public boolean canMergeWith(Direction direction) {
-		return false;
+	public MergeCheckResult canMergeWith(Direction direction) {
+		return MergeCheckResult.FAIL_DIRECTION;
 	}
 
 	@NotNull

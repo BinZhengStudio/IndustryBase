@@ -1,6 +1,7 @@
 package net.industrybase.api.pipe.unit;
 
 import it.unimi.dsi.fastutil.objects.ObjectIterators;
+import net.industrybase.api.pipe.MergeCheckResult;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
@@ -119,8 +120,8 @@ public class EmptyUnit extends PipeUnit {
 	}
 
 	@Override
-	public boolean canMergeWith(Direction direction) {
-		return false;
+	public MergeCheckResult canMergeWith(Direction direction) {
+		return MergeCheckResult.FAIL_DIRECTION;
 	}
 
 	@NotNull

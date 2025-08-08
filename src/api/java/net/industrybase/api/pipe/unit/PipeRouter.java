@@ -1,5 +1,6 @@
 package net.industrybase.api.pipe.unit;
 
+import net.industrybase.api.pipe.MergeCheckResult;
 import net.industrybase.api.pipe.PipeNetwork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -306,13 +307,13 @@ public class PipeRouter extends PipeUnit {
 	}
 
 	@Override
-	public boolean canMergeWith(Direction direction) {
+	public MergeCheckResult canMergeWith(Direction direction) {
 		for (Direction side : DIRECTIONS) {
 			if (this.neighbors[side.ordinal()] != null && side.getAxis() != direction.getAxis()) {
-				return false;
+				return MergeCheckResult.FAIL_DIRECTION;
 			}
 		}
-		return true;
+		return MergeCheckResult.PASS;
 	}
 
 	@NotNull

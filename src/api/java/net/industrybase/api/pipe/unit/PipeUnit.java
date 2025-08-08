@@ -1,5 +1,6 @@
 package net.industrybase.api.pipe.unit;
 
+import net.industrybase.api.pipe.MergeCheckResult;
 import net.industrybase.api.pipe.PipeNetwork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -112,7 +113,7 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 
 	public abstract boolean isSingle();
 
-	public abstract boolean canMergeWith(Direction direction);
+	public abstract MergeCheckResult canMergeWith(Direction direction);
 
 	public double getSpeed(Direction direction, PipeUnit neighbor, double neighborPressure) {
 		AABB aabb = this.aabb;

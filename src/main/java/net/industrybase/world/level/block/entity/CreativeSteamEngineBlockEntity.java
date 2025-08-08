@@ -22,11 +22,13 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import org.jetbrains.annotations.Nullable;
 
 public class CreativeSteamEngineBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
+	private static final AABB AABB = new AABB(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
 	private NonNullList<ItemStack> inventory = NonNullList.withSize(1, new ItemStack(Items.LAVA_BUCKET));
 	private final PipeConnectedHandler handler = new PipeConnectedHandler(this);
 	private final FluidTank tank = new FluidTank(2000, fluidStack -> fluidStack.is(NeoForgeMod.WATER_TYPE.value()));
@@ -58,7 +60,7 @@ public class CreativeSteamEngineBlockEntity extends BaseContainerBlockEntity imp
 		this.transmit.register();
 		this.transmit.setPower(100);
 		this.transmit.setResistance(10);
-		this.handler.registerHandler(new StorageInterface(this.tank::getCapacity, this.tank::getFluidAmount, this.tank::fill, this.tank::drain));
+		this.handler.registerHandler(AABB, new StorageInterface(this.tank::getCapacity, this.tank::getFluidAmount, this.tank::fill, this.tank::drain));
 	}
 
 	@Override

@@ -10,12 +10,14 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 public class FluidTankBlockEntity extends BlockEntity {
 	public static final int CAPACITY = 8000;
+	private static final AABB AABB = new AABB(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
 	private int oldWaterAmount;
 	private int waterAmount;
 	private boolean subscribed = false;
@@ -48,7 +50,7 @@ public class FluidTankBlockEntity extends BlockEntity {
 		@Override
 	public void onLoad() {
 		super.onLoad();
-		this.handler.registerHandler(new StorageInterface(this.tank::getCapacity, this.tank::getFluidAmount, this.tank::fill, this.tank::drain));
+		this.handler.registerHandler(AABB, new StorageInterface(this.tank::getCapacity, this.tank::getFluidAmount, this.tank::fill, this.tank::drain));
 	}
 
 	public FluidTank getTank(Direction direction) {

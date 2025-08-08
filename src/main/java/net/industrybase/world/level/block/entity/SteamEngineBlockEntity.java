@@ -26,6 +26,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -40,6 +41,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 	private boolean subscribed = false;
 	public static final int MAX_POWER = 100;
 	public static final int MAX_WATER = FluidType.BUCKET_VOLUME * 2;
+	private static final AABB AABB = new AABB(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
 	private NonNullList<ItemStack> inventory = NonNullList.withSize(1, ItemStack.EMPTY);
 	private final PipeConnectedHandler handler = new PipeConnectedHandler(this);
 	private final FluidTank tank = new FluidTank(MAX_WATER, fluidStack -> fluidStack.is(NeoForgeMod.WATER_TYPE.value())) {
@@ -170,7 +172,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 		super.onLoad();
 		this.transmit.register();
 		this.transmit.setResistance(10);
-		this.handler.registerHandler(new StorageInterface(this.tank::getCapacity, this.tank::getFluidAmount, this.tank::fill, this.tank::drain));
+		this.handler.registerHandler(AABB, new StorageInterface(this.tank::getCapacity, this.tank::getFluidAmount, this.tank::fill, this.tank::drain));
 	}
 
 	@Override

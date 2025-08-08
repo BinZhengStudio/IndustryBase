@@ -9,6 +9,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -40,7 +41,7 @@ public class PipeNetwork {
 		return this.fluidTasks;
 	}
 
-	public void registerHandler(BlockPos pos, StorageInterface storageInterface, Runnable callback) {
+	public void registerHandler(BlockPos pos, AABB aabb, StorageInterface storageInterface, Runnable callback) {
 		this.tasks.addLast(() -> {
 			// clean up old pipe
 			PipeUnit unit = this.components.get(pos);
@@ -48,7 +49,7 @@ public class PipeNetwork {
 				this.connections.removeAll(pos); // clear connections
 				unit.forEachNeighbor((direction, neighbor) -> neighbor.setNeighbor(direction.getOpposite(), null));
 			}
-			this.components.put(pos.immutable(), new FluidStorage(this, pos, storageInterface));
+			this.components.put(pos.immutable(), new FluidStorage(this, pos, aabb, storageInterface));
 
 			for (Direction side : Direction.values()) {
 				if (this.canConnect(pos, side)) {
@@ -70,7 +71,7 @@ public class PipeNetwork {
 	public void updateHandler(BlockPos pos, Runnable callback) {
 		this.tasks.addLast(() -> {
 			PipeUnit unit = this.components.get(pos);
-			if (unit == null || unit.getType() != UnitType.FLUID_STORAGE) return;
+			if (unit == null || unit.getType() != UnitType.FLUID_STORAGE) return; // TODO: or force update?
 
 			for (Direction side : Direction.values()) {
 				if (this.canConnect(pos, side)) {

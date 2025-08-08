@@ -4,6 +4,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 
 public class PipeConnectedHandler {
@@ -19,12 +20,12 @@ public class PipeConnectedHandler {
 		this.pos = blockEntity.getBlockPos();
 	}
 
-	public void registerHandler(StorageInterface storageInterface) {
+	public void registerHandler(AABB aabb, StorageInterface storageInterface) {
 		this.level = this.blockEntity.getLevel();
 		if (this.level != null) {
 			this.network = PipeNetwork.Manager.get(this.level);
 			if (!this.level.isClientSide) {
-				this.network.registerHandler(this.pos, storageInterface, this.blockEntity::setChanged);
+				this.network.registerHandler(this.pos, aabb, storageInterface, this.blockEntity::setChanged);
 			}
 		}
 	}

@@ -432,11 +432,13 @@ public class StraightPipe extends PipeUnit {
 	 * @return can merge or not
 	 */
 	@Override
-	public MergeCheckResult canMergeWith(Direction direction, AABB aabb) {
+	public MergeCheckResult canMergeWith(Direction direction, AABB neighborAABB) {
+		boolean aabbEqual = this.aabb.equals(neighborAABB);
+
 		if (direction.getAxis() == this.axis) {
-			return MergeCheckResult.PASS;
+			return aabbEqual ? MergeCheckResult.PASS : MergeCheckResult.FAIL_AABB;
 		} else if (this.isSingle() && this.neighbors[1] == null && this.neighbors[0] == null) {
-			return MergeCheckResult.PASS;
+			return aabbEqual ? MergeCheckResult.PASS : MergeCheckResult.FAIL_AABB;
 		}
 		return MergeCheckResult.FAIL_DIRECTION;
 	}

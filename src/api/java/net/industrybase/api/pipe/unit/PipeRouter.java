@@ -307,12 +307,13 @@ public class PipeRouter extends PipeUnit {
 	}
 
 	@Override
-	public MergeCheckResult canMergeWith(Direction direction, AABB aabb) {
+	public MergeCheckResult canMergeWith(Direction direction, AABB neighborAABB) {
 		for (Direction side : DIRECTIONS) {
 			if (this.neighbors[side.ordinal()] != null && side.getAxis() != direction.getAxis()) {
 				return MergeCheckResult.FAIL_DIRECTION;
 			}
 		}
+		if (!this.aabb.equals(neighborAABB)) return MergeCheckResult.FAIL_AABB;
 		return MergeCheckResult.PASS;
 	}
 

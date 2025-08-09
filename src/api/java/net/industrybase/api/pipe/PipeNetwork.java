@@ -394,12 +394,6 @@ public class PipeNetwork {
 		}
 	}
 
-	private static boolean compareAABB(AABB a, AABB b, Direction.Axis axis) {
-		if (axis == Direction.Axis.X) return a.minX == b.minX && a.maxX == b.maxX;
-		if (axis == Direction.Axis.Y) return a.minY == b.minY && a.maxY == b.maxY;
-		return a.minZ == b.minZ && a.maxZ == b.maxZ;
-	}
-
 	private void tickConnectTasks() {
 		for (Runnable runnable = this.tasks.pollFirst(); runnable != null; runnable = this.tasks.poll()) {
 			runnable.run();

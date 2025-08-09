@@ -150,7 +150,7 @@ public class FluidStorage extends PipeUnit {
 	}
 
 	@Override
-	public MergeCheckResult canMergeWith(Direction direction) {
+	public MergeCheckResult canMergeWith(Direction direction, AABB aabb) {
 		return MergeCheckResult.FAIL_DIRECTION;
 	}
 

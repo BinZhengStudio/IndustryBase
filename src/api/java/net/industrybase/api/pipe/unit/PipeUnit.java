@@ -117,7 +117,7 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 
 	public abstract boolean isSingle();
 
-	public abstract MergeCheckResult canMergeWith(Direction direction);
+	public abstract MergeCheckResult canMergeWith(Direction direction, AABB neighborAABB);
 
 	public double getSpeed(Direction direction, PipeUnit neighbor, double neighborPressure) {
 		AABB aabb = this.aabb;

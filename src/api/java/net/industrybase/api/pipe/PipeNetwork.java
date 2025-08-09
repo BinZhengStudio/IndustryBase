@@ -165,7 +165,7 @@ public class PipeNetwork {
 				AABB primaryAABB = this.aabbCache.remove(primary);
 				AABB secondaryAABB = secondaryUnit.getAABB();
 
-				if (secondaryUnit.canMergeWith(direction) == MergeCheckResult.PASS) {
+				if (secondaryUnit.canMergeWith(direction, primaryAABB) == MergeCheckResult.PASS) {
 					if (secondaryUnit.isSingle()) {
 						StraightPipe unit = StraightPipe.newInstance(secondary, this, connectAxis, secondaryAABB);
 						unit.addPipe(primary);
@@ -197,7 +197,7 @@ public class PipeNetwork {
 				AABB primaryAABB = primaryUnit.getAABB();
 				AABB secondaryAABB = this.aabbCache.remove(secondary);
 
-				if (primaryUnit.canMergeWith(direction.getOpposite()) == MergeCheckResult.PASS) {
+				if (primaryUnit.canMergeWith(direction.getOpposite(), secondaryAABB) == MergeCheckResult.PASS) {
 					if (primaryUnit.isSingle()) {
 						StraightPipe unit = StraightPipe.newInstance(primary, this, connectAxis, primaryAABB);
 						unit.addPipe(secondary);
@@ -229,8 +229,8 @@ public class PipeNetwork {
 				AABB primaryAABB = primaryUnit.getAABB();
 				AABB secondaryAABB = secondaryUnit.getAABB();
 
-				MergeCheckResult primaryCanMerge = primaryUnit.canMergeWith(direction.getOpposite());
-				MergeCheckResult secondaryCanMerge = secondaryUnit.canMergeWith(direction);
+				MergeCheckResult primaryCanMerge = primaryUnit.canMergeWith(direction.getOpposite(), secondaryAABB);
+				MergeCheckResult secondaryCanMerge = secondaryUnit.canMergeWith(direction, primaryAABB);
 				if (primaryCanMerge == MergeCheckResult.PASS && secondaryCanMerge == MergeCheckResult.PASS) {
 					if (!primaryUnit.isSingle()) {
 						PipeUnit unit = ((StraightPipe) primaryUnit).merge(direction.getOpposite(), secondaryUnit);
@@ -329,14 +329,15 @@ public class PipeNetwork {
 
 				if (straight.getType() == UnitType.STRAIGHT_PIPE) {
 					StraightPipe pipe = (StraightPipe) straight;
+					AABB pipeAABB = pipe.getAABB();
 					Direction positiveDirection = Direction.fromAxisAndDirection(pipe.getAxis(), Direction.AxisDirection.POSITIVE);
 					Direction negativeDirection = Direction.fromAxisAndDirection(pipe.getAxis(), Direction.AxisDirection.NEGATIVE);
 
 					// merge positive
 					PipeUnit positiveNeighbor = straight.getNeighbor(positiveDirection);
 					if (positiveNeighbor != null) {
-						MergeCheckResult result = pipe.canMergeWith(positiveDirection);
-						MergeCheckResult neighborResult = positiveNeighbor.canMergeWith(negativeDirection);
+						MergeCheckResult result = pipe.canMergeWith(positiveDirection, positiveNeighbor.getAABB());
+						MergeCheckResult neighborResult = positiveNeighbor.canMergeWith(negativeDirection, pipeAABB);
 						if (result == MergeCheckResult.PASS && neighborResult == MergeCheckResult.PASS) {
 							PipeUnit merged = pipe.merge(positiveDirection, positiveNeighbor);
 							merged.forEach((pos) -> this.components.put(pos, pipe));
@@ -346,8 +347,8 @@ public class PipeNetwork {
 					// merge negative
 					PipeUnit negativeNeighbor = straight.getNeighbor(negativeDirection);
 					if (negativeNeighbor != null) {
-						MergeCheckResult result = pipe.canMergeWith(negativeDirection);
-						MergeCheckResult neighborResult = negativeNeighbor.canMergeWith(positiveDirection);
+						MergeCheckResult result = pipe.canMergeWith(negativeDirection, negativeNeighbor.getAABB());
+						MergeCheckResult neighborResult = negativeNeighbor.canMergeWith(positiveDirection, pipeAABB);
 						if (result == MergeCheckResult.PASS && neighborResult == MergeCheckResult.PASS) {
 							PipeUnit merged = pipe.merge(negativeDirection, negativeNeighbor);
 							merged.forEach((pos) -> this.components.put(pos, pipe));
@@ -363,14 +364,15 @@ public class PipeNetwork {
 
 				if (straight.getType() == UnitType.STRAIGHT_PIPE) {
 					StraightPipe pipe = (StraightPipe) straight;
+					AABB pipeAABB = pipe.getAABB();
 					Direction positiveDirection = Direction.fromAxisAndDirection(pipe.getAxis(), Direction.AxisDirection.POSITIVE);
 					Direction negativeDirection = Direction.fromAxisAndDirection(pipe.getAxis(), Direction.AxisDirection.NEGATIVE);
 
 					// merge positive
 					PipeUnit positiveNeighbor = straight.getNeighbor(positiveDirection);
 					if (positiveNeighbor != null) {
-						MergeCheckResult result = pipe.canMergeWith(positiveDirection);
-						MergeCheckResult neighborResult = positiveNeighbor.canMergeWith(negativeDirection);
+						MergeCheckResult result = pipe.canMergeWith(positiveDirection, positiveNeighbor.getAABB());
+						MergeCheckResult neighborResult = positiveNeighbor.canMergeWith(negativeDirection, pipeAABB);
 						if (result == MergeCheckResult.PASS && neighborResult == MergeCheckResult.PASS) {
 							PipeUnit merged = pipe.merge(positiveDirection, positiveNeighbor);
 							merged.forEach((pos) -> this.components.put(pos, pipe));
@@ -380,8 +382,8 @@ public class PipeNetwork {
 					// merge negative
 					PipeUnit negativeNeighbor = straight.getNeighbor(negativeDirection);
 					if (negativeNeighbor != null) {
-						MergeCheckResult result = pipe.canMergeWith(negativeDirection);
-						MergeCheckResult neighborResult = negativeNeighbor.canMergeWith(positiveDirection);
+						MergeCheckResult result = pipe.canMergeWith(negativeDirection, negativeNeighbor.getAABB());
+						MergeCheckResult neighborResult = negativeNeighbor.canMergeWith(positiveDirection, pipeAABB);
 						if (result == MergeCheckResult.PASS && neighborResult == MergeCheckResult.PASS) {
 							PipeUnit merged = pipe.merge(negativeDirection, negativeNeighbor);
 							merged.forEach((pos) -> this.components.put(pos, pipe));

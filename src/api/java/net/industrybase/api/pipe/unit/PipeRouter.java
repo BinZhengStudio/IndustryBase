@@ -221,7 +221,7 @@ public class PipeRouter extends PipeUnit {
 			}
 		}
 		if (direction != null) {
-			StraightPipe pipe = StraightPipe.newInstance(this.core, this.network, direction.getAxis());
+			StraightPipe pipe = StraightPipe.newInstance(this.core, this.network, direction.getAxis(), this.aabb);
 
 			PipeUnit neighbor = this.neighbors[direction.ordinal()];
 			pipe.setNeighbor(direction, neighbor);

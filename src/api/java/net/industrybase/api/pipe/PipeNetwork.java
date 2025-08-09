@@ -21,6 +21,7 @@ import java.util.*;
 public class PipeNetwork {
 	private final HashMap<BlockPos, PipeUnit> components = new HashMap<>();
 	private final HashMultimap<BlockPos, Direction> connections = HashMultimap.create();
+	private final HashMap<BlockPos, AABB> aabbCache = new HashMap<>();
 	private final ArrayDeque<Runnable> tasks = new ArrayDeque<>();
 	private ArrayDeque<PipeUnit> fluidTasks = new ArrayDeque<>();
 	private ArrayDeque<PipeUnit> nextFluidTasks = new ArrayDeque<>();
@@ -90,7 +91,8 @@ public class PipeNetwork {
 		});
 	}
 
-	public void registerPipe(BlockPos pos, Runnable callback) {
+	public void registerPipe(BlockPos pos, AABB aabb, Runnable callback) {
+		this.aabbCache.put(pos, aabb);
 		this.tasks.addLast(() -> {
 			for (Direction side : Direction.values()) {
 				if (this.pipeConnected(pos, side)) {
@@ -152,14 +154,20 @@ public class PipeNetwork {
 			PipeUnit secondaryUnit = this.components.get(secondary);
 
 			if (primaryUnit == null && secondaryUnit == null) {
-				StraightPipe unit = StraightPipe.newInstance(secondary, this, connectAxis);
+				AABB primaryAABB = this.aabbCache.remove(primary);
+				AABB secondaryAABB = this.aabbCache.remove(secondary);
+
+				StraightPipe unit = StraightPipe.newInstance(secondary, this, connectAxis, secondaryAABB);
 				unit.addPipe(primary);
 				this.components.put(secondary, unit);
 				this.components.put(primary, unit);
 			} else if (primaryUnit == null) {
+				AABB primaryAABB = this.aabbCache.remove(primary);
+				AABB secondaryAABB = secondaryUnit.getAABB();
+
 				if (secondaryUnit.canMergeWith(direction) == MergeCheckResult.PASS) {
 					if (secondaryUnit.isSingle()) {
-						StraightPipe unit = StraightPipe.newInstance(secondary, this, connectAxis);
+						StraightPipe unit = StraightPipe.newInstance(secondary, this, connectAxis, secondaryAABB);
 						unit.addPipe(primary);
 
 						PipeUnit secondaryNeighbor = secondaryUnit.getNeighbor(direction.getOpposite());
@@ -180,15 +188,18 @@ public class PipeNetwork {
 						}
 					}
 					PipeUnit newSecondaryUnit = this.components.get(secondary);
-					PipeUnit newPrimaryUnit = StraightPipe.newInstance(primary, this, connectAxis);
+					PipeUnit newPrimaryUnit = StraightPipe.newInstance(primary, this, connectAxis, primaryAABB);
 					newPrimaryUnit.setNeighbor(direction.getOpposite(), newSecondaryUnit);
 					newSecondaryUnit.setNeighbor(direction, newPrimaryUnit);
 					this.components.put(primary, newPrimaryUnit);
 				}
 			} else if (secondaryUnit == null) {
+				AABB primaryAABB = primaryUnit.getAABB();
+				AABB secondaryAABB = this.aabbCache.remove(secondary);
+
 				if (primaryUnit.canMergeWith(direction.getOpposite()) == MergeCheckResult.PASS) {
 					if (primaryUnit.isSingle()) {
-						StraightPipe unit = StraightPipe.newInstance(primary, this, connectAxis);
+						StraightPipe unit = StraightPipe.newInstance(primary, this, connectAxis, primaryAABB);
 						unit.addPipe(secondary);
 
 						PipeUnit primaryNeighbor = primaryUnit.getNeighbor(direction);
@@ -209,12 +220,15 @@ public class PipeNetwork {
 						}
 					}
 					PipeUnit newPrimaryUnit = this.components.get(primary);
-					PipeUnit newSecondaryUnit = StraightPipe.newInstance(secondary, this, connectAxis);
+					PipeUnit newSecondaryUnit = StraightPipe.newInstance(secondary, this, connectAxis, secondaryAABB);
 					newPrimaryUnit.setNeighbor(direction.getOpposite(), newSecondaryUnit);
 					newSecondaryUnit.setNeighbor(direction, newPrimaryUnit);
 					this.components.put(secondary, newSecondaryUnit);
 				}
 			} else if (primaryUnit != secondaryUnit) {
+				AABB primaryAABB = primaryUnit.getAABB();
+				AABB secondaryAABB = secondaryUnit.getAABB();
+
 				MergeCheckResult primaryCanMerge = primaryUnit.canMergeWith(direction.getOpposite());
 				MergeCheckResult secondaryCanMerge = secondaryUnit.canMergeWith(direction);
 				if (primaryCanMerge == MergeCheckResult.PASS && secondaryCanMerge == MergeCheckResult.PASS) {
@@ -225,7 +239,7 @@ public class PipeNetwork {
 						PipeUnit unit = ((StraightPipe) secondaryUnit).merge(direction, primaryUnit);
 						unit.forEach(pos -> this.components.put(pos, secondaryUnit));
 					} else { // TODO merge via StraightPipe#merge and PipeRouter#toStraightPipe
-						StraightPipe unit = StraightPipe.newInstance(secondary, this, connectAxis);
+						StraightPipe unit = StraightPipe.newInstance(secondary, this, connectAxis, secondaryAABB);
 						unit.addPipe(secondary);
 
 						PipeUnit primaryNeighbor = primaryUnit.getNeighbor(direction);
@@ -359,6 +373,12 @@ public class PipeNetwork {
 				}
 			}
 		}
+	}
+
+	private static boolean compareAABB(AABB a, AABB b, Direction.Axis axis) {
+		if (axis == Direction.Axis.X) return a.minX == b.minX && a.maxX == b.maxX;
+		if (axis == Direction.Axis.Y) return a.minY == b.minY && a.maxY == b.maxY;
+		return a.minZ == b.minZ && a.maxZ == b.maxZ;
 	}
 
 	private void tickConnectTasks() {

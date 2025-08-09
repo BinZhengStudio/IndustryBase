@@ -35,13 +35,12 @@ public class StraightPipe extends PipeUnit {
 	protected int amount;
 	protected final PipeUnit[] neighbors = new PipeUnit[2];
 
-	protected StraightPipe(PipeNetwork network, BlockPos pos, Direction.Axis axis) {
-		this(network, pos, pos.get(axis), pos.get(axis), axis);
+	protected StraightPipe(PipeNetwork network, BlockPos pos, Direction.Axis axis, AABB aabb) {
+		this(network, pos, pos.get(axis), pos.get(axis), axis, aabb);
 	}
 
-	protected StraightPipe(PipeNetwork network, BlockPos core, int start, int end, Direction.Axis axis) {
-		super(network, core,
-				new AABB(0.3125D, 0.3125D, 0.3125D, 0.6875D, 0.6875D, 0.6875D));
+	protected StraightPipe(PipeNetwork network, BlockPos core, int start, int end, Direction.Axis axis, AABB aabb) {
+		super(network, core, aabb);
 		this.axis = axis;
 		this.directions = DIRECTIONS.get(axis);
 		if (start <= end) {
@@ -53,9 +52,9 @@ public class StraightPipe extends PipeUnit {
 		}
 	}
 
-	public static StraightPipe newInstance(BlockPos pos, PipeNetwork network, Direction.Axis axis) {
-		if (axis == Direction.Axis.Y) return new StraightPipeY(network, pos);
-		return new StraightPipe(network, pos, axis);
+	public static StraightPipe newInstance(BlockPos pos, PipeNetwork network, Direction.Axis axis, AABB aabb) {
+		if (axis == Direction.Axis.Y) return new StraightPipeY(network, pos, aabb);
+		return new StraightPipe(network, pos, axis, aabb);
 	}
 
 	@Override
@@ -279,7 +278,7 @@ public class StraightPipe extends PipeUnit {
 				return new PipeUnit[]{router};
 			} else if (axisPos > this.start && axisPos < this.end) {
 				PipeRouter router = new PipeRouter(this.network, this.getPos(axisPos));
-				StraightPipe unit = new StraightPipe(this.network, this.core, this.start, axisPos - 1, this.axis);
+				StraightPipe unit = new StraightPipe(this.network, this.core, this.start, axisPos - 1, this.axis, this.aabb);
 				this.start = axisPos + 1;
 
 				if (this.neighbors[1] != null) this.neighbors[1].setNeighbor(this.directions[0], unit);
@@ -325,10 +324,10 @@ public class StraightPipe extends PipeUnit {
 		} else if (axis >= this.start && axis <= this.end) {
 			StraightPipe unit;
 			if (direction == this.directions[0]) {
-				unit = new StraightPipe(this.network, pos.relative(direction), axis + 1, this.end, this.axis);
+				unit = new StraightPipe(this.network, pos.relative(direction), axis + 1, this.end, this.axis, this.aabb);
 				this.end = axis;
 			} else {
-				unit = new StraightPipe(this.network, pos.relative(direction), axis, this.end, this.axis);
+				unit = new StraightPipe(this.network, pos.relative(direction), axis, this.end, this.axis, this.aabb);
 				this.end = axis - 1;
 			}
 

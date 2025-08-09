@@ -76,6 +76,10 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 		return this.core;
 	}
 
+	public AABB getAABB() {
+		return this.aabb;
+	}
+
 //	boolean contains(BlockPos pos);
 
 //	int getNeighborSize();

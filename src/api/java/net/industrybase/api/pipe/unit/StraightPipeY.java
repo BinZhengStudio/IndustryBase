@@ -3,12 +3,13 @@ package net.industrybase.api.pipe.unit;
 import net.industrybase.api.pipe.PipeNetwork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.phys.AABB;
 
 public class StraightPipeY extends StraightPipe {
 	private int bottomAmount;
 
-	protected StraightPipeY(PipeNetwork network, BlockPos pos) {
-		super(network, pos, Direction.Axis.Y);
+	protected StraightPipeY(PipeNetwork network, BlockPos pos, AABB aabb) {
+		super(network, pos, Direction.Axis.Y, aabb);
 	}
 
 	@Override

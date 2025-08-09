@@ -4,8 +4,10 @@ import net.industrybase.api.pipe.PipeNetwork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 
 public class IronPipeBlockEntity extends BlockEntity {
+	private static final AABB AABB = new AABB(0.3125D, 0.3125D, 0.3125D, 0.6875D, 0.6875D, 0.6875D);
 	private PipeNetwork network;
 
 	public IronPipeBlockEntity(BlockPos pos, BlockState state) {
@@ -17,7 +19,7 @@ public class IronPipeBlockEntity extends BlockEntity {
 		super.onLoad();
 		if (this.level != null) {
 			this.network = PipeNetwork.Manager.get(this.level);
-			this.network.registerPipe(this.worldPosition, this::setChanged);
+			this.network.registerPipe(this.worldPosition, AABB, this::setChanged);
 		}
 	}
 

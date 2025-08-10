@@ -209,13 +209,13 @@ public class PipeRouter extends PipeUnit {
 
 	public PipeUnit toStraightPipe() {
 		Direction direction = null;
-		boolean flag = false;
-		for (Direction value : DIRECTIONS) {
+		boolean flag = false; // TODO is flag necessary?
+		for (Direction value : DIRECTIONS) { // check all neighbors
 			if (this.neighbors[value.ordinal()] != null) {
 				if (!flag) {
 					direction = value;
 					flag = true;
-				} else if (value.getAxis() != direction.getAxis()) {
+				} else if (value.getAxis() != direction.getAxis()) { // if it has neighbor in different axis
 					return EmptyUnit.INSTANCE;
 				}
 			}

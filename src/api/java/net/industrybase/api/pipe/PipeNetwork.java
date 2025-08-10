@@ -59,10 +59,10 @@ public class PipeNetwork {
 					} else if (this.canConnect(pos.relative(side), side.getOpposite())) {
 						this.linkHandlers(pos, side);
 					} else {
-						this.spiltPipe(pos, side);
+						this.spilt(pos, side);
 					}
 				} else {
-					this.spiltPipe(pos, side);
+					this.spilt(pos, side);
 				}
 			}
 			callback.run();
@@ -81,10 +81,10 @@ public class PipeNetwork {
 					} else if (this.canConnect(pos.relative(side), side.getOpposite())) {
 						this.linkHandlers(pos, side);
 					} else {
-						this.spiltPipe(pos, side);
+						this.spilt(pos, side);
 					}
 				} else {
-					this.spiltPipe(pos, side);
+					this.spilt(pos, side);
 				}
 			}
 			callback.run();
@@ -99,10 +99,10 @@ public class PipeNetwork {
 					if (this.pipeConnected(pos.relative(side), side.getOpposite())) {
 						this.link(pos, side);
 					} else if (!this.canConnect(pos.relative(side), side.getOpposite())) {
-						this.spiltPipe(pos, side);
+						this.spilt(pos, side);
 					}
 				} else {
-					this.spiltPipe(pos, side);
+					this.spilt(pos, side);
 				}
 			}
 			callback.run();
@@ -137,7 +137,7 @@ public class PipeNetwork {
 	public void removePipe(BlockPos pos, Runnable callback) {
 		this.tasks.offer(() -> {
 			for (Direction side : Direction.values()) {
-				this.spiltPipe(pos, side);
+				this.spilt(pos, side);
 			}
 			this.components.remove(pos);
 			callback.run();
@@ -309,7 +309,7 @@ public class PipeNetwork {
 		}
 	}
 
-	private void spiltPipe(BlockPos node, Direction direction) { // TODO: fluid spilt
+	private void spilt(BlockPos node, Direction direction) { // TODO: fluid spilt
 		if (this.connections.remove(node, direction)) {
 			BlockPos another = node.relative(direction);
 			this.connections.remove(another, direction.getOpposite());

@@ -57,7 +57,7 @@ public class PipeNetwork {
 					if (this.pipeConnected(pos.relative(side), side.getOpposite())) {
 						this.link(pos, side);
 					} else if (this.canConnect(pos.relative(side), side.getOpposite())) {
-						this.link(pos, side);
+						this.linkHandlers(pos, side);
 					} else {
 						this.spiltPipe(pos, side);
 					}
@@ -79,7 +79,7 @@ public class PipeNetwork {
 					if (this.pipeConnected(pos.relative(side), side.getOpposite())) {
 						this.link(pos, side);
 					} else if (this.canConnect(pos.relative(side), side.getOpposite())) {
-						this.link(pos, side);
+						this.linkHandlers(pos, side);
 					} else {
 						this.spiltPipe(pos, side);
 					}
@@ -288,6 +288,23 @@ public class PipeNetwork {
 					newPrimaryUnit.setNeighbor(direction.getOpposite(), newSecondaryUnit);
 					newSecondaryUnit.setNeighbor(direction, newPrimaryUnit);
 				}
+			}
+		}
+	}
+
+	private void linkHandlers(BlockPos node, Direction direction) {
+		BlockPos secondary = node.immutable();
+		BlockPos primary = secondary.relative(direction);
+		PipeUnit primaryUnit = this.components.get(primary);
+		if (primaryUnit == null || primaryUnit.getType() != UnitType.FLUID_STORAGE) return;
+
+		if (this.connections.put(secondary, direction)) {
+			this.connections.put(primary, direction.getOpposite());
+			PipeUnit secondaryUnit = this.components.get(secondary);
+
+			if (primaryUnit != secondaryUnit) {
+				primaryUnit.setNeighbor(direction.getOpposite(), secondaryUnit);
+				secondaryUnit.setNeighbor(direction, primaryUnit);
 			}
 		}
 	}

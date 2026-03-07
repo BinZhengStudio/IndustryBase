@@ -443,15 +443,6 @@ public class StraightPipe extends PipeUnit {
 		return MergeCheckResult.FAIL_DIRECTION;
 	}
 
-	public boolean canMergeWith2(Direction direction, @Nullable PipeUnit unit) {
-		if (unit != null && this.axis == unit.getAxis()) {
-			return direction.getAxis() == this.axis;
-		} else if (this.isSingle()) {
-			return this.neighbors[1] == null && this.neighbors[0] == null;
-		}
-		return false;
-	}
-
 	@NotNull
 	@Override
 	public Iterator<BlockPos> iterator() {

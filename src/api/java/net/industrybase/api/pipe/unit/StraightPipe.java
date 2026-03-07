@@ -235,7 +235,7 @@ public class StraightPipe extends PipeUnit {
 	public PipeUnit[] toRouter(BlockPos pos) {
 		int axisPos = pos.get(this.axis);
 		if (this.isSingle()) {
-			PipeRouter router = new PipeRouter(this.network, this.getPos(axisPos));
+			PipeRouter router = new PipeRouter(this.network, this.getPos(axisPos), this.aabb);
 			router.setNeighbor(this.directions[0], this.neighbors[0]);
 			router.setNeighbor(this.directions[1], this.neighbors[1]);
 			if (this.neighbors[1] != null) this.neighbors[1].setNeighbor(this.directions[0], router);
@@ -249,7 +249,7 @@ public class StraightPipe extends PipeUnit {
 			if (axisPos == this.start) {
 				this.start++;
 
-				PipeRouter router = new PipeRouter(this.network, this.getPos(axisPos));
+				PipeRouter router = new PipeRouter(this.network, this.getPos(axisPos), this.aabb);
 				router.setNeighbor(this.directions[1], this.neighbors[1]);
 				router.setNeighbor(this.directions[0], this);
 				if (this.neighbors[1] != null) this.neighbors[1].setNeighbor(this.directions[0], router);
@@ -264,7 +264,7 @@ public class StraightPipe extends PipeUnit {
 			} else if (axisPos == this.end) {
 				this.end--;
 
-				PipeRouter router = new PipeRouter(this.network, this.getPos(axisPos));
+				PipeRouter router = new PipeRouter(this.network, this.getPos(axisPos), this.aabb);
 				router.setNeighbor(this.directions[0], this.neighbors[0]);
 				router.setNeighbor(this.directions[1], this);
 				if (this.neighbors[0] != null) this.neighbors[0].setNeighbor(this.directions[1], router);
@@ -277,7 +277,7 @@ public class StraightPipe extends PipeUnit {
 
 				return new PipeUnit[]{router};
 			} else if (axisPos > this.start && axisPos < this.end) {
-				PipeRouter router = new PipeRouter(this.network, this.getPos(axisPos));
+				PipeRouter router = new PipeRouter(this.network, this.getPos(axisPos), this.aabb);
 				StraightPipe unit = new StraightPipe(this.network, this.core, this.start, axisPos - 1, this.axis, this.aabb);
 				this.start = axisPos + 1;
 

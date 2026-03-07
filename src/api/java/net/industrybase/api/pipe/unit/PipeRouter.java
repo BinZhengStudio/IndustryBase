@@ -23,9 +23,8 @@ public class PipeRouter extends PipeUnit {
 	private int nonUpAmount;
 	private int horizontalNeighborSize;
 
-	public PipeRouter(PipeNetwork network, BlockPos core) {
-		super(network, core,
-				new AABB(0.3125D, 0.3125D, 0.3125D, 0.6875D, 0.6875D, 0.6875D));
+	public PipeRouter(PipeNetwork network, BlockPos core, AABB aabb) {
+		super(network, core, aabb);
 	}
 
 	@Override

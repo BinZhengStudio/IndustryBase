@@ -1,11 +1,13 @@
 {
     "java.compile.nullAnalysis.mode": "automatic",
     "cSpell.words": [
+        "AABB",
         "Feng",
         "industrybase",
         "jvmargs",
         "moddev",
         "MODID",
+        "Multimap",
         "neoforge",
         "neoforged",
         "nogui",
@@ -15,5 +17,21 @@
         "Zheng"
     ],
     "java.project.explorer.showNonJavaResources": true,
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.import.gradle.enabled": false,
+    "redhat.telemetry.enabled": false,
+    "java.compile.nullAnalysis.nonnull": [
+        "javax.annotation.Nonnull",
+        "org.jetbrains.annotations.NotNull",
+        "org.eclipse.jdt.annotation.NonNull"
+    ],
+    "java.compile.nullAnalysis.nonnullbydefault": [
+        "javax.annotation.ParametersAreNonnullByDefault",
+        "net.minecraft.MethodsReturnNonnullByDefault",
+        "org.eclipse.jdt.annotation.NonNullByDefault"
+    ],
+    "java.compile.nullAnalysis.nullable": [
+        "javax.annotation.Nullable",
+        "org.jetbrains.annotations.Nullable",
+        "org.eclipse.jdt.annotation.Nullable"
+    ],
 }

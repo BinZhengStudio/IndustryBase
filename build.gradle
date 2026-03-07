@@ -1,199 +1,224 @@
 plugins {
-	id 'java-library'
-	id 'eclipse'
-	id 'idea'
-	id 'maven-publish'
-	id 'net.neoforged.gradle.userdev' version '7.0.145'
+    id 'java-library'
+    id 'maven-publish'
+    id 'net.neoforged.moddev' version '2.0.140'
+    id 'idea'
 }
 
 tasks.named('wrapper', Wrapper).configure {
-	distributionType = Wrapper.DistributionType.BIN
+    distributionType = Wrapper.DistributionType.BIN
 }
 
 version = mod_version
 group = mod_group_id
 
 repositories {
-	mavenLocal()
+    mavenLocal()
 }
 
 base {
-	archivesName = "${mod_id}-${minecraft_version}"
+    archivesName = "${mod_id}-${minecraft_version}"
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
 
+// This block of code expands all declared replace properties in the specified resource targets.
+// A missing property will result in an error. Properties are expanded using ${} Groovy notation.
+var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
+    var replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            neo_version_range      : neo_version_range,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_authors            : mod_authors,
+            mod_description        : mod_description
+    ]
+    inputs.properties replaceProperties
+    expand replaceProperties
+    from "src/main/templates"
+    into "build/generated/sources/modMetadata"
+}
+
+// To avoid having to run "generateModMetadata" manually, make it run on every project reload
+neoForge.ideSyncTask generateModMetadata
+
 sourceSets {
-	api {
-		compileClasspath = main.compileClasspath
-		runtimeClasspath = main.runtimeClasspath
-	}
-	main {
-//		resources {
-//			srcDir 'src/generated/resources'
-//		}
-//		java {
-//			srcDir 'src/api/java'
-//		}
-		compileClasspath += api.output
-		runtimeClasspath += api.output
-	}
+    api {
+        compileClasspath = main.compileClasspath
+        runtimeClasspath = main.runtimeClasspath
+    }
+    main {
+        resources {
+            srcDir 'src/generated/resources'
+            srcDir generateModMetadata
+        }
+        java {
+            srcDir 'src/api/java'
+        }
+        compileClasspath += api.output
+        runtimeClasspath += api.output
+    }
+}
+
+neoForge {
+    version = project.neo_version
+    addModdingDependenciesTo sourceSets.api
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    runs {
+        configureEach {
+            // Recommended logging data for a userdev environment
+            // The markers can be added/remove as needed separated by commas.
+            // "SCAN": For mods scan.
+            // "REGISTRIES": For firing of registry events.
+            // "REGISTRYDUMP": For getting the contents of all registries.
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+
+            logLevel = org.slf4j.event.Level.DEBUG
+        }
+
+        client {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        server {
+            server()
+            programArgument '--nogui'
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        // This run config launches GameTestServer and runs all registered gametests, then exits.
+        // By default, the server will crash when no gametests are provided.
+        // The gametest system is also enabled by default for other run configs under the /test command.
+        gameTestServer {
+            type = "gameTestServer"
+            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        data {
+            data()
+
+            // example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
+            // gameDirectory = project.file('run-data')
+
+            // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
+            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+        }
+    }
+
+    mods {
+        // define mod <-> source bindings
+        // these are used to tell the game which sources are for which mod
+        // multi mod projects should define one per mod
+        "${mod_id}" {
+            sourceSet sourceSets.api
+            sourceSet sourceSets.main
+        }
+    }
 }
 
 //minecraft.accessTransformers.file rootProject.file('src/main/resources/META-INF/accesstransformer.cfg')
 //minecraft.accessTransformers.entry public net.minecraft.client.Minecraft textureManager # textureManager
-
-runs {
-	configureEach {
-		// Recommended logging data for a userdev environment
-		// The markers can be added/remove as needed separated by commas.
-		// "SCAN": For mods scan.
-		// "REGISTRIES": For firing of registry events.
-		// "REGISTRYDUMP": For getting the contents of all registries.
-		systemProperty 'forge.logging.markers', 'REGISTRIES'
-
-		systemProperty 'forge.logging.console.level', 'info'
-
-		modSource project.sourceSets.api
-		modSource project.sourceSets.main
-	}
-
-	client {
-		systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
-	}
-
-	server {
-		systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
-	}
-
-	// This run config launches GameTestServer and runs all registered gametests, then exits.
-	// By default, the server will crash when no gametests are provided.
-	// The gametest system is also enabled by default for other run configs under the /test command.
-	gameTestServer {
-		systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
-	}
-
-	data {
-		// example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
-		// workingDirectory project.file('run-data')
-
-		// Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
-		programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
-	}
-}
 
 // Sets up a dependency configuration called 'localRuntime'.
 // This configuration should be used instead of 'runtimeOnly' to declare
 // a dependency that will be present for runtime testing but that is
 // "optional", meaning it will not be pulled by dependents of this mod.
 configurations {
-	runtimeClasspath.extendsFrom localRuntime
+    runtimeClasspath.extendsFrom localRuntime
 }
 
 dependencies {
-	implementation "net.neoforged:neoforge:${neo_version}"
-}
-
-// This block of code expands all declared replace properties in the specified resource targets.
-// A missing property will result in an error. Properties are expanded using ${} Groovy notation.
-tasks.withType(ProcessResources).configureEach {
-	var replaceProperties = [
-			minecraft_version      : minecraft_version,
-			minecraft_version_range: minecraft_version_range,
-			neo_version            : neo_version,
-			neo_version_range      : neo_version_range,
-			loader_version_range   : loader_version_range,
-			mod_id                 : mod_id,
-			mod_name               : mod_name,
-			mod_license            : mod_license,
-			mod_version            : mod_version,
-			mod_authors            : mod_authors,
-			mod_description        : mod_description
-	]
-	inputs.properties replaceProperties
-
-	filesMatching(['META-INF/neoforge.mods.toml']) {
-		expand replaceProperties
-	}
+    implementation "net.neoforged:neoforge:${neo_version}"
 }
 
 var manifest_info = [
-		"Specification-Title"     : mod_id,
-		"Specification-Vendor"    : mod_authors,
-		"Specification-Version"   : "1",
-		"Implementation-Title"    : project.name,
-		"Implementation-Version"  : project.jar.archiveVersion,
-		"Implementation-Vendor"   : mod_authors
+        "Specification-Title"   : mod_id,
+        "Specification-Vendor"  : mod_authors,
+        "Specification-Version" : "1",
+        "Implementation-Title"  : project.name,
+        "Implementation-Version": project.jar.archiveVersion,
+        "Implementation-Vendor" : mod_authors
 ]
 
 tasks.named('jar', Jar).configure {
-	from sourceSets.api.output
-	manifest {
-		attributes(manifest_info)
-	}
+    from sourceSets.api.output
+    manifest {
+        attributes(manifest_info)
+    }
 }
 
 tasks.register('apiJar', Jar) {
-	dependsOn apiClasses
-	archiveClassifier = 'api'
-	from sourceSets.api.output
-	manifest {
-		attributes(manifest_info)
-	}
+    dependsOn apiClasses
+    archiveClassifier = 'api'
+    from sourceSets.api.output
+    manifest {
+        attributes(manifest_info)
+    }
 }
 
 tasks.register('apiSourceJar', Jar) {
-	dependsOn apiClasses
-	archiveClassifier = 'api-source'
-	from sourceSets.api.allSource
-	manifest {
-		attributes(manifest_info)
-	}
+    dependsOn apiClasses
+    archiveClassifier = 'api-source'
+    from sourceSets.api.allSource
+    manifest {
+        attributes(manifest_info)
+    }
 }
 
 tasks.register('sourcesJar', Jar) {
-	dependsOn classes
-	archiveClassifier = 'sources'
-	from sourceSets.main.allSource
-	from sourceSets.api.allSource
-	manifest {
-		attributes(manifest_info)
-	}
+    dependsOn classes
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+    from sourceSets.api.allSource
+    manifest {
+        attributes(manifest_info)
+    }
 }
 
 artifacts {
-	archives sourcesJar
-	archives apiJar
-	archives apiSourceJar
+    archives sourcesJar
+    archives apiJar
+    archives apiSourceJar
 }
 
 publishing {
-	publications {
-		register('mavenJava', MavenPublication) {
+    publications {
+        register('mavenJava', MavenPublication) {
 //			from components.java
 //			artifactId = archivesBaseName
-			artifact jar
-			artifact sourcesJar
-			artifact apiJar
-			artifact apiSourceJar
-		}
-	}
-	repositories {
-		maven {
-			url "file://${project.projectDir}/repo"
-		}
-	}
+            artifact jar
+            artifact sourcesJar
+            artifact apiJar
+            artifact apiSourceJar
+        }
+    }
+    repositories {
+        maven {
+            url "file://${project.projectDir}/repo"
+        }
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {
-	options.encoding = 'UTF-8'
+    options.encoding = 'UTF-8'
 }
 
 idea {
-	module {
-		downloadSources = true
-		downloadJavadoc = true
-	}
+    module {
+        downloadSources = true
+        downloadJavadoc = true
+    }
 }

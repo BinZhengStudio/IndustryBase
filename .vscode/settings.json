@@ -1,0 +1,19 @@
+{
+    "java.compile.nullAnalysis.mode": "automatic",
+    "cSpell.words": [
+        "Feng",
+        "industrybase",
+        "jvmargs",
+        "moddev",
+        "MODID",
+        "neoforge",
+        "neoforged",
+        "nogui",
+        "println",
+        "userdev",
+        "vvvbbbcz",
+        "Zheng"
+    ],
+    "java.project.explorer.showNonJavaResources": true,
+    "java.configuration.updateBuildConfiguration": "interactive"
+}

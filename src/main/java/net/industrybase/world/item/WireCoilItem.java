@@ -2,7 +2,6 @@ package net.industrybase.world.item;
 
 import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.api.electric.ConnectHelper;
-import net.industrybase.api.electric.IWireCoil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -14,13 +13,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
 
-public class WireCoilItem extends Item implements IWireCoil {
+public class WireCoilItem extends Item {
 	public static final int MAX_LENGTH = 256;
 
 	public WireCoilItem() {

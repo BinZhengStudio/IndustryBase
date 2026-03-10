@@ -1,3 +1,5 @@
+import org.gradle.internal.os.OperatingSystem;
+
 plugins {
     id 'java-library'
     id 'maven-publish'
@@ -91,6 +93,23 @@ neoForge {
         client {
             client()
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+
+            def os = OperatingSystem.current();
+
+            if (os.isLinux()) {
+                def glfw = providers.systemProperty('net.industrybase.dev.linux.glfw');
+                if (glfw.isPresent()) systemProperty 'org.lwjgl.glfw.libname', glfw.get();
+
+                def nvidia = providers.systemProperty('net.industrybase.dev.linux.useNvidia').map({
+                    Boolean.valueOf(it)
+                }).orElse(false);
+                if (nvidia.get()) {
+                    environment '__NV_PRIME_RENDER_OFFLOAD', '1'
+                    environment '__VK_LAYER_NV_optimus', 'NVIDIA_only'
+                    environment '__GLX_VENDOR_LIBRARY_NAME', 'nvidia'
+                    environment '__GL_THREADED_OPTIMIZATIONS', '0'
+                }
+            }
         }
 
         server {

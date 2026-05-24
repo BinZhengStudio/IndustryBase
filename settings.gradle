@@ -1,11 +1,6 @@
 pluginManagement {
 	repositories {
-		mavenLocal()
 		gradlePluginPortal()
-		maven {
-			name = 'NeoForge'
-			url = "${neo_maven}"
-		}
 	}
 }
 

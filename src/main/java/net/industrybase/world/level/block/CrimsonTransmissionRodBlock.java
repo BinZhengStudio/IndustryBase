@@ -2,7 +2,7 @@ package net.industrybase.world.level.block;
 
 import com.mojang.serialization.MapCodec;
 import net.industrybase.api.transmit.WoodTransmissionRod;
-import net.industrybase.world.level.block.entity.CrimsonTransmissionRodBlockEntity;
+import net.industrybase.api.transmit.TransmissionRodBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Blocks;
@@ -20,7 +20,7 @@ public class CrimsonTransmissionRodBlock extends WoodTransmissionRod {
 	@Nullable
 	@Override
 	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-		return new CrimsonTransmissionRodBlockEntity(pos, state);
+		return new TransmissionRodBlockEntity(pos, state);
 	}
 
 	@Override

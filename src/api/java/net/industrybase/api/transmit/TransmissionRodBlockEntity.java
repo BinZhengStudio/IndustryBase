@@ -1,19 +1,19 @@
 package net.industrybase.api.transmit;
 
+import net.industrybase.world.level.block.entity.BlockEntityTypeList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class TransmissionRodBlockEntity extends BlockEntity {
+public class TransmissionRodBlockEntity extends BlockEntity {
 	private final MechanicalTransmit transmit = new MechanicalTransmit(this);
 	private boolean subscribed = false;
 
-	public TransmissionRodBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
-		super(type, pos, state);
+	public TransmissionRodBlockEntity(BlockPos pos, BlockState state) {
+		super(BlockEntityTypeList.TRANSMISSION_ROD.get(), pos, state);
 	}
 
 	@Override

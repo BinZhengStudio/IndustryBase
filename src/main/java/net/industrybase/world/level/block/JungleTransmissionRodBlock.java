@@ -1,8 +1,8 @@
 package net.industrybase.world.level.block;
 
 import com.mojang.serialization.MapCodec;
-import net.industrybase.api.transmit.WoodTransmissionRod;
-import net.industrybase.api.transmit.TransmissionRodBlockEntity;
+
+import net.industrybase.world.level.block.entity.TransmissionRodBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Blocks;

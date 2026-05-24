@@ -1,22 +1,22 @@
-package net.industrybase.api.transmit;
+package net.industrybase.world.level.block;
 
-import net.industrybase.api.util.TransmitHelper;
+import net.industrybase.api.transmit.TransmitNetwork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -24,6 +24,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public abstract class TransmissionRodBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
 	public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
+    public static final EnumProperty<Direction.Axis> AXIS = BlockStateProperties.AXIS;
 	private static final VoxelShape X = Block.box(0.0D, 5.0D, 5.0D, 16.0D, 11.0D, 11.0D);
 	private static final VoxelShape Y = Block.box(5.0D, 0.0D, 5.0D, 11.0D, 16.0D, 11.0D);
 	private static final VoxelShape Z = Block.box(5.0D, 5.0D, 0.0D, 11.0D, 11.0D, 16.0D);
@@ -33,14 +34,14 @@ public abstract class TransmissionRodBlock extends BaseEntityBlock implements Si
 		super(properties.noOcclusion().randomTicks());
 		this.maxResistance = maxResistance;
 		this.registerDefaultState(this.stateDefinition.any()
-				.setValue(BlockStateProperties.AXIS, Direction.Axis.X)
+				.setValue(AXIS, Direction.Axis.X)
 				.setValue(WATERLOGGED, false));
 	}
 
-	@Override
-	protected boolean propagatesSkylightDown(BlockState pState, BlockGetter pReader, BlockPos pPos) {
-		return !pState.getValue(WATERLOGGED);
-	}
+    @Override
+    protected boolean propagatesSkylightDown(BlockState state) {
+        return !state.getValue(WATERLOGGED);
+    }
 
 	@Override
 	protected FluidState getFluidState(BlockState pState) {
@@ -48,14 +49,8 @@ public abstract class TransmissionRodBlock extends BaseEntityBlock implements Si
 	}
 
 	@Override
-	public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-		TransmitHelper.updateOnRemove(level, state, newState, pos);
-		super.onRemove(state, level, pos, newState, isMoving);
-	}
-
-	@Override
 	public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-		if (!level.isClientSide) {
+		if (!level.isClientSide()) {
 			TransmitNetwork network = TransmitNetwork.Manager.get(level);
 			if (network.speed(pos) > 0.0D && ((double) network.totalResistance(pos) / network.size(pos)) > this.maxResistance) {
 				level.destroyBlock(pos, true);
@@ -65,37 +60,32 @@ public abstract class TransmissionRodBlock extends BaseEntityBlock implements Si
 
 	@Override
 	public BlockState getStateForPlacement(BlockPlaceContext context) {
-		FluidState fluidstate = context.getLevel().getFluidState(context.getClickedPos());
+		FluidState fluidState = context.getLevel().getFluidState(context.getClickedPos());
 		return this.defaultBlockState()
-				.setValue(BlockStateProperties.AXIS, context.getClickedFace().getAxis())
-				.setValue(WATERLOGGED, fluidstate.getType() == Fluids.WATER);
+				.setValue(AXIS, context.getClickedFace().getAxis())
+				.setValue(WATERLOGGED, fluidState.getType() == Fluids.WATER);
 	}
 
 	@Override
 	public VoxelShape getShape(BlockState state, BlockGetter blockGetter, BlockPos pos, CollisionContext collisionContext) {
-		return switch (state.getValue(BlockStateProperties.AXIS)) {
+		return switch (state.getValue(AXIS)) {
 			case X -> X;
 			case Y -> Y;
 			case Z -> Z;
 		};
 	}
 
-	@Override
-	protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos currentPos, BlockPos neighborPos) {
+    @Override
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos,
+            Direction directionToNeighbor, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
 		if (state.getValue(WATERLOGGED)) {
-			level.scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+            ticks.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
 		}
-		return super.updateShape(state, direction, neighborState, level, currentPos, neighborPos);
-	}
-
-	@SuppressWarnings("deprecation")
-	@Override
-	public RenderShape getRenderShape(BlockState state) {
-		return RenderShape.ENTITYBLOCK_ANIMATED;
-	}
+        return super.updateShape(state, level, ticks, pos, directionToNeighbor, neighborPos, neighborState, random);
+    }
 
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-		builder.add(BlockStateProperties.AXIS, WATERLOGGED);
+		builder.add(AXIS, WATERLOGGED);
 	}
 }

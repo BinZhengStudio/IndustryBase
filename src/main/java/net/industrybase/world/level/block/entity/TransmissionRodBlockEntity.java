@@ -1,6 +1,8 @@
-package net.industrybase.api.transmit;
+package net.industrybase.world.level.block.entity;
 
-import net.industrybase.world.level.block.entity.BlockEntityTypeList;
+import net.industrybase.api.transmit.MechanicalTransmit;
+import net.industrybase.api.transmit.TransmitNetwork;
+import net.industrybase.world.level.block.CreativeDynamoBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -35,6 +37,16 @@ public class TransmissionRodBlockEntity extends BlockEntity {
 		this.transmit.remove();
 		super.setRemoved();
 	}
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void setBlockState(BlockState blockState) {
+        var oldState = this.getBlockState();
+        super.setBlockState(blockState);
+        if (oldState.getValue(CreativeDynamoBlock.FACING) != blockState.getValue(CreativeDynamoBlock.FACING)) {
+            TransmitNetwork.Manager.get(level).addOrChangeBlock(this.worldPosition, this::invalidateCapabilities);
+        }
+    }
 
 	public boolean isSubscribed() {
 		return this.subscribed;

@@ -3,7 +3,6 @@ package net.industrybase.world.level.block.entity;
 import java.util.Arrays;
 
 import net.industrybase.api.IndustryBaseApi;
-import net.industrybase.api.transmit.TransmissionRodBlockEntity;
 import net.industrybase.world.level.block.BlockList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Block;

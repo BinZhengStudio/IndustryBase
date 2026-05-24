@@ -1,4 +1,4 @@
-package net.industrybase.api.transmit;
+package net.industrybase.world.level.block;
 
 public abstract class LayeredTransmissionRodBlock extends TransmissionRodBlock {
 	private final int red;

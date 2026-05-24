@@ -1,4 +1,4 @@
-package net.industrybase.api.transmit;
+package net.industrybase.world.level.block;
 
 import net.minecraft.world.level.block.state.BlockBehaviour;
 

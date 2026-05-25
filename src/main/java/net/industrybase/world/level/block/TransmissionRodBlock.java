@@ -1,8 +1,11 @@
 package net.industrybase.world.level.block;
 
+import javax.annotation.Nullable;
+
 import net.industrybase.api.transmit.TransmitNetwork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -37,6 +40,9 @@ public abstract class TransmissionRodBlock extends BaseEntityBlock implements Si
 				.setValue(AXIS, Direction.Axis.X)
 				.setValue(WATERLOGGED, false));
 	}
+
+    @Nullable
+    public abstract Identifier getTexture();
 
     @Override
     protected boolean propagatesSkylightDown(BlockState state) {

@@ -1,26 +1,21 @@
 package net.industrybase.world.level.block;
 
+import net.minecraft.resources.Identifier;
+
 public abstract class LayeredTransmissionRodBlock extends TransmissionRodBlock {
-	private final int red;
-	private final int green;
-	private final int blue;
+	private final int rgbColor;
 
-	public LayeredTransmissionRodBlock(Properties properties, int maxResistance, int red, int green, int blue) {
+	public LayeredTransmissionRodBlock(Properties properties, int maxResistance, int rgbColor) {
 		super(properties, maxResistance);
-		this.red = red;
-		this.green = green;
-		this.blue = blue;
+		this.rgbColor = rgbColor;
 	}
 
-	public int getRed() {
-		return this.red;
-	}
+    @Override
+    public Identifier getTexture() {
+        return null;
+    }
 
-	public int getGreen() {
-		return this.green;
-	}
-
-	public int getBlue() {
-		return this.blue;
+	public int getRgbColor() {
+		return this.rgbColor;
 	}
 }

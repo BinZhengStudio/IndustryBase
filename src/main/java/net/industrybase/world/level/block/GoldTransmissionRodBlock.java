@@ -14,7 +14,7 @@ public class GoldTransmissionRodBlock extends LayeredTransmissionRodBlock {
 	public static final MapCodec<GoldTransmissionRodBlock> CODEC = simpleCodec((properties) -> new GoldTransmissionRodBlock());
 
 	public GoldTransmissionRodBlock() {
-		super(Properties.ofFullCopy(Blocks.IRON_BLOCK), 50, 0xFF, 0xE0, 0x00);
+		super(Properties.ofFullCopy(Blocks.IRON_BLOCK), 50, 0xFFE000);
 	}
 
 	@Nullable

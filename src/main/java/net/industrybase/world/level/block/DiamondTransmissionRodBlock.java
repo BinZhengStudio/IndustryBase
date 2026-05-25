@@ -14,7 +14,7 @@ public class DiamondTransmissionRodBlock extends LayeredTransmissionRodBlock {
 	public static final MapCodec<DiamondTransmissionRodBlock> CODEC = simpleCodec((properties) -> new DiamondTransmissionRodBlock());
 
 	public DiamondTransmissionRodBlock() {
-		super(Properties.ofFullCopy(Blocks.IRON_BLOCK), 100, 0x3B, 0xD4, 0xD4);
+		super(Properties.ofFullCopy(Blocks.IRON_BLOCK), 100, 0x3BD4D4);
 	}
 
 	@Nullable

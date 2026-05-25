@@ -1,4 +1,4 @@
-package net.industrybase.api.client.renderer.blockentity;
+package net.industrybase.client.renderer.blockentity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;

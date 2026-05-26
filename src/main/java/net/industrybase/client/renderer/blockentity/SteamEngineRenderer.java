@@ -2,185 +2,227 @@ package net.industrybase.client.renderer.blockentity;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+
+import net.industrybase.client.renderer.blockentity.state.SteamEngineRenderState;
 import net.industrybase.network.client.RequestWaterAmountPayload;
 import net.industrybase.world.level.block.entity.SteamEngineBlockEntity;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.Sheets;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.FluidModel;
+import net.minecraft.client.renderer.block.FluidStateModelSet;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.material.FlowingFluid;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.AABB;
-import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.neoforged.neoforge.client.textures.FluidSpriteCache;
-import net.neoforged.neoforge.common.NeoForgeMod;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.joml.Matrix4f;
+import org.jspecify.annotations.Nullable;
 
-public class SteamEngineRenderer implements BlockEntityRenderer<SteamEngineBlockEntity> {
-	public SteamEngineRenderer(BlockEntityRendererProvider.Context context) {
-	}
+public class SteamEngineRenderer implements BlockEntityRenderer<SteamEngineBlockEntity, SteamEngineRenderState> {
+    public SteamEngineRenderer(BlockEntityRendererProvider.Context context) {
+    }
 
-	@Override
-	public void render(SteamEngineBlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-		requestWaterAmount(blockEntity);
-		int oldWaterAmount = blockEntity.getOldWaterAmount();
-		int waterAmount = blockEntity.getWaterAmount();
-		if (oldWaterAmount <= 0 && waterAmount <= 0) return; // 如果没水就没有渲染的必要了
-		poseStack.pushPose();
-		renderWater(this, Mth.lerp(partialTick, oldWaterAmount, waterAmount) / SteamEngineBlockEntity.MAX_WATER, blockEntity, poseStack, bufferSource, packedLight);
-		poseStack.popPose();
-	}
+    @Override
+    public SteamEngineRenderState createRenderState() {
+        return new SteamEngineRenderState();
+    }
 
-	private static void requestWaterAmount(SteamEngineBlockEntity blockEntity) {
-		if (blockEntity.hasLevel() && !blockEntity.isSubscribed()) {
-			PacketDistributor.sendToServer(new RequestWaterAmountPayload(blockEntity.getBlockPos()));
-			blockEntity.setSubscribed();
-		}
-	}
+    @Override
+    public void extractRenderState(SteamEngineBlockEntity blockEntity, SteamEngineRenderState state, float partialTicks,
+            Vec3 cameraPosition, @Nullable CrumblingOverlay breakProgress) {
+        BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTicks, cameraPosition, breakProgress);
 
-	public static <T extends BlockEntity> void renderWater(BlockEntityRenderer<T> renderer, float waterAmount, T blockEntity, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
-		BlockPos pos = blockEntity.getBlockPos();
-		AABB box = renderer.getRenderBoundingBox(blockEntity);
-		poseStack.translate(-pos.getX(), -pos.getY(), -pos.getZ());
-		Matrix4f matrix4f = poseStack.last().pose();
+        requestWaterAmount(blockEntity);
 
-		float minX = (float) box.minX + 0.0635F; // 应为 0.0625，0.0635 是为兼容铷
-		float minY = (float) box.minY + 0.5F;
-		float minZ = (float) box.minZ + 0.0635F;
-		float maxX = (float) box.maxX - 0.0635F;
-		float maxY = (float) box.minY + 0.5F + 0.4365F * waterAmount; // 应为 0.4375，0.4365 是为兼容铷
-		float maxZ = (float) box.maxZ - 0.0635F;
+        int oldWaterAmount = blockEntity.getOldWaterAmount();
+        int waterAmount = blockEntity.getWaterAmount();
+        state.waterAmount = Mth.lerp(partialTicks, oldWaterAmount, waterAmount) / SteamEngineBlockEntity.MAX_WATER;
+    }
 
-		FlowingFluid fluid = Fluids.WATER;
-		TextureAtlasSprite[] sprites = FluidSpriteCache.getFluidSprites(blockEntity.getLevel(), pos, fluid.defaultFluidState());
-		VertexConsumer buffer = bufferSource.getBuffer(ItemBlockRenderTypes.getRenderLayer(fluid.defaultFluidState()));
-		float u0 = sprites[0].getU(1.0F / 16.0F);
-		float u1 = sprites[0].getU(15.0F / 16.0F);
-		float v0 = sprites[0].getV(1.0F / 16.0F);
-		float v1 = sprites[0].getV(15.0F / 16.0F);
-		float u01 = sprites[1].getU(1.0F / 16.0F);
-		float u11 = sprites[1].getU(8.0F / 16.0F);
-		float v01 = sprites[1].getV((8.0F - 7.0F * waterAmount) / 16.0F);
-		float v11 = sprites[1].getV(8.0F / 16.0F);
-		int fluidColor = IClientFluidTypeExtensions.of(NeoForgeMod.WATER_TYPE.value()).getTintColor(); // 获取水的颜色
-		float red = (float)(fluidColor >> 16 & 255) / 255.0F;
-		float green = (float)(fluidColor >> 8 & 255) / 255.0F;
-		float blue = (float)(fluidColor & 255) / 255.0F;
-		float alpha = (float)(fluidColor >> 24 & 255) / 255.0F;
+    @Override
+    public void submit(SteamEngineRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector,
+            CameraRenderState camera) {
+        if (state.waterAmount <= 0.0F)
+            return; // exit if there is no water to be rendered
 
-		// Up
-		buffer.addVertex(matrix4f, minX, maxY, minZ)
-				.setColor(red, green, blue, alpha)
-				.setUv(u0, v0)
-				.setLight(packedLight)
-				.setNormal(0.0F, 1.0F, 0.0F);
-		buffer.addVertex(matrix4f, minX, maxY, maxZ)
-				.setColor(red, green, blue, alpha)
-				.setUv(u0, v1)
-				.setLight(packedLight)
-				.setNormal(0.0F, 1.0F, 0.0F);
-		buffer.addVertex(matrix4f, maxX, maxY, maxZ)
-				.setColor(red, green, blue, alpha)
-				.setUv(u1, v1)
-				.setLight(packedLight)
-				.setNormal(0.0F, 1.0F, 0.0F);
-		buffer.addVertex(matrix4f, maxX, maxY, minZ)
-				.setColor(red, green, blue, alpha)
-				.setUv(u1, v0)
-				.setLight(packedLight)
-				.setNormal(0.0F, 1.0F, 0.0F);
+        poseStack.pushPose();
+        submitNodeCollector.submitCustomGeometry(poseStack, Sheets.translucentBlockItemSheet(),
+                (pose, buffer) -> renderWater(this, state.waterAmount, state.blockPos, poseStack, buffer,
+                        state.lightCoords));
+        poseStack.popPose();
+    }
 
-		// West
-		buffer.addVertex(matrix4f, minX, maxY, minZ)
-				.setColor(red, green, blue, alpha)
-				.setUv(u01, v01)
-				.setLight(packedLight)
-				.setNormal(0.0F, 1.0F, 0.0F);
-		buffer.addVertex(matrix4f, minX, minY, minZ)
-				.setColor(red, green, blue, alpha)
-				.setUv(u01, v11)
-				.setLight(packedLight)
-				.setNormal(0.0F, 1.0F, 0.0F);
-		buffer.addVertex(matrix4f, minX, minY, maxZ)
-				.setColor(red, green, blue, alpha)
-				.setUv(u11, v11)
-				.setLight(packedLight)
-				.setNormal(0.0F, 1.0F, 0.0F);
-		buffer.addVertex(matrix4f, minX, maxY, maxZ)
-				.setColor(red, green, blue, alpha)
-				.setUv(u11, v01)
-				.setLight(packedLight)
-				.setNormal(0.0F, 1.0F, 0.0F);
+    private static void requestWaterAmount(SteamEngineBlockEntity blockEntity) {
+        if (blockEntity.hasLevel() && !blockEntity.isSubscribed()) {
+            ClientPacketDistributor.sendToServer(new RequestWaterAmountPayload(blockEntity.getBlockPos()));
+            blockEntity.setSubscribed();
+        }
+    }
 
-		// North
-		buffer.addVertex(matrix4f, maxX, maxY, minZ)
-				.setColor(red, green, blue, alpha)
-				.setUv(u01, v01)
-				.setLight(packedLight)
-				.setNormal(0.0F, 1.0F, 0.0F);
-		buffer.addVertex(matrix4f, maxX, minY, minZ)
-				.setColor(red, green, blue, alpha)
-				.setUv(u01, v11)
-				.setLight(packedLight)
-				.setNormal(0.0F, 1.0F, 0.0F);
-		buffer.addVertex(matrix4f, minX, minY, minZ)
-				.setColor(red, green, blue, alpha)
-				.setUv(u11, v11)
-				.setLight(packedLight)
-				.setNormal(0.0F, 1.0F, 0.0F);
-		buffer.addVertex(matrix4f, minX, maxY, minZ)
-				.setColor(red, green, blue, alpha)
-				.setUv(u11, v01)
-				.setLight(packedLight)
-				.setNormal(0.0F, 1.0F, 0.0F);
+    public static <T extends BlockEntity, S extends BlockEntityRenderState> void renderWater(
+            BlockEntityRenderer<T, S> renderer, float waterAmount, BlockPos pos, PoseStack poseStack,
+            VertexConsumer buffer, int lightCoords) {
+        Minecraft mc = Minecraft.getInstance();
+        FluidStateModelSet modelSet = mc.getModelManager().getFluidStateModelSet();
+        ClientLevel level = mc.level;
+        if (level == null)
+            return; // exit if level is not available
 
-		// South
-		buffer.addVertex(matrix4f, minX, maxY, maxZ)
-				.setColor(red, green, blue, alpha)
-				.setUv(u01, v01)
-				.setLight(packedLight)
-				.setNormal(0.0F, 1.0F, 0.0F);
-		buffer.addVertex(matrix4f, minX, minY, maxZ)
-				.setColor(red, green, blue, alpha)
-				.setUv(u01, v11)
-				.setLight(packedLight)
-				.setNormal(0.0F, 1.0F, 0.0F);
-		buffer.addVertex(matrix4f, maxX, minY, maxZ)
-				.setColor(red, green, blue, alpha)
-				.setUv(u11, v11)
-				.setLight(packedLight)
-				.setNormal(0.0F, 1.0F, 0.0F);
-		buffer.addVertex(matrix4f, maxX, maxY, maxZ)
-				.setColor(red, green, blue, alpha)
-				.setUv(u11, v01)
-				.setLight(packedLight)
-				.setNormal(0.0F, 1.0F, 0.0F);
+        AABB box = new AABB(pos);
+        poseStack.translate(-pos.getX(), -pos.getY(), -pos.getZ());
+        Matrix4f matrix4f = poseStack.last().pose();
 
-		// East
-		buffer.addVertex(matrix4f, maxX, maxY, maxZ)
-				.setColor(red, green, blue, alpha)
-				.setUv(u01, v01)
-				.setLight(packedLight)
-				.setNormal(0.0F, 1.0F, 0.0F);
-		buffer.addVertex(matrix4f, maxX, minY, maxZ)
-				.setColor(red, green, blue, alpha)
-				.setUv(u01, v11)
-				.setLight(packedLight)
-				.setNormal(0.0F, 1.0F, 0.0F);
-		buffer.addVertex(matrix4f, maxX, minY, minZ)
-				.setColor(red, green, blue, alpha)
-				.setUv(u11, v11)
-				.setLight(packedLight)
-				.setNormal(0.0F, 1.0F, 0.0F);
-		buffer.addVertex(matrix4f, maxX, maxY, minZ)
-				.setColor(red, green, blue, alpha)
-				.setUv(u11, v01)
-				.setLight(packedLight)
-				.setNormal(0.0F, 1.0F, 0.0F);
-	}
+        float minX = (float) box.minX + 0.0635F; // 应为 0.0625，0.0635 是为兼容铷
+        float minY = (float) box.minY + 0.5F;
+        float minZ = (float) box.minZ + 0.0635F;
+        float maxX = (float) box.maxX - 0.0635F;
+        float maxY = (float) box.minY + 0.5F + 0.4365F * waterAmount; // 应为 0.4375，0.4365 是为兼容铷
+        float maxZ = (float) box.maxZ - 0.0635F;
+
+        FluidState fluidState = Fluids.WATER.defaultFluidState();
+        FluidModel model = modelSet.get(Fluids.WATER.defaultFluidState());
+
+        TextureAtlasSprite stillSprite = model.stillMaterial().sprite();
+        TextureAtlasSprite flowingSprite = model.flowingMaterial().sprite();
+        float u0 = stillSprite.getU(1.0F / 16.0F);
+        float u1 = stillSprite.getU(15.0F / 16.0F);
+        float v0 = stillSprite.getV(1.0F / 16.0F);
+        float v1 = stillSprite.getV(15.0F / 16.0F);
+        float u01 = flowingSprite.getU(1.0F / 16.0F);
+        float u11 = flowingSprite.getU(8.0F / 16.0F);
+        float v01 = flowingSprite.getV((8.0F - 7.0F * waterAmount) / 16.0F);
+        float v11 = flowingSprite.getV(8.0F / 16.0F);
+
+        BlockState blockState = Blocks.WATER.defaultBlockState();
+        int fluidColor = model.fluidTintSource() != null
+                ? model.fluidTintSource().colorInWorld(fluidState, blockState, level, pos)
+                : -1; // 获取水的颜色
+        float red = (float) (fluidColor >> 16 & 255) / 255.0F;
+        float green = (float) (fluidColor >> 8 & 255) / 255.0F;
+        float blue = (float) (fluidColor & 255) / 255.0F;
+        float alpha = (float) (fluidColor >> 24 & 255) / 255.0F;
+
+        // Up
+        buffer.addVertex(matrix4f, minX, maxY, minZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(u0, v0)
+                .setLight(lightCoords)
+                .setNormal(0.0F, 1.0F, 0.0F);
+        buffer.addVertex(matrix4f, minX, maxY, maxZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(u0, v1)
+                .setLight(lightCoords)
+                .setNormal(0.0F, 1.0F, 0.0F);
+        buffer.addVertex(matrix4f, maxX, maxY, maxZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(u1, v1)
+                .setLight(lightCoords)
+                .setNormal(0.0F, 1.0F, 0.0F);
+        buffer.addVertex(matrix4f, maxX, maxY, minZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(u1, v0)
+                .setLight(lightCoords)
+                .setNormal(0.0F, 1.0F, 0.0F);
+
+        // West
+        buffer.addVertex(matrix4f, minX, maxY, minZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(u01, v01)
+                .setLight(lightCoords)
+                .setNormal(0.0F, 1.0F, 0.0F);
+        buffer.addVertex(matrix4f, minX, minY, minZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(u01, v11)
+                .setLight(lightCoords)
+                .setNormal(0.0F, 1.0F, 0.0F);
+        buffer.addVertex(matrix4f, minX, minY, maxZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(u11, v11)
+                .setLight(lightCoords)
+                .setNormal(0.0F, 1.0F, 0.0F);
+        buffer.addVertex(matrix4f, minX, maxY, maxZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(u11, v01)
+                .setLight(lightCoords)
+                .setNormal(0.0F, 1.0F, 0.0F);
+
+        // North
+        buffer.addVertex(matrix4f, maxX, maxY, minZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(u01, v01)
+                .setLight(lightCoords)
+                .setNormal(0.0F, 1.0F, 0.0F);
+        buffer.addVertex(matrix4f, maxX, minY, minZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(u01, v11)
+                .setLight(lightCoords)
+                .setNormal(0.0F, 1.0F, 0.0F);
+        buffer.addVertex(matrix4f, minX, minY, minZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(u11, v11)
+                .setLight(lightCoords)
+                .setNormal(0.0F, 1.0F, 0.0F);
+        buffer.addVertex(matrix4f, minX, maxY, minZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(u11, v01)
+                .setLight(lightCoords)
+                .setNormal(0.0F, 1.0F, 0.0F);
+
+        // South
+        buffer.addVertex(matrix4f, minX, maxY, maxZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(u01, v01)
+                .setLight(lightCoords)
+                .setNormal(0.0F, 1.0F, 0.0F);
+        buffer.addVertex(matrix4f, minX, minY, maxZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(u01, v11)
+                .setLight(lightCoords)
+                .setNormal(0.0F, 1.0F, 0.0F);
+        buffer.addVertex(matrix4f, maxX, minY, maxZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(u11, v11)
+                .setLight(lightCoords)
+                .setNormal(0.0F, 1.0F, 0.0F);
+        buffer.addVertex(matrix4f, maxX, maxY, maxZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(u11, v01)
+                .setLight(lightCoords)
+                .setNormal(0.0F, 1.0F, 0.0F);
+
+        // East
+        buffer.addVertex(matrix4f, maxX, maxY, maxZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(u01, v01)
+                .setLight(lightCoords)
+                .setNormal(0.0F, 1.0F, 0.0F);
+        buffer.addVertex(matrix4f, maxX, minY, maxZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(u01, v11)
+                .setLight(lightCoords)
+                .setNormal(0.0F, 1.0F, 0.0F);
+        buffer.addVertex(matrix4f, maxX, minY, minZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(u11, v11)
+                .setLight(lightCoords)
+                .setNormal(0.0F, 1.0F, 0.0F);
+        buffer.addVertex(matrix4f, maxX, maxY, minZ)
+                .setColor(red, green, blue, alpha)
+                .setUv(u11, v01)
+                .setLight(lightCoords)
+                .setNormal(0.0F, 1.0F, 0.0F);
+    }
 }

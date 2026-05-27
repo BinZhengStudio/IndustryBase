@@ -2,8 +2,6 @@ package net.industrybase.api.pipe;
 
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-
 import java.util.function.IntSupplier;
 
 public class StorageInterface {
@@ -32,9 +30,9 @@ public class StorageInterface {
 
 	public int addAmount(int amount, boolean simulate) {
 		if (amount > 0) {
-			return this.fill.accept(new FluidStack(Fluids.WATER, amount), simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE);
+			return this.fill.accept(new FluidStack(Fluids.WATER, amount), simulate);
 		} else if (amount < 0) {
-			FluidStack stack = this.drain.accept(new FluidStack(Fluids.WATER, -amount), simulate ? IFluidHandler.FluidAction.SIMULATE : IFluidHandler.FluidAction.EXECUTE);
+			FluidStack stack = this.drain.accept(new FluidStack(Fluids.WATER, -amount), simulate);
 			return -stack.getAmount();
 		}
 		return 0;
@@ -42,11 +40,11 @@ public class StorageInterface {
 
 	@FunctionalInterface
 	public interface FillConsumer {
-		int accept(FluidStack resource, IFluidHandler.FluidAction action);
+		int accept(FluidStack resource, boolean simulate);
 	}
 
 	@FunctionalInterface
 	public interface DrainConsumer {
-		FluidStack accept(FluidStack resource, IFluidHandler.FluidAction action);
+		FluidStack accept(FluidStack resource, boolean simulate);
 	}
 }

@@ -1,17 +1,18 @@
 package net.industrybase.world.level.block.entity;
 
+import org.jspecify.annotations.Nullable;
+
 import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.api.pipe.PipeConnectedHandler;
 import net.industrybase.api.pipe.StorageInterface;
 import net.industrybase.api.transmit.MechanicalTransmit;
+import net.industrybase.api.transmit.TransmitNetwork;
 import net.industrybase.network.server.WaterAmountPayload;
 import net.industrybase.world.inventory.SteamEngineMenu;
 import net.industrybase.world.level.block.SteamEngineBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.WorldlyContainer;
@@ -20,19 +21,22 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
-import net.neoforged.neoforge.common.NeoForgeMod;
+import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer {
 	private int burnTime;
@@ -42,24 +46,29 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 	public static final int MAX_POWER = 100;
 	public static final int MAX_WATER = FluidType.BUCKET_VOLUME * 2;
 	private static final AABB AABB = new AABB(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
-	private NonNullList<ItemStack> inventory = NonNullList.withSize(1, ItemStack.EMPTY);
+	private static final FluidResource WATER_RESOURCE = FluidResource.of(Fluids.WATER);
+    private NonNullList<ItemStack> inventory = NonNullList.withSize(1, ItemStack.EMPTY);
 	private final PipeConnectedHandler handler = new PipeConnectedHandler(this);
-	private final FluidTank tank = new FluidTank(MAX_WATER, fluidStack -> fluidStack.is(NeoForgeMod.WATER_TYPE.value())) {
-		@Override
-		protected void onContentsChanged() {
-			if (level != null && !level.isClientSide) {
+	private final FluidStacksResourceHandler tank = new FluidStacksResourceHandler(1, MAX_WATER) {
+        public boolean isValid(int index, FluidResource resource) {
+            return index == 0 && resource.is(Fluids.WATER);
+        };
+
+        protected void onContentsChanged(int index, FluidStack previousContents) {
+			if (level != null && !level.isClientSide()) {
 				setChanged();
 				// send packet to sync the fluid amount
-				PacketDistributor.sendToAllPlayers(new WaterAmountPayload(worldPosition, tank.getFluidAmount()));
+				PacketDistributor.sendToAllPlayers(new WaterAmountPayload(worldPosition, this.getAmountAsInt(index)));
 				for (Direction direction : Direction.values()) {
 					if (direction == Direction.UP) {
 						handler.setPressure(direction, 0.0D);
 					} else {
-						handler.setPressure(direction, this.getFluidAmount() * 0.5D / this.getCapacity());
+						handler.setPressure(direction,
+                                this.getAmountAsInt(index) * 0.5D / this.getCapacity(index, FluidResource.EMPTY));
 					}
 				}
 			}
-		}
+        };
 	};
 	private final MechanicalTransmit transmit = new MechanicalTransmit(this);
 	private int oldWaterAmount;
@@ -72,7 +81,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 				case 1 -> (int) (SteamEngineBlockEntity.this.transmit.getSpeed() * 100);
 				case 2 -> burnTime;
 				case 3 -> totalBurnTime;
-				case 4 -> tank.getFluidAmount();
+				case 4 -> tank.getAmountAsInt(0);
 				default -> 0;
 			};
 		}
@@ -108,9 +117,12 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 		if (blockEntity.isLit()) { // 输出能量
 			--blockEntity.burnTime; // 减少燃烧时间
 
-			if (!blockEntity.tank.isEmpty()) {
+			if (blockEntity.tank.getAmountAsInt(0) > 0) {
 				if (blockEntity.shrinkTick <= 0) { // 消耗水
-					blockEntity.tank.drain(1, IFluidHandler.FluidAction.EXECUTE);
+                    try (var tx = Transaction.openRoot()) {
+                        blockEntity.tank.extract(0, WATER_RESOURCE, 1, tx);
+                        tx.commit();
+                    }
 					blockEntity.shrinkTick = 6; // 每 6tick 减一次 waterAmount，这样水不会少的太快
 				} else {
 					--blockEntity.shrinkTick;
@@ -131,21 +143,19 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 			}
 		}
 
-		if (!blockEntity.isLit() && !blockEntity.tank.isEmpty()) { // 如果没有燃烧，并且有水，则消耗燃料并燃烧
+		if (!blockEntity.isLit() && blockEntity.tank.getAmountAsInt(0) > 0) { // 如果没有燃烧，并且有水，则消耗燃料并燃烧
 			ItemStack stack = blockEntity.inventory.getFirst();
-			int time = stack.getBurnTime(RecipeType.SMELTING);
+			int time = stack.getBurnTime(RecipeType.SMELTING, level.fuelValues());
 			if (time > 0) {
 				flag = true;
 				blockEntity.burnTime = time;
 				blockEntity.totalBurnTime = time;
-				if (stack.hasCraftingRemainingItem()) {
-					blockEntity.inventory.set(0, stack.getCraftingRemainingItem());
-				} else if (!stack.isEmpty()) {
-					stack.shrink(1);
-					if (stack.isEmpty()) {
-						blockEntity.inventory.set(0, stack.getCraftingRemainingItem());
-					}
-				}
+
+                ItemStackTemplate remainder = stack.getCraftingRemainder();
+                stack.shrink(1);
+                if (stack.isEmpty()) {
+                    blockEntity.inventory.set(0, remainder != null ? remainder.create() : ItemStack.EMPTY);
+                }
 			}
 		}
 
@@ -163,8 +173,8 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 		return this.burnTime > 0;
 	}
 
-	public static boolean isFuel(ItemStack stack) {
-		return stack.getBurnTime(RecipeType.SMELTING) > 0;
+	public static boolean isFuel(ItemStack stack, Level level) {
+		return stack.getBurnTime(RecipeType.SMELTING, level.fuelValues()) > 0;
 	}
 
 	@Override
@@ -172,7 +182,23 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 		super.onLoad();
 		this.transmit.register();
 		this.transmit.setResistance(10);
-		this.handler.registerHandler(AABB, new StorageInterface(this.tank::getCapacity, this.tank::getFluidAmount, this.tank::fill, this.tank::drain));
+		this.handler.registerHandler(AABB, new StorageInterface(
+                () -> this.tank.getAmountAsInt(0),
+                () -> this.tank.getCapacityAsInt(0, WATER_RESOURCE),
+                (resource, simulate) -> {
+                    try (var tx = Transaction.openRoot()) {
+                        int result = this.tank.insert(0, FluidResource.of(resource), resource.getAmount(), tx);
+                        if (!simulate) tx.commit();
+                        return result;
+                    }
+                },
+                (resource, simulate) -> {
+                    try (var rx = Transaction.openRoot()) {
+                        int result = this.tank.extract(0, FluidResource.of(resource), resource.getAmount(), rx);
+                        if (!simulate) rx.commit();
+                        return resource.copyWithAmount(result);
+                    }
+                }));
 	}
 
 	@Override
@@ -196,7 +222,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 	}
 
 	public int getFluidAmount() {
-		return this.tank.getFluidAmount();
+		return this.tank.getAmountAsInt(0);
 	}
 
 	public int getWaterAmount() {
@@ -222,41 +248,41 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 
 	@Nullable
 	public MechanicalTransmit getTransmit(Direction side) {
-		if (side.getAxis() == this.getBlockState().getValue(BlockStateProperties.AXIS)) {
+		if (side.getAxis() == this.getBlockState().getValue(SteamEngineBlock.AXIS)) {
 			return this.transmit;
 		}
 		return null;
 	}
 
 	@Nullable
-	public FluidTank getTank(Direction side) {
-		if (side.getAxis() != this.getBlockState().getValue(BlockStateProperties.AXIS)) {
+	public FluidStacksResourceHandler getTank(Direction side) {
+		if (side.getAxis() != this.getBlockState().getValue(SteamEngineBlock.AXIS)) {
 			return this.tank;
 		}
 		return null;
 	}
 
-	@Override
-	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		super.loadAdditional(tag, registries);
-		this.transmit.readFromNBT(tag);
-		ContainerHelper.loadAllItems(tag, this.inventory, registries);
-		this.burnTime = tag.getInt("BurnTime");
-		this.totalBurnTime = tag.getInt("TotalBurnTime");
-		this.shrinkTick = tag.getInt("ShrinkTick");
-		this.tank.readFromNBT(registries, tag);
-	}
+    @Override
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        input.readChild("Transmit", this.transmit);
+        ContainerHelper.loadAllItems(input, this.inventory);
+        this.burnTime = input.getIntOr("BurnTime", 0);
+        this.totalBurnTime = input.getIntOr("TotalBurnTime", 0);
+        this.shrinkTick = input.getIntOr("ShrinkTick", 0);
+        input.readChild("Fluid", this.tank);
+    }
 
-	@Override
-	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		super.saveAdditional(tag, registries);
-		this.transmit.writeToNBT(tag);
-		ContainerHelper.saveAllItems(tag, this.inventory, registries);
-		tag.putInt("BurnTime", this.burnTime);
-		tag.putInt("TotalBurnTime", this.totalBurnTime);
-		tag.putInt("ShrinkTick", this.shrinkTick);
-		this.tank.writeToNBT(registries, tag);
-	}
+    @Override
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.putChild("Transmit", this.transmit);
+        ContainerHelper.saveAllItems(output, this.inventory);
+        output.putInt("BurnTime", this.burnTime);
+        output.putInt("TotalBurnTime", this.totalBurnTime);
+        output.putInt("ShrinkTick", this.shrinkTick);
+        output.putChild("Fluid", this.tank);
+    }
 
 	@Override
 	public void setRemoved() {
@@ -264,6 +290,16 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 		this.handler.removeHandler();
 		super.setRemoved();
 	}
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void setBlockState(BlockState blockState) {
+        var oldState = this.getBlockState();
+        super.setBlockState(blockState);
+        if (oldState.getValue(SteamEngineBlock.AXIS) != blockState.getValue(SteamEngineBlock.AXIS)) {
+            TransmitNetwork.Manager.get(level).addOrChangeBlock(this.worldPosition, this::invalidateCapabilities);
+        }
+    }
 
 	@Override
 	public int getContainerSize() {
@@ -319,7 +355,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 
 	@Override
 	public boolean canPlaceItem(int index, ItemStack stack) {
-		return isFuel(stack) || stack.is(Items.BUCKET);
+		return isFuel(stack, this.level) || stack.is(Items.BUCKET);
 	}
 
 	@Override

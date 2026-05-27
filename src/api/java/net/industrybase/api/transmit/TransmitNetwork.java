@@ -534,7 +534,7 @@ public class TransmitNetwork {
 
 		@SubscribeEvent
 		public static void onLevelTick(LevelTickEvent.Pre event) {
-			if (event.getLevel().isClientSide) {
+			if (event.getLevel().isClientSide()) {
 				get(event.getLevel()).clientTick();
 			} else {
 				get(event.getLevel()).serverTick();

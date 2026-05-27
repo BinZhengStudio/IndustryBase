@@ -4,16 +4,15 @@ import com.google.errorprone.annotations.CanIgnoreReturnValue;
 import net.industrybase.api.energy.IMechanicalTransmit;
 import net.industrybase.api.network.client.UnsubscribeSpeedPacket;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.common.util.INBTSerializable;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.common.util.ValueIOSerializable;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-public class MechanicalTransmit implements IMechanicalTransmit, INBTSerializable<CompoundTag> {
+public class MechanicalTransmit implements IMechanicalTransmit, ValueIOSerializable {
 	private int tmpPower;
 	private int tmpResistance;
 	@Nullable
@@ -36,7 +35,7 @@ public class MechanicalTransmit implements IMechanicalTransmit, INBTSerializable
 		this.level = this.blockEntity.getLevel();
 		if (this.level != null) {
 			this.network = TransmitNetwork.Manager.get(this.level);
-			if (!this.level.isClientSide) {
+			if (!this.level.isClientSide()) {
 				this.setPower(this.tmpPower);
 				this.setResistance(this.tmpResistance);
 				this.network.addOrChangeBlock(this.pos, this.blockEntity::setChanged);
@@ -51,10 +50,10 @@ public class MechanicalTransmit implements IMechanicalTransmit, INBTSerializable
 	public void remove() {
 		if (this.level != null) {
 			if (this.network != null) {
-				if (this.level.isClientSide) {
+				if (this.level.isClientSide()) {
 					this.network.removeClientSubscribe(this.pos);
 					if (this.network.shouldSendUnsubscribePacket(this.pos)) {
-						PacketDistributor.sendToServer(new UnsubscribeSpeedPacket(this.pos));
+						ClientPacketDistributor.sendToServer(new UnsubscribeSpeedPacket(this.pos));
 					}
 				} else {
 					this.network.removeBlock(this.pos, this.blockEntity::setChanged);
@@ -82,7 +81,7 @@ public class MechanicalTransmit implements IMechanicalTransmit, INBTSerializable
 	@Override
 	@CanIgnoreReturnValue
 	public int setPower(int power) {
-		if (!this.level.isClientSide) {
+		if (!this.level.isClientSide()) {
 			int diff = this.network.setMachinePower(this.pos, power);
 			if (diff != 0) this.blockEntity.setChanged();
 			return diff;
@@ -98,7 +97,7 @@ public class MechanicalTransmit implements IMechanicalTransmit, INBTSerializable
 	@Override
 	@CanIgnoreReturnValue
 	public int setResistance(int resistance) {
-		if (!this.level.isClientSide) {
+		if (!this.level.isClientSide()) {
 			int diff = this.network.setMachineResistance(this.pos, resistance);
 			if (diff != 0) {
 				this.blockEntity.setChanged();
@@ -113,31 +112,15 @@ public class MechanicalTransmit implements IMechanicalTransmit, INBTSerializable
 		return this.network.speed(this.pos);
 	}
 
-	@Override
-	public CompoundTag serializeNBT(@Nullable HolderLookup.Provider provider) {
-		CompoundTag nbt = new CompoundTag();
-		nbt.putInt("Power", this.getPower());
-		nbt.putInt("Resistance", this.getResistance());
-		return nbt;
-	}
+    @Override
+    public void serialize(ValueOutput output) {
+        output.putInt("Power", this.getPower());
+        output.putInt("Resistance", this.getResistance());
+    }
 
-	@Override
-	public void deserializeNBT(@Nullable HolderLookup.Provider provider, CompoundTag nbt) {
-		this.tmpPower = nbt.getInt("Power");
-		this.tmpResistance = nbt.getInt("Resistance");
-	}
-
-	public void readFromNBT(CompoundTag tag) {
-		CompoundTag nbt = tag.getCompound("MechanicalTransmit");
-		this.deserializeNBT(null, nbt);
-	}
-
-	public void writeToNBT(CompoundTag tag) {
-		CompoundTag nbt = new CompoundTag();
-		if (this.network != null) {
-			nbt.putInt("Power", this.getPower());
-			nbt.putInt("Resistance", this.getResistance());
-		}
-		tag.put("MechanicalTransmit", nbt);
-	}
+    @Override
+    public void deserialize(ValueInput input) {
+        this.tmpPower = input.getIntOr("Power", 0);
+        this.tmpResistance = input.getIntOr("Resistance", 0);
+    }
 }

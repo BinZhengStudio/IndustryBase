@@ -26,6 +26,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.ValueInput;
@@ -102,6 +103,10 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 			return 5;
 		}
 	};
+
+    public SteamEngineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
+    }
 
 	public SteamEngineBlockEntity(BlockPos pos, BlockState state) {
 		super(BlockEntityTypeList.STEAM_ENGINE.get(), pos, state);

@@ -1,23 +1,31 @@
 package net.industrybase.world.level.block.entity;
 
+import org.jspecify.annotations.Nullable;
+
+import net.industrybase.api.electric.ElectricNetwork;
 import net.industrybase.api.electric.ElectricPower;
 import net.industrybase.api.transmit.MechanicalTransmit;
+import net.industrybase.api.transmit.TransmitNetwork;
 import net.industrybase.api.util.TransmitHelper;
+import net.industrybase.world.level.block.CreativeDynamoBlock;
 import net.industrybase.world.level.block.ElectricMotorBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-
-import javax.annotation.Nullable;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public class ElectricMotorBlockEntity extends BlockEntity {
-	private static final int RESISTANCE = 2;
-	private final MechanicalTransmit transmit = new MechanicalTransmit(this);
-	private final ElectricPower electricPower = new ElectricPower(this);
+    private static final int RESISTANCE = 2;
+	protected final MechanicalTransmit transmit = new MechanicalTransmit(this);
+	protected final ElectricPower electricPower = new ElectricPower(this);
+
+	public ElectricMotorBlockEntity(BlockEntityType<?> type, BlockPos worldPosition, BlockState blockState) {
+        super(type, worldPosition, blockState);
+    }
 
 	public ElectricMotorBlockEntity(BlockPos pos, BlockState state) {
 		super(BlockEntityTypeList.ELECTRIC_MOTOR.get(), pos, state);
@@ -65,17 +73,28 @@ public class ElectricMotorBlockEntity extends BlockEntity {
 		super.setRemoved();
 	}
 
-	@Override
-	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		super.loadAdditional(tag, registries);
-		this.transmit.readFromNBT(tag);
-		this.electricPower.readFromNBT(tag);
-	}
+    @Override
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        input.readChild("Transmit", transmit);
+        input.readChild("Electric", electricPower);
+    }
 
-	@Override
-	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-		super.saveAdditional(tag, registries);
-		this.transmit.writeToNBT(tag);
-		this.electricPower.writeToNBT(tag);
-	}
+    @Override
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.putChild("Transmit", transmit);
+        output.putChild("Electric", electricPower);
+    }
+
+        @Override
+    @SuppressWarnings("deprecation")
+    public void setBlockState(BlockState blockState) {
+        var oldState = this.getBlockState();
+        super.setBlockState(blockState);
+        if (oldState.getValue(CreativeDynamoBlock.FACING) != blockState.getValue(CreativeDynamoBlock.FACING)) {
+            TransmitNetwork.Manager.get(level).addOrChangeBlock(this.worldPosition, () -> {});
+            ElectricNetwork.Manager.get(level).addOrChangeBlock(this.worldPosition, this::invalidateCapabilities);
+        }
+    }
 }

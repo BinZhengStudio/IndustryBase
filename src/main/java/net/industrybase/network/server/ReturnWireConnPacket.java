@@ -1,4 +1,4 @@
-package net.industrybase.api.network.server;
+package net.industrybase.network.server;
 
 import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.api.electric.ElectricNetwork;
@@ -7,14 +7,14 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
 public class ReturnWireConnPacket implements CustomPacketPayload {
-	public static final Type<ReturnWireConnPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "return_wire_conn"));
+	public static final Type<ReturnWireConnPacket> TYPE = new Type<>(Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID, "return_wire_conn"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, ReturnWireConnPacket> STREAM_CODEC =
 			StreamCodec.composite(
 					BlockPos.STREAM_CODEC,

@@ -20,7 +20,7 @@ public class WireCommand {
 
 	static ArgumentBuilder<CommandSourceStack, ?> register() {
 		return Commands.literal("wire")
-				.requires(stack -> stack.hasPermission(2))
+				.requires(Commands.hasPermission(Commands.LEVEL_ADMINS))
 				.then(Commands.argument("from", BlockPosArgument.blockPos())
 						.then(Commands.argument("to", BlockPosArgument.blockPos())
 								.executes(context -> {

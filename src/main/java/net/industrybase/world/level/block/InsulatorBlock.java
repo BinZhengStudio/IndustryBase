@@ -5,11 +5,12 @@ import com.mojang.serialization.MapCodec;
 import net.industrybase.world.level.block.entity.InsulatorBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -63,22 +64,25 @@ public class InsulatorBlock extends BaseEntityBlock {
 		return shape;
 	}
 
-	@Override
-	public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos currentPos, BlockPos neighborPos) {
-		if (!this.canSurvive(state, level, currentPos)) {
-			return Blocks.AIR.defaultBlockState();
-		}
-		if (direction.getAxis() == state.getValue(BlockStateProperties.AXIS)) {
-			boolean sturdy = neighborState.isFaceSturdy(level, neighborPos, direction.getOpposite(), SupportType.CENTER);
-			boolean connected = neighborState.is(this) && neighborState.getValue(BlockStateProperties.AXIS) == direction.getAxis();
-			if (direction.getAxisDirection() == Direction.AxisDirection.POSITIVE) {
-				return state.setValue(POSITIVE_CONNECTED, sturdy || connected);
-			} else {
-				return state.setValue(NEGATIVE_CONNECTED, sturdy || connected);
-			}
-		}
-		return state;
-	}
+    @Override
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos,
+            Direction directionToNeighbor, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
+        if (!this.canSurvive(state, level, pos)) {
+            return Blocks.AIR.defaultBlockState();
+        }
+        if (directionToNeighbor.getAxis() == state.getValue(BlockStateProperties.AXIS)) {
+            boolean sturdy = neighborState.isFaceSturdy(level, neighborPos, directionToNeighbor.getOpposite(),
+                    SupportType.CENTER);
+            boolean connected = neighborState.is(this) &&
+                    neighborState.getValue(BlockStateProperties.AXIS) == directionToNeighbor.getAxis();
+            if (directionToNeighbor.getAxisDirection() == Direction.AxisDirection.POSITIVE) {
+                return state.setValue(POSITIVE_CONNECTED, sturdy || connected);
+            } else {
+                return state.setValue(NEGATIVE_CONNECTED, sturdy || connected);
+            }
+        }
+        return state;
+    }
 
 	@Nullable
 	@Override
@@ -115,10 +119,10 @@ public class InsulatorBlock extends BaseEntityBlock {
 		flag1 = sturdy || connected;
 
 		Direction negative = Direction.get(Direction.AxisDirection.NEGATIVE, axis);
-		BlockPos blockpos = pos.relative(negative);
-		BlockState blockstate = level.getBlockState(blockpos);
-		boolean sturdy1 = blockstate.isFaceSturdy(level, blockpos, negative.getOpposite(), SupportType.CENTER);
-		boolean connected1 = blockstate.is(this) && blockstate.getValue(BlockStateProperties.AXIS) == axis;
+		BlockPos blockPos = pos.relative(negative);
+		BlockState blockState = level.getBlockState(blockPos);
+		boolean sturdy1 = blockState.isFaceSturdy(level, blockPos, negative.getOpposite(), SupportType.CENTER);
+		boolean connected1 = blockState.is(this) && blockState.getValue(BlockStateProperties.AXIS) == axis;
 		flag2 = sturdy1 || connected1;
 
 		return flag1 || flag2;

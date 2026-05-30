@@ -1,4 +1,4 @@
-package net.industrybase.network.server;
+package net.industrybase.api.network.server;
 
 import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.api.electric.ElectricNetwork;
@@ -6,11 +6,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class RemoveWiresPacket implements CustomPacketPayload {
-	public static final Type<RemoveWiresPacket> TYPE = new Type<>(Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID, "remove_wires"));
+	public static final Type<RemoveWiresPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "remove_wires"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, RemoveWiresPacket> STREAM_CODEC =
 			StreamCodec.composite(
 					BlockPos.STREAM_CODEC,

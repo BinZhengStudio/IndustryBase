@@ -1,4 +1,4 @@
-package net.industrybase.network.client;
+package net.industrybase.api.network.client;
 
 import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.api.transmit.TransmitNetwork;
@@ -6,12 +6,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class UnsubscribeSpeedPacket implements CustomPacketPayload {
-	public static final Type<UnsubscribeSpeedPacket> TYPE = new Type<>(Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID, "unsubscribe_speed"));
+	public static final Type<UnsubscribeSpeedPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, "unsubscribe_speed"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, UnsubscribeSpeedPacket> STREAM_CODEC =
 			StreamCodec.composite(
 					BlockPos.STREAM_CODEC,

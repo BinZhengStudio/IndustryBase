@@ -61,8 +61,7 @@ public class SteamEngineRenderer implements BlockEntityRenderer<SteamEngineBlock
 
         poseStack.pushPose();
         submitNodeCollector.submitCustomGeometry(poseStack, Sheets.translucentBlockItemSheet(),
-                (pose, buffer) -> renderWater(this, state.waterAmount, state.blockPos, poseStack, buffer,
-                        state.lightCoords));
+                (pose, buffer) -> renderWater(buffer, poseStack, state.waterAmount, state.blockPos,state.lightCoords));
         poseStack.popPose();
     }
 
@@ -73,9 +72,8 @@ public class SteamEngineRenderer implements BlockEntityRenderer<SteamEngineBlock
         }
     }
 
-    public static <T extends BlockEntity, S extends BlockEntityRenderState> void renderWater(
-            BlockEntityRenderer<T, S> renderer, float waterAmount, BlockPos pos, PoseStack poseStack,
-            VertexConsumer buffer, int lightCoords) {
+    public static <T extends BlockEntity, S extends BlockEntityRenderState> void renderWater(VertexConsumer buffer,
+            PoseStack poseStack, float waterAmount, BlockPos pos, int lightCoords) {
         Minecraft mc = Minecraft.getInstance();
         FluidStateModelSet modelSet = mc.getModelManager().getFluidStateModelSet();
         ClientLevel level = mc.level;

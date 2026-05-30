@@ -24,7 +24,7 @@ public class CreativeSteamEngineRenderer
             CameraRenderState camera) {
         poseStack.pushPose();
         submitNodeCollector.submitCustomGeometry(poseStack, Sheets.translucentBlockItemSheet(),
-                (pose, buffer) -> SteamEngineRenderer.renderWater(this, 1.0F, state.blockPos, poseStack, buffer,
+                (pose, buffer) -> SteamEngineRenderer.renderWater(buffer, poseStack, 1.0F, state.blockPos,
                         state.lightCoords));
         poseStack.popPose();
     }

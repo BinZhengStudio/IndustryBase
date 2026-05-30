@@ -1,7 +1,7 @@
 package net.industrybase.api.tags;
 
 import net.industrybase.api.IndustryBaseApi;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
@@ -16,6 +16,6 @@ public class BlockTagList {
 	}
 
 	private static TagKey<Block> create(String name) {
-		return BlockTags.create(ResourceLocation.fromNamespaceAndPath(IndustryBaseApi.MODID, name));
+		return BlockTags.create(Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID, name));
 	}
 }

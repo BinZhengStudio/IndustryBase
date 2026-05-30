@@ -71,7 +71,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 			}
         };
 	};
-	private final MechanicalTransmit transmit = new MechanicalTransmit(this);
+	protected final MechanicalTransmit transmit = new MechanicalTransmit(this);
 	private int oldWaterAmount;
 	private int waterAmount; // 仅在客户端调用
 	private final ContainerData data = new ContainerData() { // 用于双端同步数据

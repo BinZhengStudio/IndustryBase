@@ -17,7 +17,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 public class CreativeSteamEngineBlockEntity extends SteamEngineBlockEntity {
-	private final MechanicalTransmit transmit = new MechanicalTransmit(this);
 	private final ContainerData data = new ContainerData() { // 用于双端同步数据
 		@Override
 		public int get(int index) {

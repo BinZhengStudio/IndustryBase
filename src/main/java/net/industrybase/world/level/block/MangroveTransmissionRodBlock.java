@@ -7,7 +7,6 @@ import net.industrybase.world.level.block.entity.TransmissionRodBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.BaseEntityBlock;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
@@ -15,10 +14,10 @@ import org.jetbrains.annotations.Nullable;
 public class MangroveTransmissionRodBlock extends WoodTransmissionRod {
     public static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID,
             "textures/entity/transmission_rod/mangrove.png");
-	public static final MapCodec<MangroveTransmissionRodBlock> CODEC = simpleCodec((properties) -> new MangroveTransmissionRodBlock());
+	public static final MapCodec<MangroveTransmissionRodBlock> CODEC = simpleCodec(MangroveTransmissionRodBlock::new);
 
-	public MangroveTransmissionRodBlock() {
-		super(Blocks.MANGROVE_LOG);
+	public MangroveTransmissionRodBlock(Properties properties) {
+		super(properties);
 	}
 
 	@Nullable

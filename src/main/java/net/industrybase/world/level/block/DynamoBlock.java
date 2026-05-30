@@ -1,7 +1,5 @@
 package net.industrybase.world.level.block;
 
-import org.jspecify.annotations.Nullable;
-
 import com.mojang.serialization.MapCodec;
 import net.industrybase.world.level.block.entity.BlockEntityTypeList;
 import net.industrybase.world.level.block.entity.DynamoBlockEntity;
@@ -11,7 +9,6 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -21,12 +18,12 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 
 public class DynamoBlock extends BaseEntityBlock {
-	public static final MapCodec<DynamoBlock> CODEC = simpleCodec((properties) -> new DynamoBlock());
+	public static final MapCodec<DynamoBlock> CODEC = simpleCodec(DynamoBlock::new);
 
 	public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
 
-	public DynamoBlock() {
-		super(Properties.ofFullCopy(Blocks.IRON_BLOCK));
+	public DynamoBlock(Properties properties) {
+		super(properties);
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
 	}
 

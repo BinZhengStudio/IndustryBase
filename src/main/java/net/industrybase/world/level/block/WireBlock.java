@@ -34,7 +34,7 @@ import java.util.Map;
 import org.jspecify.annotations.Nullable;
 
 public class WireBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
-	public static final MapCodec<WireBlock> CODEC = simpleCodec((properties) -> new WireBlock());
+	public static final MapCodec<WireBlock> CODEC = simpleCodec(WireBlock::new);
 
 	public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 	public static final EnumMap<Direction, BooleanProperty> PROPERTIES = new EnumMap<>(ImmutableMap.of(
@@ -65,8 +65,8 @@ public class WireBlock extends BaseEntityBlock implements SimpleWaterloggedBlock
 			Direction.DOWN, Block.box(6.0D, 0.0D, 6.0D, 10.0D, 6.0D, 10.0D)));
 	private static final HashMap<BlockState, VoxelShape> COLLISION_SHAPES = new HashMap<>();
 
-	protected WireBlock() {
-		super(Properties.of().strength(0.5F).sound(SoundType.METAL).noOcclusion());
+	protected WireBlock(Properties properties) {
+		super(properties.strength(0.5F).sound(SoundType.METAL).noOcclusion());
 
 		BlockState defaultState = this.stateDefinition.any();
 		for (Direction direction : Direction.values()) {

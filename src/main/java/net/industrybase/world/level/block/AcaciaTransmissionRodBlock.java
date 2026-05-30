@@ -7,7 +7,6 @@ import net.industrybase.world.level.block.entity.TransmissionRodBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.BaseEntityBlock;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
@@ -15,10 +14,10 @@ import org.jetbrains.annotations.Nullable;
 public class AcaciaTransmissionRodBlock extends WoodTransmissionRod {
     public static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID,
             "textures/entity/transmission_rod/acacia.png");
-	public static final MapCodec<AcaciaTransmissionRodBlock> CODEC = simpleCodec((properties) -> new AcaciaTransmissionRodBlock());
+	public static final MapCodec<AcaciaTransmissionRodBlock> CODEC = simpleCodec(AcaciaTransmissionRodBlock::new);
 
-	public AcaciaTransmissionRodBlock() {
-		super(Blocks.ACACIA_LOG);
+	public AcaciaTransmissionRodBlock(Properties properties) {
+		super(properties);
 	}
 
 	@Nullable

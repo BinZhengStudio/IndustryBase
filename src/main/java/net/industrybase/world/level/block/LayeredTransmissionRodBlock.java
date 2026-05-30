@@ -1,5 +1,7 @@
 package net.industrybase.world.level.block;
 
+import org.jspecify.annotations.Nullable;
+
 import net.minecraft.resources.Identifier;
 
 public abstract class LayeredTransmissionRodBlock extends TransmissionRodBlock {
@@ -10,6 +12,7 @@ public abstract class LayeredTransmissionRodBlock extends TransmissionRodBlock {
 		this.rgbColor = rgbColor;
 	}
 
+    @Nullable
     @Override
     public Identifier getTexture() {
         return null;

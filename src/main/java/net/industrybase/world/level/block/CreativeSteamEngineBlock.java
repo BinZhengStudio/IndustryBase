@@ -12,7 +12,6 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -22,11 +21,11 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 public class CreativeSteamEngineBlock extends BaseEntityBlock {
-	public static final MapCodec<CreativeSteamEngineBlock> CODEC = simpleCodec((properties) -> new CreativeSteamEngineBlock());
+	public static final MapCodec<CreativeSteamEngineBlock> CODEC = simpleCodec(CreativeSteamEngineBlock::new);
 	public static final EnumProperty<Direction.Axis> AXIS = BlockStateProperties.AXIS;
 
-	protected CreativeSteamEngineBlock() {
-		super(Properties.ofFullCopy(Blocks.IRON_BLOCK).noOcclusion().lightLevel(state -> 13));
+	protected CreativeSteamEngineBlock(Properties properties) {
+		super(properties.noOcclusion().lightLevel(state -> 13));
 		this.registerDefaultState(this.stateDefinition.any().setValue(AXIS, Direction.Axis.X));
 	}
 

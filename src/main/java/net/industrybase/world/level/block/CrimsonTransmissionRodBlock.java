@@ -7,7 +7,6 @@ import net.industrybase.world.level.block.entity.TransmissionRodBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.BaseEntityBlock;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
@@ -15,10 +14,10 @@ import org.jetbrains.annotations.Nullable;
 public class CrimsonTransmissionRodBlock extends WoodTransmissionRod {
     public static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID,
             "textures/entity/transmission_rod/crimson.png");
-	public static final MapCodec<CrimsonTransmissionRodBlock> CODEC = simpleCodec((properties) -> new CrimsonTransmissionRodBlock());
+	public static final MapCodec<CrimsonTransmissionRodBlock> CODEC = simpleCodec(CrimsonTransmissionRodBlock::new);
 
-	public CrimsonTransmissionRodBlock() {
-		super(Blocks.CRIMSON_STEM);
+	public CrimsonTransmissionRodBlock(Properties properties) {
+		super(properties);
 	}
 
 	@Nullable

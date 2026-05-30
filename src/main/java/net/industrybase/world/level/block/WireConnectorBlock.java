@@ -36,7 +36,7 @@ import java.util.Map;
 import org.jspecify.annotations.Nullable;
 
 public class WireConnectorBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
-	public static final MapCodec<WireConnectorBlock> CODEC = simpleCodec((properties) -> new WireConnectorBlock());
+	public static final MapCodec<WireConnectorBlock> CODEC = simpleCodec(WireConnectorBlock::new);
 
 	public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 	public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
@@ -50,8 +50,8 @@ public class WireConnectorBlock extends BaseEntityBlock implements SimpleWaterlo
 			Direction.DOWN, Block.box(4.0D, 0.0D, 4.0D, 12.0D, 4.0D, 12.0D)));
 	private static final Map<BlockState, VoxelShape> SHAPES = new HashMap<>();
 
-	protected WireConnectorBlock() {
-		super(Properties.ofFullCopy(BlockList.WIRE.get()));
+	protected WireConnectorBlock(Properties properties) {
+		super(properties);
 		this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.DOWN).setValue(WATERLOGGED, false));
 
 		for (BlockState state : this.getStateDefinition().getPossibleStates()) {

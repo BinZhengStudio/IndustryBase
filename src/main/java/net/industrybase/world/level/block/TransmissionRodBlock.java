@@ -1,6 +1,6 @@
 package net.industrybase.world.level.block;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import net.industrybase.api.transmit.TransmitNetwork;
 import net.minecraft.core.BlockPos;

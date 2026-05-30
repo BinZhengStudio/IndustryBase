@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class InsulatorBlock extends BaseEntityBlock {
-	public static final MapCodec<InsulatorBlock> CODEC = simpleCodec((properties) -> new InsulatorBlock());
+	public static final MapCodec<InsulatorBlock> CODEC = simpleCodec(InsulatorBlock::new);
 	public static final BooleanProperty POSITIVE_CONNECTED = BooleanProperty.create("positive_connected");
 	public static final BooleanProperty NEGATIVE_CONNECTED = BooleanProperty.create("negative_connected");
 
@@ -41,8 +41,8 @@ public class InsulatorBlock extends BaseEntityBlock {
 			Direction.DOWN, Block.box(5.5D, 0.0D, 5.5D, 10.5D, 5.5D, 10.5D)));
 	private static final HashMap<BlockState, VoxelShape> SHAPES = new HashMap<>();
 
-	protected InsulatorBlock() {
-		super(Properties.ofFullCopy(BlockList.WIRE_CONNECTOR.get()));
+	protected InsulatorBlock(Properties properties) {
+		super(properties);
 		this.registerDefaultState(this.stateDefinition.any()
 				.setValue(BlockStateProperties.AXIS, Direction.Axis.X)
 				.setValue(POSITIVE_CONNECTED, false)

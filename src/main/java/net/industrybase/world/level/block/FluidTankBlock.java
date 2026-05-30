@@ -14,7 +14,6 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -34,10 +33,10 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jspecify.annotations.Nullable;
 
 public class FluidTankBlock extends BaseEntityBlock {
-	public static final MapCodec<IronPipeBlock> CODEC = simpleCodec((properties) -> new IronPipeBlock());
+	public static final MapCodec<FluidTankBlock> CODEC = simpleCodec(FluidTankBlock::new);
 
-	protected FluidTankBlock() {
-		super(Properties.ofFullCopy(Blocks.GLASS));
+	protected FluidTankBlock(Properties properties) {
+		super(properties);
 	}
 
 	@Override

@@ -9,10 +9,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 public class WaterPumpBlock extends BaseEntityBlock {
-	public static final MapCodec<WaterPumpBlock> CODEC = simpleCodec((properties) -> new WaterPumpBlock());
+	public static final MapCodec<WaterPumpBlock> CODEC = simpleCodec(WaterPumpBlock::new);
 
-	protected WaterPumpBlock() {
-		super(Properties.ofFullCopy(BlockList.DYNAMO.get()));
+	protected WaterPumpBlock(Properties properties) {
+		super(properties);
 	}
 
 	@Override

@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.world.level.block.BlockList;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -13,7 +13,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class BlockEntityTypeList {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPE = DeferredRegister
-            .create(BuiltInRegistries.BLOCK_ENTITY_TYPE, IndustryBaseApi.MODID);
+            .create(Registries.BLOCK_ENTITY_TYPE, IndustryBaseApi.MODID);
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DynamoBlockEntity>> DYNAMO = register(
             "dynamo", DynamoBlockEntity::new, BlockList.DYNAMO);

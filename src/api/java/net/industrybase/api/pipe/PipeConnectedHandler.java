@@ -24,7 +24,7 @@ public class PipeConnectedHandler {
 		this.level = this.blockEntity.getLevel();
 		if (this.level != null) {
 			this.network = PipeNetwork.Manager.get(this.level);
-			if (!this.level.isClientSide) {
+			if (!this.level.isClientSide()) {
 				this.network.registerHandler(this.pos, aabb, storageInterface, this.blockEntity::setChanged);
 			}
 		}

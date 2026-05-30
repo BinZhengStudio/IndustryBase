@@ -132,7 +132,7 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 
 	public static double factor(Direction direction, AABB aabb1, AABB aabb2) {
 		Direction.Axis axis = direction.getAxis();
-		Vec3i normal = direction.getNormal();
+		Vec3i normal = direction.getUnitVec3i();
 		aabb2 = aabb2.move(normal.getX(), normal.getY(), normal.getZ());
 
 		double x = Math.min(aabb1.maxX, aabb2.maxX) - Math.max(aabb1.minX, aabb2.minX);

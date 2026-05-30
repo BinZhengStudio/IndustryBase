@@ -2,20 +2,17 @@ package net.industrybase.world.item;
 
 import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.api.electric.ConnectHelper;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.function.Consumer;
 
 public class WireCoilItem extends Item {
 	public static final int MAX_LENGTH = 256;
@@ -31,15 +28,18 @@ public class WireCoilItem extends Item {
 		return ConnectHelper.wireCoilUseOn(context, MAX_LENGTH);
 	}
 
-	@SuppressWarnings("deprecation")
-	@Override
-	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> components, TooltipFlag isAdvanced) {
-		CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).getUnsafe();
-		Optional<BlockPos> posOptional = NbtUtils.readBlockPos(tag, "ConnectPos");
-		posOptional.ifPresent(bind ->
-				components.add(Component.translatable("itemTooltip." + IndustryBaseApi.MODID + ".wire_coil.1",
-						bind.getX(), bind.getY(), bind.getZ())));
-		components.add(Component.translatable("itemTooltip." + IndustryBaseApi.MODID + ".wire_coil.2",
-				stack.getMaxDamage() - stack.getDamageValue()));
-	}
+    @Override
+    public void appendHoverText(ItemStack itemStack, TooltipContext context, TooltipDisplay display,
+            Consumer<Component> builder, TooltipFlag tooltipFlag) {
+		var tag = itemStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        tag.getIntArray("ConnectPos").ifPresent(bindPos -> {
+            if (bindPos.length >= 3) {
+                builder.accept(Component.translatable("itemTooltip." + IndustryBaseApi.MODID + ".wire_coil.1",
+                        bindPos[0], bindPos[1], bindPos[2]));
+            }
+        });
+
+		builder.accept(Component.translatable("itemTooltip." + IndustryBaseApi.MODID + ".wire_coil.2",
+				itemStack.getMaxDamage() - itemStack.getDamageValue()));
+    }
 }

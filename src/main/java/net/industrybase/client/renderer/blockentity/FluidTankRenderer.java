@@ -17,6 +17,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -119,21 +120,25 @@ public class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlockEnti
         buffer.addVertex(matrix4f, minX, maxY, minZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u0, v0)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
         buffer.addVertex(matrix4f, minX, maxY, maxZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u0, v1)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
         buffer.addVertex(matrix4f, maxX, maxY, maxZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u1, v1)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
         buffer.addVertex(matrix4f, maxX, maxY, minZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u1, v0)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
 
@@ -141,21 +146,25 @@ public class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlockEnti
         buffer.addVertex(matrix4f, minX, minY, maxZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u0, v1)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
         buffer.addVertex(matrix4f, minX, minY, minZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u0, v0)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
         buffer.addVertex(matrix4f, maxX, minY, minZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u1, v0)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
         buffer.addVertex(matrix4f, maxX, minY, maxZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u1, v1)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
 
@@ -163,21 +172,25 @@ public class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlockEnti
         buffer.addVertex(matrix4f, minX, maxY, minZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u01, v01)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
         buffer.addVertex(matrix4f, minX, minY, minZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u01, v11)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
         buffer.addVertex(matrix4f, minX, minY, maxZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u11, v11)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
         buffer.addVertex(matrix4f, minX, maxY, maxZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u11, v01)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
 
@@ -185,21 +198,25 @@ public class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlockEnti
         buffer.addVertex(matrix4f, maxX, maxY, minZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u01, v01)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
         buffer.addVertex(matrix4f, maxX, minY, minZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u01, v11)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
         buffer.addVertex(matrix4f, minX, minY, minZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u11, v11)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
         buffer.addVertex(matrix4f, minX, maxY, minZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u11, v01)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
 
@@ -207,21 +224,25 @@ public class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlockEnti
         buffer.addVertex(matrix4f, minX, maxY, maxZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u01, v01)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
         buffer.addVertex(matrix4f, minX, minY, maxZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u01, v11)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
         buffer.addVertex(matrix4f, maxX, minY, maxZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u11, v11)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
         buffer.addVertex(matrix4f, maxX, maxY, maxZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u11, v01)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
 
@@ -229,21 +250,25 @@ public class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlockEnti
         buffer.addVertex(matrix4f, maxX, maxY, maxZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u01, v01)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
         buffer.addVertex(matrix4f, maxX, minY, maxZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u01, v11)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
         buffer.addVertex(matrix4f, maxX, minY, minZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u11, v11)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
         buffer.addVertex(matrix4f, maxX, maxY, minZ)
                 .setColor(red, green, blue, alpha)
                 .setUv(u11, v01)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
                 .setLight(lightCoords)
                 .setNormal(0.0F, 1.0F, 0.0F);
     }

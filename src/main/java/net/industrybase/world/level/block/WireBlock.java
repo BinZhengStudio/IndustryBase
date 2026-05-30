@@ -7,10 +7,12 @@ import net.industrybase.api.electric.ElectricNetwork;
 import net.industrybase.world.level.block.entity.WireBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -19,15 +21,17 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.jspecify.annotations.Nullable;
 
 public class WireBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
 	public static final MapCodec<WireBlock> CODEC = simpleCodec((properties) -> new WireBlock());
@@ -88,40 +92,40 @@ public class WireBlock extends BaseEntityBlock implements SimpleWaterloggedBlock
 		return shape;
 	}
 
-	@Override
-	protected boolean propagatesSkylightDown(BlockState pState, BlockGetter pReader, BlockPos pPos) {
-		return !pState.getValue(WATERLOGGED);
-	}
+    @Override
+    protected boolean propagatesSkylightDown(BlockState state) {
+        return state.getValue(WATERLOGGED);
+    }
 
 	@Override
 	protected FluidState getFluidState(BlockState pState) {
 		return pState.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(pState);
 	}
 
-	@Override
-	public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
-		super.neighborChanged(state, level, pos, block, fromPos, isMoving);
+    @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block,
+            @Nullable Orientation orientation, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
 		if (!level.isClientSide()) {
 			BlockEntity blockEntity = level.getBlockEntity(pos);
 			if (blockEntity != null) {
 				ElectricNetwork.Manager.get(level).addOrChangeBlock(pos, blockEntity::setChanged);
 			}
 		}
-	}
+    }
 
-	@Nullable
 	@Override
 	public BlockState getStateForPlacement(BlockPlaceContext context) {
 		Level level = context.getLevel();
 		BlockPos pos = context.getClickedPos();
 		BlockState state = this.defaultBlockState();
-		FluidState fluidstate = level.getFluidState(pos);
+		FluidState fluidState = level.getFluidState(pos);
 		for (Direction direction : Direction.values()) {
 			BlockPos facingPos = pos.relative(direction);
 			BlockState facingState = level.getBlockState(facingPos);
 			state = state.setValue(PROPERTIES.get(direction), this.hasCapability(level, direction.getOpposite(), facingPos, facingState));
 		}
-		return state.setValue(WATERLOGGED, fluidstate.getType() == Fluids.WATER);
+		return state.setValue(WATERLOGGED, fluidState.getType() == Fluids.WATER);
 	}
 
 	@Override
@@ -135,25 +139,26 @@ public class WireBlock extends BaseEntityBlock implements SimpleWaterloggedBlock
 	}
 
 	@Override
-	public VoxelShape getOcclusionShape(BlockState state, BlockGetter level, BlockPos pos) {
+	public VoxelShape getOcclusionShape(BlockState state) {
 		return COLLISION_SHAPES.get(state);
 	}
 
-	@Override
-	public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos currentPos, BlockPos neighborPos) {
+    @Override
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos,
+            Direction directionToNeighbor, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
 		if (state.getValue(WATERLOGGED)) {
-			level.scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+			ticks.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
 		}
-		return state.setValue(PROPERTIES.get(direction), this.hasCapability(level, direction.getOpposite(), neighborPos, neighborState));
-	}
+		return state.setValue(PROPERTIES.get(directionToNeighbor), this.hasCapability(level, directionToNeighbor.getOpposite(), neighborPos, neighborState));
+    }
 
-	private boolean hasCapability(LevelAccessor level, Direction side, BlockPos pos, BlockState state) {
+	private boolean hasCapability(LevelReader level, Direction side, BlockPos pos, BlockState state) {
 		if (!state.is(this)) {
 			BlockEntity blockEntity = level.getBlockEntity(pos);
 			if (blockEntity != null) {
 				Level level1 = blockEntity.getLevel();
 				if (level1 != null) {
-					boolean flag1 = level1.getCapability(Capabilities.EnergyStorage.BLOCK, pos, state, blockEntity, side) != null;
+					boolean flag1 = level1.getCapability(Capabilities.Energy.BLOCK, pos, state, blockEntity, side) != null;
 					boolean flag2 = level1.getCapability(CapabilityList.ELECTRIC_POWER, pos, state, blockEntity, side) != null;
 					return flag1 || flag2;
 				}
@@ -175,12 +180,10 @@ public class WireBlock extends BaseEntityBlock implements SimpleWaterloggedBlock
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public RenderShape getRenderShape(BlockState pState) {
 		return RenderShape.MODEL;
 	}
 
-	@Nullable
 	@Override
 	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
 		return new WireBlockEntity(pos, state);

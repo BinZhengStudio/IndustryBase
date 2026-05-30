@@ -17,8 +17,8 @@ import java.util.function.Consumer;
 public class WireCoilItem extends Item {
 	public static final int MAX_LENGTH = 256;
 
-	public WireCoilItem() {
-		super(new Properties()
+	public WireCoilItem(Properties properties) {
+		super(properties
 				.durability(MAX_LENGTH)
 				.component(DataComponents.CUSTOM_DATA, CustomData.EMPTY));
 	}

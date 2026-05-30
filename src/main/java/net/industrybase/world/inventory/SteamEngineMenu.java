@@ -8,10 +8,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 
 public class SteamEngineMenu extends AbstractContainerMenu {
 	private final Container container;
 	private final ContainerData data;
+    private final Level level;
 
 	public SteamEngineMenu(int id, Inventory playerInventory) {
 		this(id, playerInventory, new SimpleContainer(1), new SimpleContainerData(5));
@@ -21,6 +23,7 @@ public class SteamEngineMenu extends AbstractContainerMenu {
 		super(MenuTypeList.STEAM_ENGINE.get(), id);
 		this.container = container;
 		this.data = data;
+		this.level = inventory.player.level();
 		// 执行检查
 		checkContainerSize(container, 1);
 		checkContainerDataCount(data, 5);
@@ -28,7 +31,7 @@ public class SteamEngineMenu extends AbstractContainerMenu {
 		this.addSlot(new Slot(container, 0, 70, 42) { // 燃料槽
 			@Override
 			public boolean mayPlace(ItemStack stack) {
-				return SteamEngineBlockEntity.isFuel(stack) || FurnaceFuelSlot.isBucket(stack);
+				return SteamEngineBlockEntity.isFuel(stack, level) || FurnaceFuelSlot.isBucket(stack);
 			}
 
 			@Override
@@ -66,7 +69,7 @@ public class SteamEngineMenu extends AbstractContainerMenu {
 				if (!this.moveItemStackTo(stack1, 1, this.slots.size(), true)) {
 					return ItemStack.EMPTY;
 				}
-			} else if (SteamEngineBlockEntity.isFuel(stack1) || stack1.is(Items.BUCKET)) {
+			} else if (SteamEngineBlockEntity.isFuel(stack1, this.level) || stack1.is(Items.BUCKET)) {
 				if (!this.moveItemStackTo(stack1, 0, 1, false)) {
 					return ItemStack.EMPTY;
 				}

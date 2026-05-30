@@ -3,7 +3,7 @@ package net.industrybase.client.renderer.blockentity;
 import java.util.EnumMap;
 import java.util.function.Function;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;

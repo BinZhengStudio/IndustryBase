@@ -8,7 +8,7 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.common.NeoForgeMod;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.util.ArrayDeque;
 import java.util.function.BiConsumer;
 
@@ -69,7 +69,7 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 
 	public abstract PipeUnit spilt(BlockPos pos, Direction direction);
 
-	@Nullable
+	@javax.annotation.Nullable
 	public abstract Direction.Axis getAxis();
 
 	public BlockPos getCore() {

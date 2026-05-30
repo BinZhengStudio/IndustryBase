@@ -6,7 +6,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class AxisConnectorBlockEntity extends BlockEntity {
 	private final MechanicalTransmit transmit = new MechanicalTransmit(this);

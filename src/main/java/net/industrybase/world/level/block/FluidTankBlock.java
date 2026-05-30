@@ -6,7 +6,7 @@ import net.industrybase.world.level.block.entity.BlockEntityTypeList;
 import net.industrybase.world.level.block.entity.FluidTankBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -15,21 +15,23 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidType;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+
+import org.jspecify.annotations.Nullable;
 
 public class FluidTankBlock extends BaseEntityBlock {
 	public static final MapCodec<IronPipeBlock> CODEC = simpleCodec((properties) -> new IronPipeBlock());
@@ -39,48 +41,45 @@ public class FluidTankBlock extends BaseEntityBlock {
 	}
 
 	@Override
-	public ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+	public InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
 		if (stack.is(Items.WATER_BUCKET)) {
 			BlockEntity blockEntity = level.getBlockEntity(pos);
-			IFluidHandler tank = level.getCapability(Capabilities.FluidHandler.BLOCK, pos, state, blockEntity, hitResult.getDirection());
+			ResourceHandler<FluidResource> tank = level.getCapability(Capabilities.Fluid.BLOCK, pos, state, blockEntity, hitResult.getDirection());
 			if (tank != null) {
-				tank.fill(new FluidStack(Fluids.WATER, FluidType.BUCKET_VOLUME), IFluidHandler.FluidAction.EXECUTE);
+                try (var tx = Transaction.openRoot()) {
+                    tank.insert(FluidResource.of(Fluids.WATER), FluidType.BUCKET_VOLUME, tx);
+                    tx.commit();
+                }
 				if (!player.getAbilities().instabuild) player.setItemInHand(hand, new ItemStack(Items.BUCKET));
 			}
-			return ItemInteractionResult.sidedSuccess(level.isClientSide);
+			return InteractionResult.SUCCESS;
 		}
-		return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+		return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
 	}
 
-	@Override
-	public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
-		super.neighborChanged(state, level, pos, block, fromPos, isMoving);
-		if (!level.isClientSide()) {
-			BlockEntity blockEntity = level.getBlockEntity(pos);
-			if (blockEntity != null) PipeNetwork.Manager.get(level).updateHandler(pos, blockEntity::setChanged);
-		}
-	}
+    @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block,
+            @Nullable Orientation orientation, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
+        if (!level.isClientSide()) {
+            BlockEntity blockEntity = level.getBlockEntity(pos);
+            if (blockEntity != null) PipeNetwork.Manager.get(level).updateHandler(pos, blockEntity::setChanged);
+        }
+    }
 
 	@Override
 	protected MapCodec<? extends BaseEntityBlock> codec() {
 		return CODEC;
 	}
 
-	@Nullable
 	@Override
 	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
 		return new FluidTankBlockEntity(pos, state);
 	}
 
 	@Override
-	protected RenderShape getRenderShape(BlockState pState) {
-		return RenderShape.MODEL;
-	}
-
-	@Nullable
-	@Override
 	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> serverType) {
-		return level.isClientSide ? createTickerHelper(serverType, BlockEntityTypeList.FLUID_TANK.get(), FluidTankBlockEntity::clientTick) : null;
+		return level.isClientSide() ? createTickerHelper(serverType, BlockEntityTypeList.FLUID_TANK.get(), FluidTankBlockEntity::clientTick) : null;
 	}
 
 	@Override
@@ -93,8 +92,8 @@ public class FluidTankBlock extends BaseEntityBlock {
 		return 1.0F;
 	}
 
-	@Override
-	protected boolean propagatesSkylightDown(BlockState p_309084_, BlockGetter p_309133_, BlockPos p_309097_) {
-		return true;
-	}
+    @Override
+    protected boolean propagatesSkylightDown(BlockState state) {
+        return true;
+    }
 }

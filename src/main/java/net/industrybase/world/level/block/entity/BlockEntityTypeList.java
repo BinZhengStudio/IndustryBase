@@ -64,7 +64,9 @@ public class BlockEntityTypeList {
     @SafeVarargs
     private static <T extends BlockEntity> DeferredHolder<BlockEntityType<?>, BlockEntityType<T>> register(String name,
             BlockEntityType.BlockEntitySupplier<T> blockEntity, DeferredHolder<Block, ? extends Block>... blocks) {
-        var blockList = Arrays.stream(blocks).map((holder) -> holder.get()).toArray(Block[]::new);
-        return BLOCK_ENTITY_TYPE.register(name, () -> new BlockEntityType<>(blockEntity, blockList));
+        return BLOCK_ENTITY_TYPE.register(name, () -> {
+            var blockList = Arrays.stream(blocks).map((holder) -> holder.get()).toArray(Block[]::new);
+            return new BlockEntityType<>(blockEntity, blockList);
+        });
     }
 }

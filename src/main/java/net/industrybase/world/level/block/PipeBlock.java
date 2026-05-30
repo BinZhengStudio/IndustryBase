@@ -1,15 +1,16 @@
-package net.industrybase.api.pipe;
+package net.industrybase.world.level.block;
 
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -77,13 +78,13 @@ public abstract class PipeBlock extends BaseEntityBlock implements SimpleWaterlo
 	}
 
 	@Override
-	protected boolean propagatesSkylightDown(BlockState pState, BlockGetter pReader, BlockPos pPos) {
-		return !pState.getValue(WATERLOGGED);
+	protected boolean propagatesSkylightDown(BlockState state) {
+		return !state.getValue(WATERLOGGED);
 	}
 
 	@Override
-	protected FluidState getFluidState(BlockState pState) {
-		return pState.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(pState);
+	protected FluidState getFluidState(BlockState state) {
+		return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
 	}
 
 	@Nullable
@@ -92,13 +93,13 @@ public abstract class PipeBlock extends BaseEntityBlock implements SimpleWaterlo
 		Level level = context.getLevel();
 		BlockPos pos = context.getClickedPos();
 		BlockState state = this.defaultBlockState();
-		FluidState fluidstate = level.getFluidState(pos);
+		FluidState fluidState = level.getFluidState(pos);
 		for (Direction direction : Direction.values()) {
 			BlockPos facingPos = pos.relative(direction);
 			BlockState facingState = level.getBlockState(facingPos);
 			state = state.setValue(PROPERTIES.get(direction), this.canConnect(level, direction.getOpposite(), facingPos, facingState));
 		}
-		return state.setValue(WATERLOGGED, fluidstate.getType() == Fluids.WATER);
+		return state.setValue(WATERLOGGED, fluidState.getType() == Fluids.WATER);
 	}
 
 	@Override
@@ -106,21 +107,22 @@ public abstract class PipeBlock extends BaseEntityBlock implements SimpleWaterlo
 		return SHAPES.get(state);
 	}
 
-	@Override
-	public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos currentPos, BlockPos neighborPos) {
+    @Override
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos,
+            Direction directionToNeighbor, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
 		if (state.getValue(WATERLOGGED)) {
-			level.scheduleTick(currentPos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+			ticks.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
 		}
-		return state.setValue(PROPERTIES.get(direction), this.canConnect(level, direction.getOpposite(), neighborPos, neighborState));
-	}
+		return state.setValue(PROPERTIES.get(directionToNeighbor), this.canConnect(level, directionToNeighbor.getOpposite(), neighborPos, neighborState));
+    }
 
-	private boolean canConnect(LevelAccessor level, Direction facing, BlockPos pos, BlockState state) {
+	private boolean canConnect(LevelReader level, Direction facing, BlockPos pos, BlockState state) {
 		if (!state.is(this)) {
 			BlockEntity blockEntity = level.getBlockEntity(pos);
 			if (blockEntity != null) {
 				Level level1 = blockEntity.getLevel();
 				if (level1 != null) {
-					return level1.getCapability(Capabilities.FluidHandler.BLOCK, pos, null, blockEntity, facing) != null;
+					return level1.getCapability(Capabilities.Fluid.BLOCK, pos, null, blockEntity, facing) != null;
 				}
 			}
 			return false;
@@ -132,11 +134,5 @@ public abstract class PipeBlock extends BaseEntityBlock implements SimpleWaterlo
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
 		builder.add(PROPERTIES.values().toArray(new BooleanProperty[0]));
 		builder.add(WATERLOGGED);
-	}
-
-	@Override
-	@SuppressWarnings("deprecation")
-	public RenderShape getRenderShape(BlockState pState) {
-		return RenderShape.MODEL;
 	}
 }

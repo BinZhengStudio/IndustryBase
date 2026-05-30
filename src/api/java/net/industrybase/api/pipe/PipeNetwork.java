@@ -1,6 +1,8 @@
 package net.industrybase.api.pipe;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableMap;
+
 import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.api.pipe.unit.*;
 import net.minecraft.core.BlockPos;
@@ -9,6 +11,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -19,6 +23,15 @@ import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import java.util.*;
 
 public class PipeNetwork {
+    public static final EnumMap<Direction, BooleanProperty> PROPERTIES = new EnumMap<>(ImmutableMap.of(
+            Direction.NORTH, BlockStateProperties.NORTH,
+            Direction.EAST, BlockStateProperties.EAST,
+            Direction.SOUTH, BlockStateProperties.SOUTH,
+            Direction.WEST, BlockStateProperties.WEST,
+            Direction.UP, BlockStateProperties.UP,
+            Direction.DOWN, BlockStateProperties.DOWN
+    ));
+
 	private final HashMap<BlockPos, PipeUnit> components = new HashMap<>();
 	private final HashMultimap<BlockPos, Direction> connections = HashMultimap.create();
 	private final HashMap<BlockPos, AABB> aabbCache = new HashMap<>();
@@ -115,7 +128,7 @@ public class PipeNetwork {
 			if (blockEntity != null) {
 				Level level = blockEntity.getLevel();
 				if (level != null) {
-					return level.getCapability(Capabilities.FluidHandler.BLOCK, pos, null, blockEntity, side) != null;
+					return level.getCapability(Capabilities.Fluid.BLOCK, pos, null, blockEntity, side) != null;
 				}
 			}
 		}
@@ -126,7 +139,7 @@ public class PipeNetwork {
 		if (this.level.isAreaLoaded(pos, 0)) {
 			BlockState state = this.level.getBlockState(pos);
 			try {
-				return state.getValue(PipeBlock.PROPERTIES.get(side)); // TODO: different blocks
+				return state.getValue(PROPERTIES.get(side)); // TODO: different blocks
 			} catch (Exception e) {
 				return false;
 			}
@@ -474,7 +487,7 @@ public class PipeNetwork {
 
 		@SubscribeEvent
 		public static void onLevelTick(LevelTickEvent.Pre event) {
-			if (!event.getLevel().isClientSide) {
+			if (!event.getLevel().isClientSide()) {
 				PipeNetwork network = get(event.getLevel());
 				network.tickConnectTasks();
 				network.tickFluidTasks();

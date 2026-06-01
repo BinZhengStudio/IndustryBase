@@ -166,7 +166,7 @@ var manifest_info = [
 ]
 
 tasks.named('jar', Jar).configure {
-    from sourceSets.api.output
+    from sourceSets.main.output
     manifest {
         attributes(manifest_info)
     }
@@ -194,7 +194,6 @@ tasks.register('sourcesJar', Jar) {
     dependsOn classes
     archiveClassifier = 'sources'
     from sourceSets.main.allSource
-    from sourceSets.api.allSource
     manifest {
         attributes(manifest_info)
     }

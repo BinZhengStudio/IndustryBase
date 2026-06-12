@@ -1,0 +1,10 @@
+{
+  "model": {
+    "type": "minecraft:special",
+    "base": "industrybase:item/warped_transmission_rod",
+    "model": {
+      "type": "industrybase:transmission_rod",
+      "texture": "industrybase:transmission_rod/warped"
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "model": {
+    "type": "minecraft:special",
+    "base": "industrybase:item/gold_transmission_rod",
+    "model": {
+      "type": "industrybase:transmission_rod",
+      "texture": null,
+      "rgbColor": -512
+    }
+  }
+}

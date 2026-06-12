@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class WarpedTransmissionRodBlock extends WoodTransmissionRod {
     public static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID,
-            "textures/entity/transmission_rod/warped.png");
+            "transmission_rod/warped");
 	public static final MapCodec<WarpedTransmissionRodBlock> CODEC = simpleCodec(WarpedTransmissionRodBlock::new);
 
 	public WarpedTransmissionRodBlock(Properties properties) {

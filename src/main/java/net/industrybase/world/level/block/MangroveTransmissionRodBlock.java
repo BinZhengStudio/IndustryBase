@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class MangroveTransmissionRodBlock extends WoodTransmissionRod {
     public static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID,
-            "textures/entity/transmission_rod/mangrove.png");
+            "transmission_rod/mangrove");
 	public static final MapCodec<MangroveTransmissionRodBlock> CODEC = simpleCodec(MangroveTransmissionRodBlock::new);
 
 	public MangroveTransmissionRodBlock(Properties properties) {

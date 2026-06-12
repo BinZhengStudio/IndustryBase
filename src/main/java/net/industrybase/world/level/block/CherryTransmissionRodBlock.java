@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class CherryTransmissionRodBlock extends WoodTransmissionRod {
     public static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID,
-            "textures/entity/transmission_rod/cherry.png");
+            "transmission_rod/cherry");
 	public static final MapCodec<CherryTransmissionRodBlock> CODEC = simpleCodec(CherryTransmissionRodBlock::new);
 
 	public CherryTransmissionRodBlock(Properties properties) {

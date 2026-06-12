@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class AcaciaTransmissionRodBlock extends WoodTransmissionRod {
     public static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID,
-            "textures/entity/transmission_rod/acacia.png");
+            "transmission_rod/acacia");
 	public static final MapCodec<AcaciaTransmissionRodBlock> CODEC = simpleCodec(AcaciaTransmissionRodBlock::new);
 
 	public AcaciaTransmissionRodBlock(Properties properties) {

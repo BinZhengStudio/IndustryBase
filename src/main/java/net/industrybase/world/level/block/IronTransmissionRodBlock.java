@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class IronTransmissionRodBlock extends TransmissionRodBlock {
     public static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID,
-            "textures/entity/transmission_rod/iron.png");
+            "transmission_rod/iron");
 	public static final MapCodec<IronTransmissionRodBlock> CODEC = simpleCodec(IronTransmissionRodBlock::new);
 
 	public IronTransmissionRodBlock(Properties properties) {

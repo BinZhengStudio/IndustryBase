@@ -112,7 +112,10 @@ public class TransmissionRodRenderer
             if (block instanceof LayeredTransmissionRodBlock layeredBlock) {
                 state.rgbColor = layeredBlock.getRgbColor();
             } else if (block instanceof TransmissionRodBlock rodBlock) {
-                state.texture = rodBlock.getTexture();
+                var texture = rodBlock.getTexture();
+                if (texture != null) {
+                    state.texture = texture.withPath(path -> "textures/entity/" + path + ".png");
+                }
             }
         }
     }

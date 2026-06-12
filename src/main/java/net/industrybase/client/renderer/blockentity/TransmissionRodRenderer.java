@@ -126,23 +126,30 @@ public class TransmissionRodRenderer
         poseStack.pushPose();
         poseStack.mulPose(TRANSFORMATIONS.get(state.axis));
 
-        this.model.setupAnim(state.rotate);
-
-        if (state.texture != null) {
-            // if a texture is provided, render only one layer with the provided texture
-            submitNodeCollector.submitModel(this.model, state.rotate, poseStack, RenderTypes.entitySolid(state.texture),
-                    state.lightCoords, OverlayTexture.NO_OVERLAY, -1, null, 0, state.breakProgress);
-        } else {
-            submitNodeCollector.submitModel(this.model, state.rotate, poseStack, RenderTypes.entityCutout(LAYER_1),
-                    state.lightCoords, OverlayTexture.NO_OVERLAY, -1, null, 0, state.breakProgress);
-
-            // the lighted layer
-            submitNodeCollector.submitModel(this.model, state.rotate, poseStack, RenderTypes.entityCutout(LAYER_2),
-                    LightCoordsUtil.pack(15, 15), OverlayTexture.NO_OVERLAY, state.rgbColor, null, 0,
-                    state.breakProgress);
-        }
+        submit(this.model, poseStack, submitNodeCollector, state.rotate, state.texture, state.rgbColor,
+                state.breakProgress, state.lightCoords, 0);
 
         poseStack.popPose();
+    }
+
+    public static void submit(TransmissionRodModel model, PoseStack poseStack, SubmitNodeCollector submitNodeCollector,
+            float rotate, @Nullable Identifier texture, int rgbColor,
+            @Nullable CrumblingOverlay breakProgress, int lightCoords, int outlineColor) {
+        model.setupAnim(rotate);
+
+        if (texture != null) {
+            // if a texture is provided, render only one layer with the provided texture
+            submitNodeCollector.submitModel(model, rotate, poseStack, RenderTypes.entitySolid(texture),
+                    lightCoords, OverlayTexture.NO_OVERLAY, -1, null, 0, breakProgress);
+        } else {
+            submitNodeCollector.submitModel(model, rotate, poseStack, RenderTypes.entityCutout(LAYER_1),
+                    lightCoords, OverlayTexture.NO_OVERLAY, -1, null, 0, breakProgress);
+
+            // the lighted layer
+            submitNodeCollector.submitModel(model, rotate, poseStack, RenderTypes.entityCutout(LAYER_2),
+                    LightCoordsUtil.pack(15, 15), OverlayTexture.NO_OVERLAY, rgbColor, null, 0,
+                    breakProgress);
+        }
     }
 
     public static void subscribeSpeed(TransmissionRodBlockEntity blockEntity) {
@@ -152,7 +159,7 @@ public class TransmissionRodRenderer
         }
     }
 
-    private static class TransmissionRodModel extends Model<Float> {
+    public static class TransmissionRodModel extends Model<Float> {
         private final ModelPart main;
 
         public TransmissionRodModel(ModelPart root, Function<Identifier, RenderType> renderType) {

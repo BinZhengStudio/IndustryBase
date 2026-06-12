@@ -16,8 +16,10 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
@@ -34,6 +36,11 @@ import org.jspecify.annotations.Nullable;
 
 public class SteamEngineRenderer implements BlockEntityRenderer<SteamEngineBlockEntity, SteamEngineRenderState> {
     public SteamEngineRenderer(BlockEntityRendererProvider.Context context) {
+    }
+
+    @Override
+    public boolean shouldRenderOffScreen() {
+        return true;
     }
 
     @Override
@@ -61,7 +68,7 @@ public class SteamEngineRenderer implements BlockEntityRenderer<SteamEngineBlock
 
         poseStack.pushPose();
         submitNodeCollector.submitCustomGeometry(poseStack, Sheets.translucentBlockItemSheet(),
-                (pose, buffer) -> renderWater(buffer, poseStack, state.waterAmount, state.blockPos,state.lightCoords));
+                (pose, buffer) -> renderWater(buffer, pose, state.waterAmount, state.blockPos,state.lightCoords));
         poseStack.popPose();
     }
 
@@ -73,23 +80,21 @@ public class SteamEngineRenderer implements BlockEntityRenderer<SteamEngineBlock
     }
 
     public static <T extends BlockEntity, S extends BlockEntityRenderState> void renderWater(VertexConsumer buffer,
-            PoseStack poseStack, float waterAmount, BlockPos pos, int lightCoords) {
+            PoseStack.Pose pose, float waterAmount, BlockPos pos, int lightCoords) {
         Minecraft mc = Minecraft.getInstance();
         FluidStateModelSet modelSet = mc.getModelManager().getFluidStateModelSet();
         ClientLevel level = mc.level;
         if (level == null)
             return; // exit if level is not available
 
-        AABB box = new AABB(pos);
-        poseStack.translate(-pos.getX(), -pos.getY(), -pos.getZ());
-        Matrix4f matrix4f = poseStack.last().pose();
+        Matrix4f matrix4f = pose.pose();
 
-        float minX = (float) box.minX + 0.0635F; // 应为 0.0625，0.0635 是为兼容铷
-        float minY = (float) box.minY + 0.5F;
-        float minZ = (float) box.minZ + 0.0635F;
-        float maxX = (float) box.maxX - 0.0635F;
-        float maxY = (float) box.minY + 0.5F + 0.4365F * waterAmount; // 应为 0.4375，0.4365 是为兼容铷
-        float maxZ = (float) box.maxZ - 0.0635F;
+        float minX = 0.0635F; // 应为 0.0625，0.0635 是为兼容铷
+        float minY = 0.5F;
+        float minZ = 0.0635F;
+        float maxX = 1.0F - 0.0635F;
+        float maxY = 0.5F + 0.4365F * waterAmount; // 应为 0.4375，0.4365 是为兼容铷
+        float maxZ = 1.0F - 0.0635F;
 
         FluidState fluidState = Fluids.WATER.defaultFluidState();
         FluidModel model = modelSet.get(Fluids.WATER.defaultFluidState());

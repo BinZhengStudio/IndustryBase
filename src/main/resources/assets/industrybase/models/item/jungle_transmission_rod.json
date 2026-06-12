@@ -1,5 +1,5 @@
 {
-	"parent": "industrybase:item/entity",
+	"parent": "industrybase:item/template_transmission_rod",
 	"textures": {
 		"particle": "minecraft:block/jungle_log"
 	}

@@ -2,16 +2,25 @@
     "java.compile.nullAnalysis.mode": "automatic",
     "cSpell.words": [
         "AABB",
+        "Behaviour",
+        "blockentity",
         "Feng",
+        "firstperson",
         "industrybase",
+        "instabuild",
         "jvmargs",
         "moddev",
         "MODID",
         "Multimap",
+        "Multimaps",
+        "Multiset",
         "neoforge",
         "neoforged",
         "nogui",
         "println",
+        "Quaternionf",
+        "righthand",
+        "thirdperson",
         "userdev",
         "vvvbbbcz",
         "Zheng"
@@ -25,14 +34,11 @@
         "org.eclipse.jdt.annotation.NonNull"
     ],
     "java.compile.nullAnalysis.nonnullbydefault": [
-        "javax.annotation.ParametersAreNonnullByDefault",
-        "com.mojang.logging.annotations.MethodsReturnNonnullByDefault",
-        "org.eclipse.jdt.annotation.NonNullByDefault"
+        "org.jspecify.annotations.NullMarked"
     ],
     "java.compile.nullAnalysis.nullable": [
-        "javax.annotation.Nullable",
-        "org.jetbrains.annotations.Nullable",
-        "org.eclipse.jdt.annotation.Nullable"
+        "org.jspecify.annotations.Nullable",
     ],
-    "java.dependency.packagePresentation": "hierarchical"
+    "java.dependency.packagePresentation": "hierarchical",
+    "java.configuration.updateBuildConfiguration": "interactive",
 }

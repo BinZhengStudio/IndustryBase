@@ -26,7 +26,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.joml.Matrix4f;
@@ -61,8 +60,7 @@ public class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlockEnti
 
         poseStack.pushPose();
         submitNodeCollector.submitCustomGeometry(poseStack, Sheets.translucentBlockItemSheet(),
-                (pose, buffer) -> renderWater(this, state.waterAmount, state.blockPos, poseStack, buffer,
-                        state.lightCoords));
+                (pose, buffer) -> renderWater(buffer, pose, state.waterAmount, state.blockPos, state.lightCoords));
         poseStack.popPose();
     }
 
@@ -74,24 +72,21 @@ public class FluidTankRenderer implements BlockEntityRenderer<FluidTankBlockEnti
     }
 
     public static <T extends BlockEntity, S extends BlockEntityRenderState> void renderWater(
-            BlockEntityRenderer<T, S> renderer, float waterAmount, BlockPos pos, PoseStack poseStack,
-            VertexConsumer buffer, int lightCoords) {
+            VertexConsumer buffer, PoseStack.Pose pose, float waterAmount, BlockPos pos, int lightCoords) {
         Minecraft mc = Minecraft.getInstance();
         FluidStateModelSet modelSet = mc.getModelManager().getFluidStateModelSet();
         ClientLevel level = mc.level;
         if (level == null)
             return; // exit if level is not available
 
-        AABB box = new AABB(pos);
-        poseStack.translate(-pos.getX(), -pos.getY(), -pos.getZ());
-        Matrix4f matrix4f = poseStack.last().pose();
+        Matrix4f matrix4f = pose.pose();
 
-        float minX = (float) box.minX + 0.001F;
-        float minY = (float) box.minY + 0.001F;
-        float minZ = (float) box.minZ + 0.001F;
-        float maxX = (float) box.maxX - 0.001F;
-        float maxY = Math.max(minY, (float) box.minY + waterAmount - 0.001F);
-        float maxZ = (float) box.maxZ - 0.001F;
+        float minX = 0.001F;
+        float minY = 0.001F;
+        float minZ = 0.001F;
+        float maxX = 0.999F;
+        float maxY = Math.max(minY, waterAmount - 0.001F);
+        float maxZ = 0.999F;
 
         FluidState fluidState = Fluids.WATER.defaultFluidState();
         FluidModel model = modelSet.get(Fluids.WATER.defaultFluidState());

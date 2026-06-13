@@ -5,12 +5,12 @@ import net.industrybase.api.pipe.MergeCheckResult;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.function.BiConsumer;
+
+import org.jspecify.annotations.Nullable;
 
 public class EmptyUnit extends PipeUnit {
 	protected static final EmptyUnit INSTANCE = new EmptyUnit();
@@ -83,7 +83,6 @@ public class EmptyUnit extends PipeUnit {
 		return this;
 	}
 
-	@Nullable
 	@Override
 	public Direction.Axis getAxis() {
 		return null;
@@ -124,7 +123,6 @@ public class EmptyUnit extends PipeUnit {
 		return MergeCheckResult.FAIL_DIRECTION;
 	}
 
-	@NotNull
 	@Override
 	public Iterator<BlockPos> iterator() {
 		return new EmptyIterator();

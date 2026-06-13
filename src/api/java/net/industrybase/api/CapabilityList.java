@@ -1,11 +1,12 @@
 package net.industrybase.api;
 
+import org.jspecify.annotations.Nullable;
+
 import net.industrybase.api.energy.IElectricPower;
 import net.industrybase.api.energy.IMechanicalTransmit;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.capabilities.BlockCapability;
-import org.jetbrains.annotations.Nullable;
 
 public class CapabilityList {
 	public static final BlockCapability<IMechanicalTransmit, @Nullable Direction> MECHANICAL_TRANSMIT = BlockCapability.createSided(create("mechanical_transmit"), IMechanicalTransmit.class);

@@ -5,9 +5,7 @@ import net.industrybase.api.pipe.PipeNetwork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
-import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import org.jspecify.annotations.Nullable;
 import java.util.ArrayDeque;
 import java.util.EnumMap;
@@ -350,7 +348,6 @@ public class StraightPipe extends PipeUnit {
 		return EmptyUnit.INSTANCE;
 	}
 
-	@Nonnull
 	@Override
 	public Direction.Axis getAxis() {
 		return this.axis;
@@ -443,7 +440,6 @@ public class StraightPipe extends PipeUnit {
 		return MergeCheckResult.FAIL_DIRECTION;
 	}
 
-	@NotNull
 	@Override
 	public Iterator<BlockPos> iterator() {
 		return new PipeUnitIterator(this.start, this.end, this.axis, this.core);

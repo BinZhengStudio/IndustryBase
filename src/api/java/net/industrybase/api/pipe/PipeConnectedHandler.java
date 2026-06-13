@@ -1,11 +1,12 @@
 package net.industrybase.api.pipe;
 
+import org.jspecify.annotations.Nullable;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.AABB;
-import org.jetbrains.annotations.Nullable;
 
 public class PipeConnectedHandler {
 	@Nullable

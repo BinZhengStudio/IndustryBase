@@ -6,12 +6,12 @@ import net.industrybase.api.pipe.StorageInterface;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.function.BiConsumer;
+
+import org.jspecify.annotations.Nullable;
 
 public class FluidStorage extends PipeUnit {
 	protected final StorageInterface storageInterface;
@@ -154,7 +154,6 @@ public class FluidStorage extends PipeUnit {
 		return MergeCheckResult.FAIL_DIRECTION;
 	}
 
-	@NotNull
 	@Override
 	public Iterator<BlockPos> iterator() {
 		return new PipeRouter.SingleUnitIterator(this.core);

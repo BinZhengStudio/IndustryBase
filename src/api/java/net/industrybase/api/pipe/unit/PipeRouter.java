@@ -5,12 +5,12 @@ import net.industrybase.api.pipe.PipeNetwork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.function.BiConsumer;
+
+import org.jspecify.annotations.Nullable;
 
 public class PipeRouter extends PipeUnit {
 	private final PipeUnit[] neighbors = new PipeUnit[6];
@@ -316,7 +316,6 @@ public class PipeRouter extends PipeUnit {
 		return MergeCheckResult.PASS;
 	}
 
-	@NotNull
 	@Override
 	public Iterator<BlockPos> iterator() {
 		return new SingleUnitIterator(this.core);

@@ -114,8 +114,15 @@ public class MechanicalTransmit implements IMechanicalTransmit, ValueIOSerializa
 
     @Override
     public void serialize(ValueOutput output) {
-        output.putInt("Power", this.getPower());
-        output.putInt("Resistance", this.getResistance());
+        if (this.network != null) {
+            // if registered (block entity loaded), save newer values
+            this.tmpPower = this.getPower();
+            this.tmpResistance = this.getResistance();
+        }
+
+        // if not registered, save old values (probably from before unloading)
+        output.putInt("Power", this.tmpPower);
+        output.putInt("Resistance", this.tmpResistance);
     }
 
     @Override

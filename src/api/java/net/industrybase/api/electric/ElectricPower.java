@@ -25,7 +25,7 @@ import java.util.Set;
 public class ElectricPower implements IElectricPower, EnergyHandler, ValueIOSerializable {
 	private double tmpOutputPower;
 	private double tmpInputPower;
-	private final Set<BlockPos> tmpConn;
+	private Set<BlockPos> tmpConn;
 	@Nullable
 	private Level level;
 	private final BlockPos pos;
@@ -38,7 +38,7 @@ public class ElectricPower implements IElectricPower, EnergyHandler, ValueIOSeri
 	public ElectricPower(BlockEntity blockEntity) {
 		this.blockEntity = blockEntity;
 		this.pos = blockEntity.getBlockPos();
-		this.tmpConn = new HashSet<>();
+		this.tmpConn = new HashSet<>(0);
 	}
 
 	/**
@@ -134,11 +134,19 @@ public class ElectricPower implements IElectricPower, EnergyHandler, ValueIOSeri
 
     @Override
     public void serialize(ValueOutput output) {
-        output.putDouble("Output", this.getOutputPower());
-        output.putDouble("Input", this.getInputPower());
+        if (this.network != null) {
+            // if registered (block entity loaded), save newer values
+            this.tmpOutputPower = this.getOutputPower();
+            this.tmpInputPower = this.getInputPower();
+            this.tmpConn = this.network.getWireConn(this.pos);
+        }
+
+        // if not registered, save old values (probably from before unloading)
+        output.putDouble("Output", this.tmpOutputPower);
+        output.putDouble("Input", this.tmpInputPower);
 
         var list = output.list("Connections", ExtraCodecs.NBT);
-        this.network.getWireConn(this.pos).forEach(pos -> list.add(NbtHelper.writeBlockPos(pos)));
+        this.tmpConn.forEach(pos -> list.add(NbtHelper.writeBlockPos(pos)));
     }
 
     @Override
@@ -146,10 +154,13 @@ public class ElectricPower implements IElectricPower, EnergyHandler, ValueIOSeri
         this.tmpOutputPower = input.getDoubleOr("Output", 0.0);
         this.tmpInputPower = input.getDoubleOr("Input", 0.0);
 
+        // create new set to avoid modifying the original one
+        HashSet<BlockPos> connections = new HashSet<>();
         input.listOrEmpty("Connections", ExtraCodecs.NBT).forEach(entry -> {
             if (entry instanceof IntArrayTag tag)
-                NbtHelper.readBlockPos(tag).ifPresent(this.tmpConn::add);
+                NbtHelper.readBlockPos(tag).ifPresent(connections::add);
         });
+        this.tmpConn = connections;
     }
 
     @Override

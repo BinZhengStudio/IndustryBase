@@ -157,6 +157,15 @@ public class PipeNetwork {
         });
     }
 
+    /**
+     * Link pipe at node in direction.
+     * Note: this method won't check if the connection is valid,
+     * it assumes the node and neighbor are valid pipes (not fluid handler) and
+     * connected.
+     * 
+     * @param node      the node to link
+     * @param direction the direction to link, from node to neighbor
+     */
     private void link(BlockPos node, Direction direction) { // TODO: fluid merge
         BlockPos secondary = node.immutable();
         Direction.Axis connectAxis = direction.getAxis();
@@ -170,6 +179,7 @@ public class PipeNetwork {
                 AABB primaryAABB = this.aabbCache.remove(primary);
                 AABB secondaryAABB = this.aabbCache.remove(secondary);
 
+                // assume that primary and secondary are pipes, directly create pipe unit
                 StraightPipe unit = StraightPipe.newInstance(secondary, this, connectAxis, secondaryAABB);
                 this.components.put(secondary, unit);
                 if (primaryAABB.equals(secondaryAABB)) {
@@ -476,6 +486,8 @@ public class PipeNetwork {
     }
 
     private void tickFluidTasks() {
+        // swap tasks before run
+        // make sure that calling `getTask()` in current tick will add task to next tick
         ArrayDeque<PipeUnit> tasks = this.fluidTasks;
         this.fluidTasks = this.nextFluidTasks;
         this.nextFluidTasks = tasks;

@@ -148,6 +148,7 @@ public class PipeNetwork {
             for (Direction side : Direction.values()) {
                 this.spilt(pos, side);
             }
+            this.aabbCache.remove(pos);
             this.components.remove(pos);
             callback.run();
         });

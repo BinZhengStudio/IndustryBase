@@ -44,7 +44,7 @@ public abstract class PipeUnit implements Iterable<BlockPos> {
 		this.addAmount(direction, amount, false); // add amount first, because addTick may use latest amount
 		this.addTick(direction, speed);
 
-		// latter is neighbor, in order to prevent neighbor task cut in task queue
+		// later is neighbor, in order to prevent neighbor task cut in task queue
 		neighbor.addAmount(neighborFace, -amount, false);
 		neighbor.addTick(neighborFace, -speed);
 	}

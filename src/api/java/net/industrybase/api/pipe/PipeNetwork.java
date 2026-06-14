@@ -10,7 +10,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.AABB;
@@ -137,11 +136,8 @@ public class PipeNetwork {
 
     private boolean pipeConnected(BlockPos pos, Direction side) {
         if (this.level.isAreaLoaded(pos, 0)) {
-            BlockState state = this.level.getBlockState(pos);
-            try {
-                return state.getValue(PROPERTIES.get(side)); // TODO: different blocks
-            } catch (Exception e) {
-                return false;
+            if (this.level.getBlockEntity(pos) instanceof IPipe pipe) {
+                return pipe.connected(side);
             }
         }
         return false;

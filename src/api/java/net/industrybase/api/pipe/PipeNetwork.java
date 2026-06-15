@@ -206,60 +206,7 @@ public class PipeNetwork {
                     return; // if cache is null, primary didn't registered
                 }
 
-                AABB secondaryAABB = secondaryUnit.getAABB();
-                MergeCheckResult result = secondaryUnit.canMergeWith(direction, primaryAABB);
-
-                if (result == MergeCheckResult.PASS) {
-                    if (secondaryUnit.isSingle()) {
-                        StraightPipe unit = StraightPipe.newInstance(secondary, this, connectAxis, secondaryAABB);
-                        unit.addPipe(primary);
-
-                        PipeUnit secondaryNeighbor = secondaryUnit.getNeighbor(direction.getOpposite());
-                        if (secondaryNeighbor != null)
-                            secondaryNeighbor.setNeighbor(direction, unit);
-                        unit.setNeighbor(direction.getOpposite(), secondaryNeighbor);
-
-                        this.components.put(secondary, unit);
-                        this.components.put(primary, unit);
-                    } else {
-                        secondaryUnit.addPipe(primary);
-                        this.components.put(primary, secondaryUnit);
-                    }
-                } else if (result == MergeCheckResult.FAIL_AABB) {
-                    StraightPipe primaryNewUnit = StraightPipe.newInstance(primary, this, connectAxis, primaryAABB);
-                    this.components.put(primary, primaryNewUnit);
-
-                    if (secondaryUnit.isSingle()) {
-                        StraightPipe secondaryNewUnit = StraightPipe.newInstance(secondary, this, connectAxis,
-                                secondaryAABB);
-                        this.components.put(secondary, secondaryNewUnit);
-
-                        // inherit old neighbor
-                        PipeUnit secondaryNeighbor = secondaryUnit.getNeighbor(direction.getOpposite());
-                        if (secondaryNeighbor != null)
-                            secondaryNeighbor.setNeighbor(direction, secondaryNewUnit);
-                        secondaryNewUnit.setNeighbor(direction.getOpposite(), secondaryNeighbor);
-
-                        // add neighbor each other
-                        primaryNewUnit.setNeighbor(direction.getOpposite(), secondaryNewUnit);
-                        secondaryNewUnit.setNeighbor(direction, primaryNewUnit);
-                    } else {
-                        primaryNewUnit.setNeighbor(direction.getOpposite(), secondaryUnit);
-                        secondaryUnit.setNeighbor(direction, primaryNewUnit);
-                    }
-                } else {
-                    if (secondaryUnit.getType() == UnitType.STRAIGHT_PIPE) {
-                        PipeUnit[] secondaryCut = ((StraightPipe) secondaryUnit).toRouter(primary);
-                        for (PipeUnit unit : secondaryCut) {
-                            unit.forEach(pos -> this.components.put(pos, unit));
-                        }
-                    }
-                    PipeUnit newSecondaryUnit = this.components.get(secondary);
-                    PipeUnit newPrimaryUnit = StraightPipe.newInstance(primary, this, connectAxis, primaryAABB);
-                    newPrimaryUnit.setNeighbor(direction.getOpposite(), newSecondaryUnit);
-                    newSecondaryUnit.setNeighbor(direction, newPrimaryUnit);
-                    this.components.put(primary, newPrimaryUnit);
-                }
+                this.linkToNull(secondaryUnit, secondary, primary, direction, primaryAABB);
             } else if (secondaryUnit == null) {
                 AABB secondaryAABB = this.aabbCache.remove(secondary);
                 if (secondaryAABB == null) {
@@ -268,58 +215,7 @@ public class PipeNetwork {
                     return; // if cache is null, secondary didn't registered
                 }
 
-                AABB primaryAABB = primaryUnit.getAABB();
-                MergeCheckResult result = primaryUnit.canMergeWith(direction.getOpposite(), secondaryAABB);
-
-                if (result == MergeCheckResult.PASS) {
-                    if (primaryUnit.isSingle()) {
-                        StraightPipe unit = StraightPipe.newInstance(primary, this, connectAxis, primaryAABB);
-                        unit.addPipe(secondary);
-
-                        PipeUnit primaryNeighbor = primaryUnit.getNeighbor(direction);
-                        if (primaryNeighbor != null)
-                            primaryNeighbor.setNeighbor(direction.getOpposite(), unit);
-                        unit.setNeighbor(direction, primaryNeighbor);
-
-                        this.components.put(secondary, unit);
-                        this.components.put(primary, unit);
-                    } else {
-                        primaryUnit.addPipe(secondary);
-                        this.components.put(secondary, primaryUnit);
-                    }
-                } else if (result == MergeCheckResult.FAIL_AABB) {
-                    StraightPipe secondaryNewUnit = StraightPipe.newInstance(secondary, this, connectAxis,
-                            secondaryAABB);
-                    this.components.put(secondary, secondaryNewUnit);
-
-                    if (primaryUnit.isSingle()) {
-                        StraightPipe primaryNewUnit = StraightPipe.newInstance(primary, this, connectAxis, primaryAABB);
-                        this.components.put(primary, primaryNewUnit);
-
-                        PipeUnit primaryNeighbor = primaryUnit.getNeighbor(direction);
-                        if (primaryNeighbor != null)
-                            primaryNeighbor.setNeighbor(direction.getOpposite(), primaryNewUnit);
-                        primaryNewUnit.setNeighbor(direction, primaryNeighbor);
-
-                        secondaryNewUnit.setNeighbor(direction, primaryNewUnit);
-                        primaryNewUnit.setNeighbor(direction.getOpposite(), secondaryNewUnit);
-                    } else {
-                        secondaryNewUnit.setNeighbor(direction, primaryUnit);
-                        primaryUnit.setNeighbor(direction.getOpposite(), secondaryNewUnit);
-                    }
-                } else {
-                    if (primaryUnit.getType() == UnitType.STRAIGHT_PIPE) {
-                        PipeUnit[] primaryCut = ((StraightPipe) primaryUnit).toRouter(primary);
-                        for (PipeUnit unit : primaryCut) {
-                            unit.forEach(pos -> this.components.put(pos, unit));
-                        }
-                    }
-                    PipeUnit newPrimaryUnit = this.components.get(primary);
-                    PipeUnit newSecondaryUnit = StraightPipe.newInstance(secondary, this, connectAxis, secondaryAABB);
-                    newPrimaryUnit.setNeighbor(direction.getOpposite(), newSecondaryUnit);
-                    newSecondaryUnit.setNeighbor(direction, newPrimaryUnit);
-                    this.components.put(secondary, newSecondaryUnit);
-                }
+                this.linkToNull(primaryUnit, primary, secondary, direction.getOpposite(), secondaryAABB);
             } else if (primaryUnit != secondaryUnit) {
                 AABB primaryAABB = primaryUnit.getAABB();
                 AABB secondaryAABB = secondaryUnit.getAABB();
@@ -390,6 +286,61 @@ public class PipeNetwork {
                     newSecondaryUnit.setNeighbor(direction, newPrimaryUnit);
                 }
             }
+        }
+    }
+
+    private void linkToNull(PipeUnit nodeUnit, BlockPos node, BlockPos another, Direction direction, AABB anotherAABB) {
+        Direction.Axis connectAxis = direction.getAxis();
+        AABB nodeAABB = nodeUnit.getAABB();
+        MergeCheckResult result = nodeUnit.canMergeWith(direction, anotherAABB);
+
+        if (result == MergeCheckResult.PASS) {
+            if (nodeUnit.isSingle()) {
+                StraightPipe unit = StraightPipe.newInstance(node, this, connectAxis, nodeAABB);
+                unit.addPipe(another);
+
+                PipeUnit nodeNeighbor = nodeUnit.getNeighbor(direction.getOpposite());
+                if (nodeNeighbor != null)
+                    nodeNeighbor.setNeighbor(direction, unit);
+                unit.setNeighbor(direction.getOpposite(), nodeNeighbor);
+
+                this.components.put(another, unit);
+                this.components.put(node, unit);
+            } else {
+                nodeUnit.addPipe(another);
+                this.components.put(another, nodeUnit);
+            }
+        } else if (result == MergeCheckResult.FAIL_AABB) {
+            StraightPipe anotherNewUnit = StraightPipe.newInstance(another, this, connectAxis, anotherAABB);
+            this.components.put(another, anotherNewUnit);
+
+            if (nodeUnit.isSingle()) {
+                StraightPipe nodeNewUnit = StraightPipe.newInstance(node, this, connectAxis, nodeAABB);
+                this.components.put(node, nodeNewUnit);
+
+                PipeUnit nodeNeighbor = nodeUnit.getNeighbor(direction.getOpposite());
+                if (nodeNeighbor != null)
+                    nodeNeighbor.setNeighbor(direction, nodeNewUnit);
+                nodeNewUnit.setNeighbor(direction.getOpposite(), nodeNeighbor);
+
+                anotherNewUnit.setNeighbor(direction.getOpposite(), nodeNewUnit);
+                nodeNewUnit.setNeighbor(direction, anotherNewUnit);
+            } else {
+                anotherNewUnit.setNeighbor(direction.getOpposite(), nodeUnit);
+                nodeUnit.setNeighbor(direction, anotherNewUnit);
+            }
+        } else {
+            if (nodeUnit.getType() == UnitType.STRAIGHT_PIPE) {
+                PipeUnit[] nodeCut = ((StraightPipe) nodeUnit).toRouter(node);
+                for (PipeUnit unit : nodeCut) {
+                    unit.forEach(pos -> this.components.put(pos, unit));
+                }
+            }
+            PipeUnit newNodeUnit = this.components.get(node);
+            PipeUnit newAnotherUnit = StraightPipe.newInstance(another, this, connectAxis, anotherAABB);
+            newNodeUnit.setNeighbor(direction, newAnotherUnit);
+            newAnotherUnit.setNeighbor(direction.getOpposite(), newNodeUnit);
+            this.components.put(another, newAnotherUnit);
         }
     }
 

@@ -156,9 +156,11 @@ public class PipeNetwork {
 
     /**
      * Link pipe at node in direction.
+     * 
      * Note: this method won't check if the connection is valid,
-     * it assumes the node and neighbor are valid pipes (not fluid handler) and
-     * connected.
+     * and it assumes who doesn't be contained in the components map are valid pipes
+     * (not fluid handler) and connected. If the node or neighbor is fluid handler,
+     * create and put it into components map before calling this method.
      * 
      * @param node      the node to link
      * @param direction the direction to link, from node to neighbor
@@ -176,6 +178,14 @@ public class PipeNetwork {
                 AABB primaryAABB = this.aabbCache.remove(primary);
                 AABB secondaryAABB = this.aabbCache.remove(secondary);
 
+                // if cache is null, at least one of them didn't registered
+                // it indicates the node seized linking before neighbor register
+                if (primaryAABB == null || secondaryAABB == null) {
+                    this.connections.remove(secondary, direction);
+                    this.connections.remove(primary, direction.getOpposite());
+                    return;
+                }
+
                 // assume that primary and secondary are pipes, directly create pipe unit
                 StraightPipe unit = StraightPipe.newInstance(secondary, this, connectAxis, secondaryAABB);
                 this.components.put(secondary, unit);
@@ -188,6 +198,12 @@ public class PipeNetwork {
                 }
             } else if (primaryUnit == null) {
                 AABB primaryAABB = this.aabbCache.remove(primary);
+                if (primaryAABB == null) {
+                    this.connections.remove(secondary, direction);
+                    this.connections.remove(primary, direction.getOpposite());
+                    return; // if cache is null, primary didn't registered
+                }
+
                 AABB secondaryAABB = secondaryUnit.getAABB();
                 MergeCheckResult result = secondaryUnit.canMergeWith(direction, primaryAABB);
 
@@ -243,8 +259,14 @@ public class PipeNetwork {
                     this.components.put(primary, newPrimaryUnit);
                 }
             } else if (secondaryUnit == null) {
-                AABB primaryAABB = primaryUnit.getAABB();
                 AABB secondaryAABB = this.aabbCache.remove(secondary);
+                if (secondaryAABB == null) {
+                    this.connections.remove(secondary, direction);
+                    this.connections.remove(primary, direction.getOpposite());
+                    return; // if cache is null, secondary didn't registered
+                }
+
+                AABB primaryAABB = primaryUnit.getAABB();
                 MergeCheckResult result = primaryUnit.canMergeWith(direction.getOpposite(), secondaryAABB);
 
                 if (result == MergeCheckResult.PASS) {

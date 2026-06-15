@@ -80,19 +80,18 @@ public class WireConnectableRenderer<T extends BlockEntity>
 
         poseStack.pushPose();
         poseStack.translate(0.5F, 0.5F, 0.5F);
-        submitNodeCollector.submitCustomGeometry(poseStack, RenderTypes.leash(), (pose, buffer) -> {
-            state.wires.forEach(pos -> this.renderWire(state.blockPos, pos, poseStack, buffer));
-        });
+        state.wires.forEach(target -> submitNodeCollector.submitCustomGeometry(poseStack, RenderTypes.leash(),
+                (pose, buffer) -> this.renderWire(state.blockPos, target, pose, buffer)));
         poseStack.popPose();
     }
 
-    private void renderWire(BlockPos from, BlockPos to, PoseStack poseStack, VertexConsumer buffer) {
+    private void renderWire(BlockPos from, BlockPos to, PoseStack.Pose pose, VertexConsumer buffer) {
         Vec3 start = Vec3.atCenterOf(from);
         Vec3 end = Vec3.atCenterOf(to);
         float totalX = (float) (end.x - start.x);
         float totalY = (float) (end.y - start.y);
         float totalZ = (float) (end.z - start.z);
-        Matrix4f matrix4f = poseStack.last().pose();
+        Matrix4f matrix4f = pose.pose();
         float width = 0.05F; // 导线粗细
         float square = totalX * totalX + totalZ * totalZ;
         float horizonDistance = Mth.sqrt(totalX * totalX + totalZ * totalZ);

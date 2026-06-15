@@ -110,7 +110,9 @@ public class PipeNetwork {
                 if (this.pipeConnected(pos, side)) {
                     if (this.pipeConnected(pos.relative(side), side.getOpposite())) {
                         this.link(pos, side);
-                    } else if (!this.canConnect(pos.relative(side), side.getOpposite())) {
+                    } else if (this.canConnect(pos.relative(side), side.getOpposite())) {
+                        this.linkPipeToHandler(pos, side);
+                    } else {
                         this.spilt(pos, side);
                     }
                 } else {
@@ -405,6 +407,53 @@ public class PipeNetwork {
             if (primaryUnit != secondaryUnit) {
                 primaryUnit.setNeighbor(direction.getOpposite(), secondaryUnit);
                 secondaryUnit.setNeighbor(direction, primaryUnit);
+            }
+        }
+    }
+
+    /**
+     * Link pipe at node in direction to fluid handler at the end of direction.
+     * Note: this method will check if the handler is valid, but won't check if the
+     * node is valid pipe or connected to the direction.
+     * 
+     * @param node
+     * @param direction
+     */
+    private void linkPipeToHandler(BlockPos node, Direction direction) {
+        BlockPos secondary = node.immutable();
+        Direction.Axis connectAxis = direction.getAxis();
+        if (this.connections.put(secondary, direction)) {
+            BlockPos primary = secondary.relative(direction);
+            this.connections.put(primary, direction.getOpposite());
+
+            PipeUnit handlerUnit = this.components.get(primary);
+            if (handlerUnit == null || handlerUnit.getType() != UnitType.FLUID_STORAGE)
+                return;
+
+            PipeUnit secondaryUnit = this.components.get(secondary);
+
+            if (secondaryUnit == null) {
+                AABB secondaryAABB = this.aabbCache.remove(secondary);
+                PipeUnit newSecondaryUnit = StraightPipe.newInstance(secondary, this, direction.getAxis(),
+                        secondaryAABB);
+
+                handlerUnit.setNeighbor(direction.getOpposite(), newSecondaryUnit);
+                newSecondaryUnit.setNeighbor(direction, handlerUnit);
+
+                this.components.put(secondary, newSecondaryUnit);
+            } else if (secondaryUnit != handlerUnit) {
+                if (connectAxis != secondaryUnit.getAxis()) {
+                    if (secondaryUnit.getType() == UnitType.STRAIGHT_PIPE) {
+                        PipeUnit[] secondaryCut = ((StraightPipe) secondaryUnit).toRouter(secondary);
+                        for (PipeUnit unit : secondaryCut) {
+                            unit.forEach((pos) -> this.components.put(pos, unit));
+                        }
+                    }
+                }
+                // re get the secondary unit because of unit update
+                PipeUnit newSecondaryUnit = this.components.get(secondary);
+                handlerUnit.setNeighbor(direction.getOpposite(), newSecondaryUnit);
+                newSecondaryUnit.setNeighbor(direction, handlerUnit);
             }
         }
     }

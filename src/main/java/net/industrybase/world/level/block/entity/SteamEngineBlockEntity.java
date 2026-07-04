@@ -253,7 +253,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 
 	@Nullable
 	public MechanicalTransmit getTransmit(Direction side) {
-		if (side.getAxis() == this.getBlockState().getValue(SteamEngineBlock.AXIS)) {
+		if (side != null && side.getAxis() == this.getBlockState().getValue(SteamEngineBlock.AXIS)) {
 			return this.transmit;
 		}
 		return null;
@@ -261,7 +261,7 @@ public class SteamEngineBlockEntity extends BaseContainerBlockEntity implements 
 
 	@Nullable
 	public FluidStacksResourceHandler getTank(Direction side) {
-		if (side.getAxis() != this.getBlockState().getValue(SteamEngineBlock.AXIS)) {
+		if (side != null && side.getAxis() != this.getBlockState().getValue(SteamEngineBlock.AXIS)) {
 			return this.tank;
 		}
 		return null;

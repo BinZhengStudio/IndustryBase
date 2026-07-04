@@ -59,7 +59,7 @@ public class CreativeSteamEngineBlockEntity extends SteamEngineBlockEntity {
 
 	@Nullable
 	public MechanicalTransmit getTransmit(Direction side) {
-		if (side.getAxis() == this.getBlockState().getValue(BlockStateProperties.AXIS)) {
+		if (side != null && side.getAxis() == this.getBlockState().getValue(BlockStateProperties.AXIS)) {
 			return this.transmit;
 		}
 		return null;

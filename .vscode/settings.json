@@ -41,4 +41,5 @@
     ],
     "java.dependency.packagePresentation": "hierarchical",
     "java.configuration.updateBuildConfiguration": "interactive",
+    "java.gradle.buildServer.enabled": "off",
 }

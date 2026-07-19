@@ -11,9 +11,9 @@ import org.joml.Quaternionf;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Transformation;
 
-import net.industrybase.api.IndustryBaseApi;
 import net.industrybase.api.network.client.SubscribeSpeedPacket;
 import net.industrybase.client.renderer.blockentity.state.TransmissionRodRenderState;
+import net.industrybase.util.Util;
 import net.industrybase.world.level.block.LayeredTransmissionRodBlock;
 import net.industrybase.world.level.block.TransmissionRodBlock;
 import net.industrybase.world.level.block.entity.TransmissionRodBlockEntity;
@@ -42,10 +42,10 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 public class TransmissionRodRenderer
         implements BlockEntityRenderer<TransmissionRodBlockEntity, TransmissionRodRenderState> {
     public static final ModelLayerLocation MAIN = new ModelLayerLocation(
-            Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID, "transmission_rod"), "main");
-    private static final Identifier LAYER_1 = Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID,
+            Util.withNamespace( "transmission_rod"), "main");
+    private static final Identifier LAYER_1 = Util.withNamespace(
             "textures/entity/transmission_rod/layer_1.png");
-    private static final Identifier LAYER_2 = Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID,
+    private static final Identifier LAYER_2 = Util.withNamespace(
             "textures/entity/transmission_rod/layer_2.png");
     private static final EnumMap<Direction.Axis, Transformation> TRANSFORMATIONS = new EnumMap<>(Direction.Axis.class);
     private final TransmissionRodRenderer.TransmissionRodModel model;

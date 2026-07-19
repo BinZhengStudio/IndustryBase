@@ -2,7 +2,7 @@ package net.industrybase.world.level.block;
 
 import com.mojang.serialization.MapCodec;
 
-import net.industrybase.api.IndustryBaseApi;
+import net.industrybase.util.Util;
 import net.industrybase.world.level.block.entity.TransmissionRodBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 public class BirchTransmissionRodBlock extends WoodTransmissionRod {
-    public static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID,
+    public static final Identifier TEXTURE = Util.withNamespace(
             "transmission_rod/birch");
 	public static final MapCodec<BirchTransmissionRodBlock> CODEC = simpleCodec(BirchTransmissionRodBlock::new);
 

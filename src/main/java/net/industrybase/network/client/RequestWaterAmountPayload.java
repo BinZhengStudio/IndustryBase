@@ -1,6 +1,6 @@
 package net.industrybase.network.client;
 
-import net.industrybase.api.IndustryBaseApi;
+import net.industrybase.util.Util;
 import net.industrybase.network.server.WaterAmountPayload;
 import net.industrybase.world.level.block.entity.FluidTankBlockEntity;
 import net.industrybase.world.level.block.entity.SteamEngineBlockEntity;
@@ -8,14 +8,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class RequestWaterAmountPayload implements CustomPacketPayload {
-	public static final CustomPacketPayload.Type<RequestWaterAmountPayload> TYPE = new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID, "request_water_amount"));
+	public static final CustomPacketPayload.Type<RequestWaterAmountPayload> TYPE = new CustomPacketPayload.Type<>(Util.withNamespace( "request_water_amount"));
 	public static final StreamCodec<RegistryFriendlyByteBuf, RequestWaterAmountPayload> STREAM_CODEC =
 			StreamCodec.composite(
 					BlockPos.STREAM_CODEC,

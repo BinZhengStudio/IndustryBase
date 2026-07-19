@@ -1,6 +1,6 @@
 package net.industrybase.client.gui.screens.inventory;
 
-import net.industrybase.api.IndustryBaseApi;
+import net.industrybase.util.Util;
 import net.industrybase.world.inventory.CreativeSteamEngineMenu;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -10,7 +10,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 public class CreativeSteamEngineScreen extends AbstractContainerScreen<CreativeSteamEngineMenu> {
-    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID,
+    private static final Identifier TEXTURE = Util.withNamespace(
             "textures/gui/container/steam_engine.png");
 
     public CreativeSteamEngineScreen(CreativeSteamEngineMenu menu, Inventory playerInventory, Component title) {

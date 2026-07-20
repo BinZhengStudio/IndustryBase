@@ -3,6 +3,7 @@ package net.industrybase.client.renderer.blockentity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.industrybase.api.electric.IWireConnectable;
+import net.industrybase.client.renderer.RenderTypeList;
 import net.industrybase.client.renderer.blockentity.state.WireConnectableRenderState;
 import net.industrybase.api.network.client.SubscribeWireConnPacket;
 import net.minecraft.client.Minecraft;
@@ -10,7 +11,6 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer.CrumblingOverlay;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.LightCoordsUtil;
@@ -80,7 +80,7 @@ public class WireConnectableRenderer<T extends BlockEntity>
 
         poseStack.pushPose();
         poseStack.translate(0.5F, 0.5F, 0.5F);
-        state.wires.forEach(target -> submitNodeCollector.submitCustomGeometry(poseStack, RenderTypes.leash(),
+        state.wires.forEach(target -> submitNodeCollector.submitCustomGeometry(poseStack, RenderTypeList.WIRE,
                 (pose, buffer) -> this.renderWire(state.blockPos, target, pose, buffer)));
         poseStack.popPose();
     }

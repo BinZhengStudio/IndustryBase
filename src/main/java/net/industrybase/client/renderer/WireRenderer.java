@@ -36,6 +36,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
 
 @EventBusSubscriber(modid = IndustryBaseApi.MODID, value = Dist.CLIENT)
 public class WireRenderer {
@@ -89,14 +90,19 @@ public class WireRenderer {
             renderWire(builder, start, end, level);
         }
 
+        this.releaseMesh();
+
+        this.mesh = builder.build();
+    }
+
+    private void releaseMesh() {
         if (this.mesh != null) {
             try {
                 this.mesh.close();
             } finally {
             }
         }
-
-        this.mesh = builder.build();
+        this.mesh = null;
     }
 
     private static int renderWire(BufferBuilder buffer, BlockPos start, BlockPos end, ClientLevel level) {
@@ -224,26 +230,9 @@ public class WireRenderer {
         }
     }
 
-    private static class IndexBufferBuilder implements AutoCloseable {
-        private final GpuBuffer buffer;
-        private final VertexFormat.IndexType type;
-
-        public IndexBufferBuilder(GpuBuffer buffer, VertexFormat.IndexType type) {
-            this.buffer = buffer;
-            this.type = type;
-        }
-
-        public GpuBuffer getBuffer() {
-            return this.buffer;
-        }
-
-        public VertexFormat.IndexType getType() {
-            return this.type;
-        }
-
-        @Override
-        public void close() {
-            this.buffer.close();
-        }
+    @SubscribeEvent
+    public static void onUnload(LevelEvent.Unload event) {
+        INSTANCE.wireConn.clear();
+        INSTANCE.releaseMesh();
     }
 }

@@ -2,11 +2,13 @@ package net.industrybase.world.level.block.entity;
 
 import net.industrybase.capability.electric.ElectricPower;
 import net.industrybase.capability.electric.IWireConnectable;
+import net.industrybase.network.client.SubscribeWireConnPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -23,6 +25,9 @@ public class InsulatorBlockEntity extends BlockEntity implements IWireConnectabl
 	public void onLoad() {
 		super.onLoad();
 		this.electricPower.register();
+        if (this.level.isClientSide()) {
+            ClientPacketDistributor.sendToServer(new SubscribeWireConnPacket(this.worldPosition));
+        }
 	}
 
     @Override
@@ -41,23 +46,5 @@ public class InsulatorBlockEntity extends BlockEntity implements IWireConnectabl
 	public void setRemoved() {
 		this.electricPower.remove();
 		super.setRemoved();
-	}
-
-	@Override
-	public boolean isSubscribed() {
-		return this.subscribed;
-	}
-
-	@Override
-	public void setSubscribed() {
-		this.subscribed = true;
-	}
-
-	@Override
-	public Set<BlockPos> getWires() {
-		if (this.electricPower.getNetwork() != null) {
-			return this.electricPower.getNetwork().getWireConn(this.worldPosition);
-		}
-		return new HashSet<>();
 	}
 }

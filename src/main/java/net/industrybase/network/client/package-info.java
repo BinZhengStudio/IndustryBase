@@ -1,4 +1,4 @@
 @NullMarked
-package net.industrybase.capability.network;
+package net.industrybase.network.client;
 
 import org.jspecify.annotations.NullMarked;

@@ -1,8 +1,8 @@
 package net.industrybase.capability.electric;
 
 import net.industrybase.capability.energy.IElectricPower;
-import net.industrybase.capability.network.client.UnsubscribeWireConnPacket;
 import net.industrybase.capability.util.NbtHelper;
+import net.industrybase.network.client.UnsubscribeWireConnPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.*;
 import net.minecraft.util.ExtraCodecs;

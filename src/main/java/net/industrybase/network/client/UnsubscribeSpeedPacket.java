@@ -1,7 +1,7 @@
-package net.industrybase.capability.network.client;
+package net.industrybase.network.client;
 
 import net.industrybase.capability.IndustryBaseApi;
-import net.industrybase.capability.electric.ElectricNetwork;
+import net.industrybase.capability.transmit.TransmitNetwork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -10,23 +10,23 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public class UnsubscribeWireConnPacket implements CustomPacketPayload {
-	public static final Type<UnsubscribeWireConnPacket> TYPE = new Type<>(Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID, "unsubscribe_wire_conn"));
-	public static final StreamCodec<RegistryFriendlyByteBuf, UnsubscribeWireConnPacket> STREAM_CODEC =
+public class UnsubscribeSpeedPacket implements CustomPacketPayload {
+	public static final Type<UnsubscribeSpeedPacket> TYPE = new Type<>(Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID, "unsubscribe_speed"));
+	public static final StreamCodec<RegistryFriendlyByteBuf, UnsubscribeSpeedPacket> STREAM_CODEC =
 			StreamCodec.composite(
 					BlockPos.STREAM_CODEC,
 					packet -> packet.target,
-					UnsubscribeWireConnPacket::new);
+					UnsubscribeSpeedPacket::new);
 	private final BlockPos target;
 
-	public UnsubscribeWireConnPacket(BlockPos target) {
+	public UnsubscribeSpeedPacket(BlockPos target) {
 		this.target = target;
 	}
 
-	public static void handler(UnsubscribeWireConnPacket msg, IPayloadContext context) {
+	public static void handler(UnsubscribeSpeedPacket msg, IPayloadContext context) {
 		context.enqueueWork(() -> {
 			ServerPlayer player = (ServerPlayer) context.player();
-			ElectricNetwork.Manager.get(player.level()).unsubscribeWire(msg.target, player);
+			TransmitNetwork.Manager.get(player.level()).unsubscribe(msg.target, player);
 		});
 //		context.setPacketHandled(true);
 	}

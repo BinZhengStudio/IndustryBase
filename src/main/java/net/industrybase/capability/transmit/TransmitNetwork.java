@@ -4,9 +4,9 @@ import com.google.common.collect.*;
 
 import net.industrybase.capability.CapabilityList;
 import net.industrybase.capability.IndustryBaseApi;
-import net.industrybase.capability.network.server.RootSyncPacket;
-import net.industrybase.capability.network.server.RootsSyncPacket;
-import net.industrybase.capability.network.server.SpeedSyncPacket;
+import net.industrybase.network.server.RootSyncPacket;
+import net.industrybase.network.server.RootsSyncPacket;
+import net.industrybase.network.server.SpeedSyncPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;

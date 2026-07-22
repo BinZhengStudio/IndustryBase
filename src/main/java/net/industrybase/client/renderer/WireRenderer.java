@@ -223,4 +223,27 @@ public class WireRenderer {
             throw err;
         }
     }
+
+    private static class IndexBufferBuilder implements AutoCloseable {
+        private final GpuBuffer buffer;
+        private final VertexFormat.IndexType type;
+
+        public IndexBufferBuilder(GpuBuffer buffer, VertexFormat.IndexType type) {
+            this.buffer = buffer;
+            this.type = type;
+        }
+
+        public GpuBuffer getBuffer() {
+            return this.buffer;
+        }
+
+        public VertexFormat.IndexType getType() {
+            return this.type;
+        }
+
+        @Override
+        public void close() {
+            this.buffer.close();
+        }
+    }
 }

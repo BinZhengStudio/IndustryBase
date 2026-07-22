@@ -1,4 +1,4 @@
-package net.industrybase.capability.network.server;
+package net.industrybase.network.server;
 
 import net.industrybase.capability.IndustryBaseApi;
 import net.industrybase.capability.transmit.TransmitNetwork;

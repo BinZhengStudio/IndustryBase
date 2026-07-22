@@ -1,8 +1,8 @@
-package net.industrybase.capability.network.client;
+package net.industrybase.network.client;
 
 import net.industrybase.capability.IndustryBaseApi;
 import net.industrybase.capability.electric.ElectricNetwork;
-import net.industrybase.capability.network.server.ReturnWireConnPacket;
+import net.industrybase.network.server.ReturnWireConnPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;

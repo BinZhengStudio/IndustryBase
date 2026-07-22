@@ -3,7 +3,7 @@ package net.industrybase.capability.transmit;
 import com.google.errorprone.annotations.CanIgnoreReturnValue;
 
 import net.industrybase.capability.energy.IMechanicalTransmit;
-import net.industrybase.capability.network.client.UnsubscribeSpeedPacket;
+import net.industrybase.network.client.UnsubscribeSpeedPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;

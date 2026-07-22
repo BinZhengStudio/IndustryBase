@@ -4,8 +4,8 @@ import com.google.common.collect.*;
 
 import net.industrybase.capability.CapabilityList;
 import net.industrybase.capability.IndustryBaseApi;
-import net.industrybase.capability.network.server.RemoveWiresPacket;
-import net.industrybase.capability.network.server.WireConnSyncPacket;
+import net.industrybase.network.server.RemoveWiresPacket;
+import net.industrybase.network.server.WireConnSyncPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;

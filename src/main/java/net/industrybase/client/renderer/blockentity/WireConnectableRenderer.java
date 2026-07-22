@@ -4,9 +4,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.industrybase.capability.electric.IWireConnectable;
-import net.industrybase.capability.network.client.SubscribeWireConnPacket;
 import net.industrybase.client.renderer.RenderTypeList;
 import net.industrybase.client.renderer.blockentity.state.WireConnectableRenderState;
+import net.industrybase.network.client.SubscribeWireConnPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;

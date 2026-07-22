@@ -1,4 +1,4 @@
-package net.industrybase.capability.network.server;
+package net.industrybase.network.server;
 
 import net.industrybase.capability.IndustryBaseApi;
 import net.industrybase.capability.transmit.TransmitNetwork;
@@ -10,30 +10,26 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public class ReturnSpeedPacket implements CustomPacketPayload {
-	public static final Type<ReturnSpeedPacket> TYPE = new Type<>(Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID, "return_speed"));
-	public static final StreamCodec<RegistryFriendlyByteBuf, ReturnSpeedPacket> STREAM_CODEC =
+public class SpeedSyncPacket implements CustomPacketPayload {
+	public static final Type<SpeedSyncPacket> TYPE = new Type<>(Identifier.fromNamespaceAndPath(IndustryBaseApi.MODID, "speed_sync"));
+	public static final StreamCodec<RegistryFriendlyByteBuf, SpeedSyncPacket> STREAM_CODEC =
 			StreamCodec.composite(
-					BlockPos.STREAM_CODEC,
-					packet -> packet.target,
 					BlockPos.STREAM_CODEC,
 					packet -> packet.root,
 					ByteBufCodecs.FLOAT,
 					packet -> packet.speed,
-					ReturnSpeedPacket::new);
-	private final BlockPos target;
+					SpeedSyncPacket::new);
 	private final BlockPos root;
 	private final float speed;
 
-	public ReturnSpeedPacket(BlockPos target, BlockPos root, float speed) {
-		this.target = target;
+	public SpeedSyncPacket(BlockPos root, float speed) {
 		this.root = root;
 		this.speed = speed;
 	}
 
-	public static void handler(ReturnSpeedPacket msg, IPayloadContext context) {
+	public static void handler(SpeedSyncPacket msg, IPayloadContext context) {
 		context.enqueueWork(() ->
-				TransmitNetwork.Manager.get(context.player().level()).addClientSpeed(msg.target, msg.root, msg.speed));
+				TransmitNetwork.Manager.get(context.player().level()).updateClientSpeed(msg.root, msg.speed));
 //		context.setPacketHandled(true);
 	}
 

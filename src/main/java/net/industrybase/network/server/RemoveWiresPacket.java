@@ -2,6 +2,7 @@ package net.industrybase.network.server;
 
 import net.industrybase.capability.IndustryBaseApi;
 import net.industrybase.capability.electric.ElectricNetwork;
+import net.industrybase.client.renderer.WireRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -23,7 +24,7 @@ public class RemoveWiresPacket implements CustomPacketPayload {
 	}
 
 	public static void handler(RemoveWiresPacket msg, IPayloadContext context) {
-		context.enqueueWork(() -> ElectricNetwork.Manager.get(context.player().level()).removeClientWires(msg.from));
+		context.enqueueWork(() -> WireRenderer.INSTANCE.removeWires(msg.from));
 //		context.setPacketHandled(true);
 	}
 

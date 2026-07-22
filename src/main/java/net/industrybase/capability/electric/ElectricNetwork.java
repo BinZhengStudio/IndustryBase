@@ -81,31 +81,6 @@ public class ElectricNetwork {
         this.subscribes.remove(pos, player);
     }
 
-    public void addClientWire(BlockPos from, BlockPos to) {
-        if (this.level.isClientSide()) {
-            this.wireConn.put(from, to);
-        }
-    }
-
-    public void addClientWire(BlockPos pos, Collection<BlockPos> data) {
-        if (this.level.isClientSide()) {
-            this.wireConn.putAll(pos, data);
-        }
-    }
-
-    public void removeClientWire(BlockPos from, BlockPos to) {
-        if (this.level.isClientSide()) {
-            this.wireConn.remove(from, to);
-        }
-    }
-
-    public void removeClientWires(BlockPos from) {
-        if (this.level.isClientSide()) {
-            this.wireConn.get(from).forEach(to -> this.wireConn.remove(to, from));
-            this.wireConn.removeAll(from);
-        }
-    }
-
     public double getMachineOutput(BlockPos pos) {
         return this.machineEnergy.get(pos).getOutput();
     }

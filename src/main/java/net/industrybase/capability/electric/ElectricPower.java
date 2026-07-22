@@ -2,6 +2,7 @@ package net.industrybase.capability.electric;
 
 import net.industrybase.capability.energy.IElectricPower;
 import net.industrybase.capability.util.NbtHelper;
+import net.industrybase.client.renderer.WireRenderer;
 import net.industrybase.network.client.UnsubscribeWireConnPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.*;
@@ -68,7 +69,7 @@ public class ElectricPower implements IElectricPower, EnergyHandler, ValueIOSeri
 			if (this.network != null) {
 				if (level.isClientSide()) {
 					ClientPacketDistributor.sendToServer(new UnsubscribeWireConnPacket(this.pos));
-					this.network.removeClientWires(this.pos);
+					WireRenderer.INSTANCE.removeWires(this.pos);
 				} else {
 					this.network.removeBlock(this.pos, this.blockEntity::setChanged);
 				}

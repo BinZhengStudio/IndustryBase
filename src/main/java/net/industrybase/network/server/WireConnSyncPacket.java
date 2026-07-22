@@ -1,7 +1,7 @@
 package net.industrybase.network.server;
 
 import net.industrybase.capability.IndustryBaseApi;
-import net.industrybase.capability.electric.ElectricNetwork;
+import net.industrybase.client.renderer.WireRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -33,14 +33,13 @@ public class WireConnSyncPacket implements CustomPacketPayload {
 
 	public static void handler(WireConnSyncPacket msg, IPayloadContext context) {
 		context.enqueueWork(() -> {
-			ElectricNetwork network = ElectricNetwork.Manager.get(context.player().level());
+			var renderer = WireRenderer.INSTANCE;
 			if (msg.isRemove) {
-				network.removeClientWire(msg.from, msg.to);
+				renderer.removeWire(msg.from, msg.to);
 			} else {
-				network.addClientWire(msg.from, msg.to);
+				renderer.addWire(msg.from, msg.to);
 			}
 		});
-//		context.setPacketHandled(true);
 	}
 
 	@Override

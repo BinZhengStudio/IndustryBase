@@ -1,7 +1,7 @@
 package net.industrybase.network.server;
 
 import net.industrybase.capability.IndustryBaseApi;
-import net.industrybase.capability.electric.ElectricNetwork;
+import net.industrybase.client.renderer.WireRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -32,8 +32,7 @@ public class ReturnWireConnPacket implements CustomPacketPayload {
 
 	public static void handler(ReturnWireConnPacket msg, IPayloadContext context) {
 		context.enqueueWork(() ->
-				ElectricNetwork.Manager.get(context.player().level()).addClientWire(msg.target, msg.wireConn));
-//		context.setPacketHandled(true);
+				WireRenderer.INSTANCE.addWire(msg.target, msg.wireConn));
 	}
 
 	@Override

@@ -1,6 +1,6 @@
 package net.industrybase.client.renderer.blockentity;
 
-import net.industrybase.api.IndustryBaseApi;
+import net.industrybase.capability.IndustryBaseApi;
 import net.industrybase.world.level.block.entity.BlockEntityTypeList;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;

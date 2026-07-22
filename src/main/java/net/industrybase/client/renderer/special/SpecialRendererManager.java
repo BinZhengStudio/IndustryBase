@@ -2,8 +2,7 @@ package net.industrybase.client.renderer.special;
 
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterSpecialModelRendererEvent;
-
-import net.industrybase.api.IndustryBaseApi;
+import net.industrybase.capability.IndustryBaseApi;
 import net.industrybase.util.Util;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;

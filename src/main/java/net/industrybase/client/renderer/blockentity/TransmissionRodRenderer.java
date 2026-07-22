@@ -11,7 +11,7 @@ import org.joml.Quaternionf;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Transformation;
 
-import net.industrybase.api.network.client.SubscribeSpeedPacket;
+import net.industrybase.capability.network.client.SubscribeSpeedPacket;
 import net.industrybase.client.renderer.blockentity.state.TransmissionRodRenderState;
 import net.industrybase.util.Util;
 import net.industrybase.world.level.block.LayeredTransmissionRodBlock;

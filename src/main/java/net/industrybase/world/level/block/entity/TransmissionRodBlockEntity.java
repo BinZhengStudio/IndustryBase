@@ -1,7 +1,7 @@
 package net.industrybase.world.level.block.entity;
 
-import net.industrybase.api.transmit.MechanicalTransmit;
-import net.industrybase.api.transmit.TransmitNetwork;
+import net.industrybase.capability.transmit.MechanicalTransmit;
+import net.industrybase.capability.transmit.TransmitNetwork;
 import net.industrybase.world.level.block.CreativeDynamoBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

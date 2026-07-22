@@ -1,6 +1,6 @@
 package net.industrybase.world.inventory;
 
-import net.industrybase.api.IndustryBaseApi;
+import net.industrybase.capability.IndustryBaseApi;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;

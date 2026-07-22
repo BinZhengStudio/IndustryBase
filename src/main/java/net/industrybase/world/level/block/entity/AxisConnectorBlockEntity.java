@@ -1,6 +1,6 @@
 package net.industrybase.world.level.block.entity;
 
-import net.industrybase.api.transmit.MechanicalTransmit;
+import net.industrybase.capability.transmit.MechanicalTransmit;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;

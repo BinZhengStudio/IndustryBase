@@ -1,11 +1,12 @@
 package net.industrybase.server.command;
 
-import net.industrybase.api.IndustryBaseApi;
-import net.industrybase.api.electric.ConnectHelper;
-import net.industrybase.api.electric.IWireConnectable;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+
+import net.industrybase.capability.IndustryBaseApi;
+import net.industrybase.capability.electric.ConnectHelper;
+import net.industrybase.capability.electric.IWireConnectable;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;

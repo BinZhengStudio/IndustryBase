@@ -1,6 +1,6 @@
 package net.industrybase.network;
 
-import net.industrybase.api.IndustryBaseApi;
+import net.industrybase.capability.IndustryBaseApi;
 import net.industrybase.network.client.RequestWaterAmountPayload;
 import net.industrybase.network.server.WaterAmountPayload;
 import net.neoforged.bus.api.SubscribeEvent;

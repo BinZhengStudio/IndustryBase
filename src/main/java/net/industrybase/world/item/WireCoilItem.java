@@ -1,7 +1,7 @@
 package net.industrybase.world.item;
 
-import net.industrybase.api.IndustryBaseApi;
-import net.industrybase.api.electric.ConnectHelper;
+import net.industrybase.capability.IndustryBaseApi;
+import net.industrybase.capability.electric.ConnectHelper;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;

@@ -1,6 +1,6 @@
 package net.industrybase.world.level.block;
 
-import net.industrybase.api.IndustryBaseApi;
+import net.industrybase.capability.IndustryBaseApi;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.neoforge.registries.DeferredBlock;

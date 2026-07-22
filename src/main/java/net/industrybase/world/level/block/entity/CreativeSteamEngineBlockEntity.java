@@ -2,8 +2,8 @@ package net.industrybase.world.level.block.entity;
 
 import org.jspecify.annotations.Nullable;
 
-import net.industrybase.api.IndustryBaseApi;
-import net.industrybase.api.transmit.MechanicalTransmit;
+import net.industrybase.capability.IndustryBaseApi;
+import net.industrybase.capability.transmit.MechanicalTransmit;
 import net.industrybase.world.inventory.CreativeSteamEngineMenu;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

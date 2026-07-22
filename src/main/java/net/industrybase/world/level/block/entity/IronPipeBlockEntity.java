@@ -1,7 +1,7 @@
 package net.industrybase.world.level.block.entity;
 
-import net.industrybase.api.pipe.IPipe;
-import net.industrybase.api.pipe.PipeNetwork;
+import net.industrybase.capability.pipe.IPipe;
+import net.industrybase.capability.pipe.PipeNetwork;
 import net.industrybase.world.level.block.PipeBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

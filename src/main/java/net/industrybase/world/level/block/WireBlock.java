@@ -2,8 +2,9 @@ package net.industrybase.world.level.block;
 
 import com.google.common.collect.ImmutableMap;
 import com.mojang.serialization.MapCodec;
-import net.industrybase.api.CapabilityList;
-import net.industrybase.api.electric.ElectricNetwork;
+
+import net.industrybase.capability.CapabilityList;
+import net.industrybase.capability.electric.ElectricNetwork;
 import net.industrybase.world.level.block.entity.WireBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

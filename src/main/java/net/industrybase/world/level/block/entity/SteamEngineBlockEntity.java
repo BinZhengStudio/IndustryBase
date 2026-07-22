@@ -2,11 +2,11 @@ package net.industrybase.world.level.block.entity;
 
 import org.jspecify.annotations.Nullable;
 
-import net.industrybase.api.IndustryBaseApi;
-import net.industrybase.api.pipe.PipeConnectedHandler;
-import net.industrybase.api.pipe.StorageInterface;
-import net.industrybase.api.transmit.MechanicalTransmit;
-import net.industrybase.api.transmit.TransmitNetwork;
+import net.industrybase.capability.IndustryBaseApi;
+import net.industrybase.capability.pipe.PipeConnectedHandler;
+import net.industrybase.capability.pipe.StorageInterface;
+import net.industrybase.capability.transmit.MechanicalTransmit;
+import net.industrybase.capability.transmit.TransmitNetwork;
 import net.industrybase.network.server.WaterAmountPayload;
 import net.industrybase.world.inventory.SteamEngineMenu;
 import net.industrybase.world.level.block.SteamEngineBlock;

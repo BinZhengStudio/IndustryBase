@@ -1,6 +1,6 @@
 package net.industrybase.client.gui.screens;
 
-import net.industrybase.api.IndustryBaseApi;
+import net.industrybase.capability.IndustryBaseApi;
 import net.industrybase.client.gui.screens.inventory.CreativeSteamEngineScreen;
 import net.industrybase.client.gui.screens.inventory.SteamEngineScreen;
 import net.industrybase.world.inventory.MenuTypeList;

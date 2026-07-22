@@ -1,10 +1,10 @@
 package net.industrybase.world.level.block.entity;
 
-import net.industrybase.api.electric.ElectricNetwork;
-import net.industrybase.api.electric.ElectricPower;
-import net.industrybase.api.transmit.MechanicalTransmit;
-import net.industrybase.api.transmit.TransmitNetwork;
-import net.industrybase.api.util.ElectricHelper;
+import net.industrybase.capability.electric.ElectricNetwork;
+import net.industrybase.capability.electric.ElectricPower;
+import net.industrybase.capability.transmit.MechanicalTransmit;
+import net.industrybase.capability.transmit.TransmitNetwork;
+import net.industrybase.capability.util.ElectricHelper;
 import net.industrybase.world.level.block.CreativeDynamoBlock;
 import net.industrybase.world.level.block.DynamoBlock;
 import net.minecraft.core.BlockPos;

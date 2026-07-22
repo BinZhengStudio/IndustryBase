@@ -2,7 +2,7 @@ package net.industrybase.world.level.block;
 
 import org.jspecify.annotations.Nullable;
 
-import net.industrybase.api.transmit.TransmitNetwork;
+import net.industrybase.capability.transmit.TransmitNetwork;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;

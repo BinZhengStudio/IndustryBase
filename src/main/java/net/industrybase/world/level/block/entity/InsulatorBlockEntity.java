@@ -1,7 +1,7 @@
 package net.industrybase.world.level.block.entity;
 
-import net.industrybase.api.electric.ElectricPower;
-import net.industrybase.api.electric.IWireConnectable;
+import net.industrybase.capability.electric.ElectricPower;
+import net.industrybase.capability.electric.IWireConnectable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;

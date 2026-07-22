@@ -1,6 +1,6 @@
 package net.industrybase.world.level.block.entity;
 
-import net.industrybase.api.electric.ElectricPower;
+import net.industrybase.capability.electric.ElectricPower;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;

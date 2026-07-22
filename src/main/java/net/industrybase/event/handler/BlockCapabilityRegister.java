@@ -1,7 +1,7 @@
 package net.industrybase.event.handler;
 
-import net.industrybase.api.CapabilityList;
-import net.industrybase.api.IndustryBaseApi;
+import net.industrybase.capability.CapabilityList;
+import net.industrybase.capability.IndustryBaseApi;
 import net.industrybase.world.level.block.entity.*;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;

@@ -1,7 +1,8 @@
 package net.industrybase;
 
 import com.mojang.logging.LogUtils;
-import net.industrybase.api.IndustryBaseApi;
+
+import net.industrybase.capability.IndustryBaseApi;
 import net.industrybase.world.inventory.MenuTypeList;
 import net.industrybase.world.item.CreativeModeTabList;
 import net.industrybase.world.item.ItemList;

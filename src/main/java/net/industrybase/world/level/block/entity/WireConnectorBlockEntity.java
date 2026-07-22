@@ -1,8 +1,8 @@
 package net.industrybase.world.level.block.entity;
 
-import net.industrybase.api.electric.ElectricNetwork;
-import net.industrybase.api.electric.ElectricPower;
-import net.industrybase.api.electric.IWireConnectable;
+import net.industrybase.capability.electric.ElectricNetwork;
+import net.industrybase.capability.electric.ElectricPower;
+import net.industrybase.capability.electric.IWireConnectable;
 import net.industrybase.world.item.ItemList;
 import net.industrybase.world.level.block.DynamoBlock;
 import net.industrybase.world.level.block.WireConnectorBlock;

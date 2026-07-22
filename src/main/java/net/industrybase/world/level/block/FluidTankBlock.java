@@ -1,7 +1,8 @@
 package net.industrybase.world.level.block;
 
 import com.mojang.serialization.MapCodec;
-import net.industrybase.api.pipe.PipeNetwork;
+
+import net.industrybase.capability.pipe.PipeNetwork;
 import net.industrybase.world.level.block.entity.BlockEntityTypeList;
 import net.industrybase.world.level.block.entity.FluidTankBlockEntity;
 import net.minecraft.core.BlockPos;

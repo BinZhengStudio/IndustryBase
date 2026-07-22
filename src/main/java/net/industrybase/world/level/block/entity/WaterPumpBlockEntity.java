@@ -1,6 +1,6 @@
 package net.industrybase.world.level.block.entity;
 
-import net.industrybase.api.pipe.PipeConnectedHandler;
+import net.industrybase.capability.pipe.PipeConnectedHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;

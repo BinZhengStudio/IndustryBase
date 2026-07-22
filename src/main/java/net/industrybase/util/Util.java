@@ -1,6 +1,6 @@
 package net.industrybase.util;
 
-import net.industrybase.api.IndustryBaseApi;
+import net.industrybase.capability.IndustryBaseApi;
 import net.minecraft.resources.Identifier;
 
 public class Util {

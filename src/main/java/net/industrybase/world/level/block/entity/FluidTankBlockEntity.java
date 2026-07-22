@@ -1,7 +1,7 @@
 package net.industrybase.world.level.block.entity;
 
-import net.industrybase.api.pipe.PipeConnectedHandler;
-import net.industrybase.api.pipe.StorageInterface;
+import net.industrybase.capability.pipe.PipeConnectedHandler;
+import net.industrybase.capability.pipe.StorageInterface;
 import net.industrybase.network.server.WaterAmountPayload;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

@@ -21,7 +21,7 @@ public class RenderPipelineList {
             .withFragmentShader(Util.withNamespace("wire"))
             .withSampler("Sampler2") // use the sampler2 for light map
             .withCull(false)
-            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR_LIGHTMAP, VertexFormat.Mode.TRIANGLE_STRIP)
+            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR_LIGHTMAP, VertexFormat.Mode.TRIANGLES)
             .withDepthStencilState(DepthStencilState.DEFAULT)
             .build();
 

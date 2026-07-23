@@ -1,24 +1,29 @@
 package net.industrybase.client.renderer;
 
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Map;
 import java.util.OptionalDouble;
 import java.util.OptionalInt;
+import java.util.function.IntConsumer;
+import java.util.function.Supplier;
 
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 import org.jspecify.annotations.Nullable;
+import org.lwjgl.system.MemoryUtil;
 
 import com.google.common.collect.HashMultimap;
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.systems.CommandEncoder;
+import com.mojang.blaze3d.systems.GpuDevice;
 import com.mojang.blaze3d.systems.RenderPass;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.systems.ScissorState;
 import com.mojang.blaze3d.textures.FilterMode;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
-import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
 
@@ -46,66 +51,110 @@ public class WireRenderer {
     private final OutputTarget outputTarget = OutputTarget.MAIN_TARGET;
     private final RenderPipeline pipeline = RenderPipelineList.WIRE;
 
-    private @Nullable MeshData mesh;
+    private @Nullable GpuBuffer vertices;
+    private @Nullable GpuBuffer indices;
+    private VertexFormat.IndexType indexType = VertexFormat.IndexType.SHORT;
+    private int indexCount = 0;
 
     public void addWire(BlockPos from, BlockPos to) {
-        this.wireConn.put(from, to);
-
-        this.buildMesh();
+        if (this.wireConn.put(from, to))
+            this.buildBuffer();
     }
 
     public void addWire(BlockPos pos, Collection<BlockPos> data) {
-        this.wireConn.putAll(pos, data);
-
-        this.buildMesh();
+        if (this.wireConn.putAll(pos, data))
+            this.buildBuffer();
     }
 
     public void removeWire(BlockPos from, BlockPos to) {
-        this.wireConn.remove(from, to);
-
-        this.buildMesh();
+        if (this.wireConn.remove(from, to))
+            this.buildBuffer();
     }
 
     public void removeWires(BlockPos from) {
-        this.wireConn.get(from).forEach(to -> this.wireConn.remove(to, from));
-        this.wireConn.removeAll(from);
+        var flag = false;
+        for (var to : this.wireConn.get(from)) {
+            if (this.wireConn.remove(to, from))
+                flag = true;
+        }
+        if (this.wireConn.removeAll(from).size() > 0)
+            flag = true;
 
-        this.buildMesh();
+        if (flag)
+            this.buildBuffer();
     }
 
-    private void buildMesh() {
+    private void buildBuffer() {
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null)
             return;
 
-        var bufferSize = this.wireConn.size() * 100 * this.pipeline.getVertexFormat().getVertexSize();
+        var wireCount = this.wireConn.size();
+        var vertexSize = wireCount * 100 * this.pipeline.getVertexFormat().getVertexSize();
 
-        // TODO can buffer be exactly sized?
-        var builder = new BufferBuilder(ByteBufferBuilder.exactlySized(bufferSize), this.pipeline.getVertexFormatMode(),
+        var builder = new BufferBuilder(ByteBufferBuilder.exactlySized(vertexSize), this.pipeline.getVertexFormatMode(),
                 this.pipeline.getVertexFormat());
 
         for (Map.Entry<BlockPos, BlockPos> entry : this.wireConn.entries()) {
             var start = entry.getKey();
             var end = entry.getValue();
-            renderWire(builder, start, end, level);
+            addWireVertex(builder, start, end, level);
         }
 
-        this.releaseMesh();
+        var mesh = builder.build();
+        if (mesh == null) {
+            this.releaseBuffer();
+            return;
+        }
 
-        this.mesh = builder.build();
-    }
-
-    private void releaseMesh() {
-        if (this.mesh != null) {
+        try {
+            var vertexBuffer = mesh.vertexBuffer();
+            this.vertices = uploadToBuffer(this.vertices, vertexBuffer,
+                    GpuBuffer.USAGE_VERTEX | GpuBuffer.USAGE_COPY_DST,
+                    () -> "Vertex buffer for industrybase wire rendering");
+        } catch (Exception e) {
+            this.releaseBuffer();
+        } finally {
             try {
-                this.mesh.close();
-            } finally {
+                mesh.close();
+            } catch (Exception e) {
             }
         }
-        this.mesh = null;
+
+        this.indexType = mesh.drawState().indexType();
+
+        this.indexCount = wireCount * 288; // 24 segments * 2 triangles * 3 vertices * 2 per wire
+        var indexSize = this.indexCount * this.indexType.bytes;
+
+        var indexBuffer = MemoryUtil.memAlloc(indexSize);
+        IntConsumer indexConsumer = switch (this.indexType) {
+            case SHORT -> (value -> indexBuffer.putShort((short) value));
+            default -> indexBuffer::putInt;
+        };
+
+        try {
+            for (int i = 0; i < wireCount; i++) {
+                for (int j = 0; j < 2; j++) {
+                    for (int k = 0; k < 48; k++) {
+                        var index = (i * 100) + (j * 50) + k;
+                        indexConsumer.accept(index);
+                        indexConsumer.accept(index + 1);
+                        indexConsumer.accept(index + 2);
+                    }
+                }
+            }
+
+            indexBuffer.flip();
+            this.indices = uploadToBuffer(this.indices, indexBuffer, GpuBuffer.USAGE_INDEX | GpuBuffer.USAGE_COPY_DST,
+                    () -> "Index buffer for industrybase wire rendering");
+        } catch (Exception e) {
+            this.releaseBuffer();
+        } finally {
+            MemoryUtil.memFree(indexBuffer);
+        }
     }
 
-    private static int renderWire(BufferBuilder buffer, BlockPos start, BlockPos end, ClientLevel level) {
+    private static int addWireVertex(BufferBuilder buffer, BlockPos start, BlockPos end, ClientLevel level) {
         float totalX = end.getX() - start.getX();
         float totalY = end.getY() - start.getY();
         float totalZ = end.getZ() - start.getZ();
@@ -129,7 +178,7 @@ public class WireRenderer {
                 level.getBrightness(LightLayer.SKY, end)
         };
 
-        for (int i = 0; i <= 24; ++i) { // 25 segments in total
+        for (int i = 0; i <= 24; ++i) { // 24 segments in total
             addVertexPair(buffer, Vec3.atCenterOf(start), totalX, totalY, totalZ, horizonDistance, lights, widthY,
                     widthX, widthZ, i);
         }
@@ -174,10 +223,49 @@ public class WireRenderer {
                 .setLight(packedLight);
     }
 
+    private static GpuBuffer uploadToBuffer(@Nullable GpuBuffer target, ByteBuffer buffer, @GpuBuffer.Usage int usage,
+            Supplier<String> label) {
+        GpuDevice device = RenderSystem.getDevice();
+
+        if (target == null) {
+            target = device.createBuffer(label, usage, buffer);
+        } else {
+            if (target.size() < buffer.remaining()) {
+                target.close();
+                target = device.createBuffer(label, usage, buffer);
+            } else {
+                CommandEncoder encoder = device.createCommandEncoder();
+                encoder.writeToBuffer(target.slice(), buffer);
+            }
+        }
+
+        return target;
+    }
+
+    private void releaseBuffer() {
+        try {
+            this.vertices.close();
+        } catch (Exception e) {
+            // Ignore exception, include NPE
+        } finally {
+            this.vertices = null;
+        }
+
+        try {
+            this.indices.close();
+        } catch (Exception e) {
+        } finally {
+            this.indices = null;
+        }
+    }
+
     @SubscribeEvent
     public static void renderWire(final RenderLevelStageEvent.AfterOpaqueBlocks event) {
-        var mesh = INSTANCE.mesh;
-        if (mesh == null)
+        var vertices = INSTANCE.vertices;
+        var indices = INSTANCE.indices;
+        var indexType = INSTANCE.indexType;
+        var indexCount = INSTANCE.indexCount;
+        if (vertices == null || indices == null)
             return;
 
         var renderTarget = INSTANCE.outputTarget.getRenderTarget();
@@ -186,22 +274,10 @@ public class WireRenderer {
                         1.0F, 1.0F), new Vector3f(),
                         TextureTransform.DEFAULT_TEXTURING.getMatrix());
 
-        GpuBuffer vertices = INSTANCE.pipeline.getVertexFormat().uploadImmediateVertexBuffer(mesh.vertexBuffer());
-        GpuBuffer indices;
-        VertexFormat.IndexType indexType;
-        if (mesh.indexBuffer() == null) {
-            RenderSystem.AutoStorageIndexBuffer autoIndices = RenderSystem.getSequentialBuffer(mesh.drawState().mode());
-            indices = autoIndices.getBuffer(mesh.drawState().indexCount());
-            indexType = autoIndices.type();
-        } else {
-            indices = INSTANCE.pipeline.getVertexFormat().uploadImmediateIndexBuffer(mesh.indexBuffer());
-            indexType = mesh.drawState().indexType();
-        }
-
         try (RenderPass renderPass = RenderSystem.getDevice()
                 .createCommandEncoder()
                 .createRenderPass(
-                        () -> "IndustryBase: wires",
+                        () -> "IndustryBase:wires",
                         renderTarget.getColorTextureView(),
                         OptionalInt.empty(),
                         renderTarget.getDepthTextureView(),
@@ -224,7 +300,7 @@ public class WireRenderer {
 
             renderPass.setIndexBuffer(indices, indexType);
 
-            renderPass.drawIndexed(0, 0, mesh.drawState().indexCount(), 1);
+            renderPass.drawIndexed(0, 0, indexCount, 1);
         } catch (Throwable err) {
             throw err;
         }
@@ -233,6 +309,6 @@ public class WireRenderer {
     @SubscribeEvent
     public static void onUnload(LevelEvent.Unload event) {
         INSTANCE.wireConn.clear();
-        INSTANCE.releaseMesh();
+        INSTANCE.releaseBuffer();
     }
 }

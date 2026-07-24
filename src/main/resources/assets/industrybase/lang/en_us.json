@@ -29,6 +29,8 @@
   "block.industrybase.iron_pipe": "Iron Pipe",
   "block.industrybase.water_pump": "Water Pump",
   "block.industrybase.fluid_tank": "Fluid Tank",
+  "block.industrybase.insulator": "Insulator",
+  "block.industrybase.decorate_pipe": "Decorative Pipe",
 
   "container.industrybase.steam_engine": "Mini Steam Engine",
   "container.industrybase.creative_steam_engine": "Creative Mini Steam Engine",

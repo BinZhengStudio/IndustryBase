@@ -55,4 +55,5 @@ public class ItemList {
     public static final DeferredItem<BlockItem> WATER_PUMP = ITEM.registerSimpleBlockItem(BlockList.WATER_PUMP);
     public static final DeferredItem<BlockItem> FLUID_TANK = ITEM.registerSimpleBlockItem(BlockList.FLUID_TANK);
     public static final DeferredItem<BlockItem> INSULATOR = ITEM.registerSimpleBlockItem(BlockList.INSULATOR);
+    public static final DeferredItem<BlockItem> DECORATE_PIPE = ITEM.registerSimpleBlockItem(BlockList.DECORATE_PIPE);
 }

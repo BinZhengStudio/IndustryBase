@@ -29,6 +29,8 @@
   "block.industrybase.iron_pipe": "鐵管道",
   "block.industrybase.water_pump": "水泵",
   "block.industrybase.fluid_tank": "流體儲罐",
+  "block.industrybase.insulator": "绝缘子",
+  "block.industrybase.decorate_pipe": "裝飾管道",
 
   "container.industrybase.steam_engine": "小型蒸汽機",
   "container.industrybase.creative_steam_engine": "創造小型蒸汽機",

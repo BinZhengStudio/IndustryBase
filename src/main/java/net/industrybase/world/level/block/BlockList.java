@@ -78,4 +78,6 @@ public class BlockList {
             FluidTankBlock::new, () -> BlockBehaviour.Properties.ofFullCopy(Blocks.GLASS));
     public static final DeferredBlock<InsulatorBlock> INSULATOR = BLOCK.registerBlock("insulator", InsulatorBlock::new,
             () -> BlockBehaviour.Properties.ofFullCopy(BlockList.WIRE_CONNECTOR.get()));
+    public static final DeferredBlock<DecoratePipeBlock> DECORATE_PIPE = BLOCK.registerBlock("decorate_pipe",
+            DecoratePipeBlock::new, () -> BlockBehaviour.Properties.ofFullCopy(Blocks.IRON_BLOCK));
 }

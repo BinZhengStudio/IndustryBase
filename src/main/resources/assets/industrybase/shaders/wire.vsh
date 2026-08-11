@@ -20,7 +20,7 @@ void main() {
     vec3 pos = Position - CameraBlockPos + CameraOffset;
     gl_Position = ProjMat * ModelViewMat * vec4(pos, 1.0);
 
-    sphericalVertexDistance = fog_spherical_distance(Position);
-    cylindricalVertexDistance = fog_cylindrical_distance(Position);
+    sphericalVertexDistance = fog_spherical_distance(pos);
+    cylindricalVertexDistance = fog_cylindrical_distance(pos);
     vertexColor = Color * ColorModulator * sample_lightmap(Sampler2, UV2);
 }
